@@ -116,13 +116,16 @@ app.post('/api/create-payment-intent', async (req, res) => {
     const esFormacionProfesional = !level && description?.includes('formación');
 
     // Configuración del pago
+    // Crear el Payment Intent
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(amount * 100), // Convertir a céntimos
       currency,
-      payment_method_types: ['card'],
       metadata: {
         app: 'academia-inmigrantes',
-        environment: NODE_ENV,
+        environment: NODE_ENV || 'production',
+        descripcion: req.body.descripcion || 'Pago Academia de Inmigrantes',
+        bloque: req.body.bloque || 'general',
+        returnUrl: req.body.returnUrl || 'academiainmigrantes://stripe-redirect',
         ...(esMatriculaNivel && { level }),
         ...(esFormacionProfesional && { tipo: 'formacion-profesional' }),
         ...metadata
@@ -131,8 +134,8 @@ app.post('/api/create-payment-intent', async (req, res) => {
         ? `Matrícula ${level} - Academia de Inmigrantes`
         : description || 'Pago Academia de Inmigrantes',
       automatic_payment_methods: {
-        enabled: true,
-      },
+        enabled: true
+      }
     });
 
     console.log(`✅ PaymentIntent creado: ${paymentIntent.id}`);
