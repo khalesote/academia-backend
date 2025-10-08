@@ -162,26 +162,16 @@ app.post('/api/test-connection', async (req, res) => {
     console.log('📅 Timestamp:', new Date().toISOString());
     console.log('🌐 Headers:', req.headers);
     console.log('📦 Body recibido:', req.body);
+    console.log('🔧 NODE_ENV:', process.env.NODE_ENV);
+    console.log('💳 STRIPE_SECRET_KEY configurada:', !!process.env.STRIPE_SECRET_KEY);
     
-    // Responder con un mensaje de éxito
+    // Responder con un mensaje de éxito (solo una respuesta)
     res.status(200).json({
       status: 'success',
       message: 'Test endpoint funcionando correctamente',
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV || 'development',
       receivedHeaders: req.headers,
-      receivedBody: req.body
-    });
-    console.log('🌐 Headers:', req.headers);
-    console.log('📦 Body recibido:', req.body);
-    console.log('🔧 NODE_ENV:', process.env.NODE_ENV);
-    console.log('💳 STRIPE_SECRET_KEY configurada:', !!process.env.STRIPE_SECRET_KEY);
-    
-    res.json({
-      status: 'success',
-      message: 'Test endpoint funcionando correctamente',
-      timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV,
       receivedBody: req.body,
       stripeConfigured: !!process.env.STRIPE_SECRET_KEY
     });
