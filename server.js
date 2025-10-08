@@ -36,33 +36,65 @@ app.use((req, res, next) => {
   next();
 });
 
-// Middleware
+// Configuración de CORS
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
+// Parsear JSON
 app.use(express.json());
 
-// Middleware de logs
-app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
-  next();
-});
-
-// Ruta de inicio
-app.get('/', (req, res) => {
+// Ruta de salud
+app.get('/api/health', (req, res) => {
   res.json({
-    status: 'success',
-    message: 'API de Pagos - Academia de Inmigrantes',
-    version: '1.0.0',
-    environment: NODE_ENV,
+    status: 'ok',
     timestamp: new Date().toISOString(),
+    environment: NODE_ENV,
+    stripeConfigured: !!process.env.STRIPE_SECRET_KEY
   });
 });
 
-// Configuración de webhook
+// Ruta para desbloquear un curso después del pago
+app.post('/api/unlock-course', async (req, res) => {
+  try {
+    const { userId, courseId, paymentIntentId } = req.body;
+    
+    console.log('🔓 Solicitando desbloqueo de curso:', { userId, courseId, paymentIntentId });
+    
+    if (!userId || !courseId || !paymentIntentId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Se requieren userId, courseId y paymentIntentId'
+      });
+    }
+    
+    // Aquí iría la lógica para guardar en tu base de datos
+    // Por ejemplo, actualizar el estado del usuario en la base de datos
+    console.log(`✅ Curso ${courseId} desbloqueado para el usuario ${userId}`);
+    
+    // Simulamos una respuesta exitosa
+    res.json({
+      success: true,
+      message: `Curso ${courseId} desbloqueado exitosamente`,
+      courseId,
+      userId,
+      paymentIntentId,
+      unlockedAt: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('❌ Error al desbloquear el curso:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error interno al procesar la solicitud',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// Webhook para eventos de Stripe
 app.post('/api/webhook', express.raw({type: 'application/json'}), async (req, res) => {
   const sig = req.headers['stripe-signature'];
   let event;
@@ -82,15 +114,14 @@ app.post('/api/webhook', express.raw({type: 'application/json'}), async (req, re
   switch (event.type) {
     case 'payment_intent.succeeded':
       const paymentIntent = event.data.object;
-      console.log('✅ Pago exitoso:', paymentIntent.id);
+      console.log('✅ Pago exitoso (webhook):', paymentIntent.id);
       // Aquí puedes actualizar tu base de datos
       break;
     case 'payment_intent.payment_failed':
       const failedIntent = event.data.object;
-      console.error('❌ Pago fallido:', failedIntent.id);
+      console.error('❌ Pago fallido (webhook):', failedIntent.id);
       // Manejar pago fallido
       break;
-    // Puedes manejar más eventos según sea necesario
     default:
       console.log(`🔔 Evento no manejado: ${event.type}`);
   }
