@@ -5,18 +5,35 @@ import Stripe from 'stripe';
 
 // Configuración inicial
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 10000; // Aseguramos que use el puerto 10000
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
-// Validar variable de entorno
-if (!process.env.STRIPE_SECRET_KEY) {
-  console.error('❌ ERROR: STRIPE_SECRET_KEY no está definida en las variables de entorno');
+// Validar variables de entorno
+const requiredEnvVars = ['STRIPE_SECRET_KEY'];
+const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+
+if (missingVars.length > 0) {
+  console.error(`❌ ERROR: Faltan variables de entorno requeridas: ${missingVars.join(', ')}`);
   process.exit(1);
 }
 
 // Inicializar Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: '2023-10-16',
+});
+
+// Middleware
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+app.use(express.json());
+
+// Middleware de logs
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  next();
 });
 
 // Middleware
@@ -138,13 +155,43 @@ app.post('/api/create-payment-intent', async (req, res) => {
   }
 });
 
-// Ruta de verificación de estado
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    environment: NODE_ENV,
-  });
+// Ruta de prueba para diagnosticar problemas de conexión
+app.post('/api/test-connection', async (req, res) => {
+  try {
+    console.log('🔍 Test connection endpoint llamado');
+    console.log('📅 Timestamp:', new Date().toISOString());
+    console.log('🌐 Headers:', req.headers);
+    console.log('📦 Body recibido:', req.body);
+    
+    // Responder con un mensaje de éxito
+    res.status(200).json({
+      status: 'success',
+      message: 'Test endpoint funcionando correctamente',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development',
+      receivedHeaders: req.headers,
+      receivedBody: req.body
+    });
+    console.log('🌐 Headers:', req.headers);
+    console.log('📦 Body recibido:', req.body);
+    console.log('🔧 NODE_ENV:', process.env.NODE_ENV);
+    console.log('💳 STRIPE_SECRET_KEY configurada:', !!process.env.STRIPE_SECRET_KEY);
+    
+    res.json({
+      status: 'success',
+      message: 'Test endpoint funcionando correctamente',
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV,
+      receivedBody: req.body,
+      stripeConfigured: !!process.env.STRIPE_SECRET_KEY
+    });
+  } catch (error) {
+    console.error('❌ Error en test endpoint:', error);
+    res.status(500).json({
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
 });
 
 // Ruta no encontrada
