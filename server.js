@@ -13,53 +13,65 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 });
 
 // 🚨 El webhook VA ANTES de los middlewares globales
-app.post('/api/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
-  const sig = req.headers['stripe-signature'];
-  const payload = req.body;
+app.post('/api/webhook', 
+  // Middleware para obtener el body sin procesar
+  express.raw({ type: 'application/json' }),
+  async (req, res) => {
+    const sig = req.headers['stripe-signature'];
+    const payload = req.body;
 
-  console.log('🔍 Webhook recibido, verificando firma...');
-  console.log('📦 Body type:', typeof payload);
-  console.log('📦 Body length:', payload ? payload.length : 'undefined');
+    console.log('🔍 Webhook recibido, verificando firma...');
+    console.log('📦 Body type:', typeof payload);
+    console.log('📦 Body length:', payload ? payload.length : 'undefined');
 
-  if (!sig) {
-    console.error('❌ No se encontró la firma de Stripe');
-    return res.status(400).send('Webhook Error: No se encontró la firma de Stripe');
-  }
-
-  let event;
-
-  try {
-    event = stripe.webhooks.constructEvent(
-      payload,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET
-    );
-
-    console.log(`✅ Webhook verificado: ${event.type}`);
-
-    // Manejar el evento de pago exitoso
-    if (event.type === 'payment_intent.succeeded') {
-      const paymentIntent = event.data.object;
-      console.log('💰 Pago exitoso:', paymentIntent.id);
-      console.log('💳 Monto:', paymentIntent.amount, paymentIntent.currency);
-      // Aquí puedes agregar lógica adicional para manejar pagos exitosos
+    if (!sig) {
+      console.error('❌ No se encontró la firma de Stripe');
+      return res.status(400).send('Webhook Error: No se encontró la firma de Stripe');
     }
 
-    // Devolver una respuesta exitosa a Stripe
-    return res.json({ received: true, eventType: event.type });
-    
-  } catch (err) {
-    console.error(`❌ Error de verificación de webhook: ${err.message}`);
-    console.error('🔍 Debug info:', {
-      bodyType: typeof payload,
-      bodyLength: payload ? payload.length : 'undefined',
-      hasSignature: !!sig,
-      signaturePrefix: sig ? sig.substring(0, 10) + '...' : 'no signature',
-      error: err
-    });
-    return res.status(400).send(`Webhook Error: ${err.message}`);
+    let event;
+
+    try {
+      event = stripe.webhooks.constructEvent(
+        payload,
+        sig,
+        process.env.STRIPE_WEBHOOK_SECRET
+      );
+
+      console.log(`✅ Webhook verificado: ${event.type}`);
+
+      // Manejar eventos específicos
+      switch (event.type) {
+        case 'payment_intent.succeeded':
+          const paymentIntent = event.data.object;
+          console.log('💰 Pago exitoso:', paymentIntent.id);
+          console.log('💳 Monto:', paymentIntent.amount, paymentIntent.currency);
+          // Aquí puedes agregar lógica adicional para manejar pagos exitosos
+          break;
+          
+        case 'payment_intent.payment_failed':
+          console.log('❌ Pago fallido:', event.data.object.id);
+          break;
+          
+        default:
+          console.log(`🔔 Evento no manejado: ${event.type}`);
+      }
+
+      // Devolver una respuesta exitosa a Stripe
+      return res.json({ received: true });
+      
+    } catch (err) {
+      console.error(`❌ Error en webhook: ${err.message}`);
+      console.error('🔍 Debug info:', {
+        bodyType: typeof payload,
+        bodyLength: payload ? payload.length : 'undefined',
+        hasSignature: !!sig,
+        signaturePrefix: sig ? sig.substring(0, 10) + '...' : 'no signature'
+      });
+      return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
   }
-});
+);
 
 // 👇 Solo después agregas estos middlewares globales
 app.use(cors());
