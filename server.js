@@ -1,7 +1,7 @@
-import 'dotenv/config';
-import express from 'express';
-import cors from 'cors';
-import Stripe from 'stripe';
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const Stripe = require('stripe');
 
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -10,6 +10,152 @@ const NODE_ENV = process.env.NODE_ENV || 'production';
 // Inicializar Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: '2023-10-16',
+});
+
+// Middleware para parsear JSON
+app.use(express.json());
+app.use(cors());
+
+// Ruta de salud
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    environment: NODE_ENV,
+    stripeConfigured: !!process.env.STRIPE_SECRET_KEY
+  });
+});
+
+// Ruta para crear un Payment Intent
+app.post('/api/create-payment-intent', async (req, res) => {
+  try {
+    const { amount, currency = 'eur', metadata = {}, level, description, tipo } = req.body;
+
+    console.log('🔍 Datos recibidos del frontend:', {
+      amount,
+      currency,
+      description,
+      tipo,
+      level,
+      amountType: typeof amount,
+      amountValue: amount,
+      amountNumber: Number(amount)
+    });
+
+    // 🔥 FORZAR DETECCIÓN DE FORMACIÓN PROFESIONAL
+    const esFormacionProfesionalForzada = tipo === 'formacion-profesional' ||
+                                       (description && (description.toLowerCase().includes('formación profesional') || 
+                                                       description.toLowerCase().includes('formacion')));
+
+    console.log('🎯 Tipo de pago detectado:', {
+      esFormacionProfesionalForzada,
+      tieneLevel: !!level,
+      description: description
+    });
+
+    // Validación específica para formación profesional: EXACTAMENTE 0.5 euros
+    if (esFormacionProfesionalForzada) {
+      const amountNumber = Number(amount);
+      console.log('🔢 AmountNumber calculado para formación profesional:', amountNumber);
+
+      if (!amount || isNaN(amountNumber) || Math.abs(amountNumber - 0.5) > 0.001) {
+        console.error('❌ Validación fallida para formación profesional:', {
+          originalAmount: amount,
+          amountNumber: amountNumber,
+          expectedAmount: 0.5,
+          difference: Math.abs(amountNumber - 0.5)
+        });
+        return res.status(400).json({
+          error: 'El monto debe ser EXACTAMENTE 0.50 euros para formación profesional',
+          receivedAmount: amount,
+          expectedAmount: 0.5
+        });
+      }
+    } else {
+      // Validación normal para otros tipos de pago
+      const amountNumber = Number(amount);
+      if (!amount || isNaN(amountNumber) || amountNumber < 0.5) {
+        return res.status(400).json({
+          error: 'El monto debe ser un número mayor o igual a 0.50 euros',
+          receivedAmount: amount,
+          expectedMinimum: 0.5
+        });
+      }
+    }
+
+    // Determinar el tipo de pago
+    const esMatriculaNivel = !!level && !esFormacionProfesionalForzada;
+    const esFormacionProfesional = esFormacionProfesionalForzada;
+
+    console.log('📋 Clasificación final:', {
+      esMatriculaNivel,
+      esFormacionProfesional,
+      tipoForzado: esFormacionProfesionalForzada
+    });
+
+    // Calcular monto en céntimos para Stripe
+    const amountNumber = Number(amount);
+    const amountInCents = Math.round(amountNumber * 100);
+    console.log(`💰 Conversión: ${amountNumber} ${currency} → ${amountInCents} céntimos`);
+
+    // Crear el Payment Intent en Stripe
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: amountInCents, // Stripe espera céntimos
+      currency,
+      metadata: {
+        app: 'academia-inmigrantes',
+        environment: NODE_ENV,
+        descripcion: description || 'Pago Academia de Inmigrantes',
+        bloque: req.body.bloque || 'general',
+        returnUrl: req.body.returnUrl || 'academiadeinmigrantes://stripe-redirect',
+        ...(esMatriculaNivel && { level }),
+        ...(esFormacionProfesional && { tipo: 'formacion-profesional' }),
+        ...metadata
+      },
+      description: esMatriculaNivel
+        ? `Matrícula ${level} - Academia de Inmigrantes`
+        : description || 'Pago Academia de Inmigrantes',
+      automatic_payment_methods: {
+        enabled: true
+      }
+    });
+
+    console.log(`✅ PaymentIntent creado: ${paymentIntent.id}`);
+    console.log(`💳 Stripe recibió: ${paymentIntent.amount} céntimos (${paymentIntent.amount / 100} ${paymentIntent.currency})`);
+
+    res.json({
+      status: 'success',
+      clientSecret: paymentIntent.client_secret,
+      paymentIntentId: paymentIntent.id,
+      amount: paymentIntent.amount, // Devolver en céntimos como hace Stripe
+      currency: paymentIntent.currency,
+      created: paymentIntent.created,
+      tipo: esMatriculaNivel ? 'matricula' : 'formacion-profesional'
+    });
+  } catch (error) {
+    console.error('❌ Error en create-payment-intent:', error);
+    res.status(500).json({
+      error: 'Error al crear el intento de pago',
+      details: error.message
+    });
+  }
+});
+
+// Ruta de prueba
+app.get('/', (req, res) => {
+  res.send('¡API de pagos de Academia de Inmigrantes funcionando!');
+});
+
+// Iniciar el servidor
+app.listen(PORT, () => {
+  console.log(`🚀 Servidor escuchando en el puerto ${PORT}`);
+  console.log(`🌍 Entorno: ${NODE_ENV}`);
+  console.log(`💳 Clave de Stripe configurada: ${!!process.env.STRIPE_SECRET_KEY}`);
+});
+
+// Manejo de errores global
+process.on('unhandledRejection', (error) => {
+  console.error('⚠️ Error no manejado:', error);
 });
 
 // 🚨 El webhook VA ANTES de los middlewares globales
@@ -73,7 +219,7 @@ app.post('/api/webhook',
   }
 );
 
-// 👇 Solo después agregas estos middlewares globales
+// 👇 Middlewares globales después del webhook
 app.use(cors());
 app.use(express.json());
 
@@ -90,35 +236,90 @@ app.get('/api/health', (req, res) => {
 // Ruta para crear un Payment Intent
 app.post('/api/create-payment-intent', async (req, res) => {
   try {
-    const { amount, currency = 'eur', metadata = {}, level, description } = req.body;
+    const { amount, currency = 'eur', metadata = {}, level, description, tipo } = req.body;
 
-    // Validar monto
-    if (!amount || isNaN(amount) || amount < 50) {
-      return res.status(400).json({
-        error: 'El monto debe ser un número mayor a 50 céntimos',
-      });
+    console.log('🔍 Datos recibidos del frontend:', {
+      amount,
+      currency,
+      description,
+      tipo,
+      level,
+      amountType: typeof amount,
+      amountValue: amount,
+      amountNumber: Number(amount)
+    });
+
+    // 🔥 FORZAR DETECCIÓN DE FORMACIÓN PROFESIONAL
+    const esFormacionProfesionalForzada = tipo === 'formacion-profesional' ||
+                                         description?.toLowerCase().includes('formación profesional') ||
+                                         description?.toLowerCase().includes('formacion');
+
+    console.log('🎯 Tipo de pago detectado:', {
+      esFormacionProfesionalForzada,
+      tieneLevel: !!level,
+      description: description
+    });
+
+    // Validación específica para formación profesional: EXACTAMENTE 0.5 euros
+    if (esFormacionProfesionalForzada) {
+      const amountNumber = Number(amount);
+      console.log('🔢 AmountNumber calculado para formación profesional:', amountNumber);
+
+      if (!amount || isNaN(amountNumber) || Math.abs(amountNumber - 0.5) > 0.001) {
+        console.error('❌ Validación fallida para formación profesional:', {
+          originalAmount: amount,
+          amountNumber: amountNumber,
+          expectedAmount: 0.5,
+          difference: Math.abs(amountNumber - 0.5)
+        });
+        return res.status(400).json({
+          error: 'El monto debe ser EXACTAMENTE 0.50 euros para formación profesional',
+          receivedAmount: amount,
+          expectedAmount: 0.5
+        });
+      }
+    } else {
+      // Validación normal para otros tipos de pago
+      const amountNumber = Number(amount);
+      if (!amount || isNaN(amountNumber) || amountNumber < 0.5) {
+        return res.status(400).json({
+          error: 'El monto debe ser un número mayor o igual a 0.50 euros',
+          receivedAmount: amount,
+          expectedMinimum: 0.5
+        });
+      }
     }
 
     // Determinar el tipo de pago
-    const esMatriculaNivel = !!level;
-    const esFormacionProfesional = !level && description?.includes('formación');
+    const esMatriculaNivel = !!level && !esFormacionProfesionalForzada;
+    const esFormacionProfesional = esFormacionProfesionalForzada;
 
-    // Configuración del pago
-    // Crear el Payment Intent
+    console.log('📋 Clasificación final:', {
+      esMatriculaNivel,
+      esFormacionProfesional,
+      tipoForzado: esFormacionProfesionalForzada
+    });
+
+    // Calcular monto en céntimos para Stripe
+    const amountNumber = Number(amount);
+    const amountInCents = Math.round(amountNumber * 100);
+    console.log(`💰 Conversión: ${amountNumber} ${currency} → ${amountInCents} céntimos`);
+
+    // Crear el Payment Intent en Stripe
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100), // Convertir a céntimos
+      amount: amountInCents, // Stripe espera céntimos
       currency,
       metadata: {
         app: 'academia-inmigrantes',
-        environment: NODE_ENV || 'production',
-        descripcion: req.body.descripcion || 'Pago Academia de Inmigrantes',
+        environment: NODE_ENV,
+        descripcion: description || 'Pago Academia de Inmigrantes',
         bloque: req.body.bloque || 'general',
-        returnUrl: req.body.returnUrl || 'academiainmigrantes://stripe-redirect',
+        returnUrl: req.body.returnUrl || 'academiadeinmigrantes://stripe-redirect',
         ...(esMatriculaNivel && { level }),
         ...(esFormacionProfesional && { tipo: 'formacion-profesional' }),
         ...metadata
       },
-      description: esMatriculaNivel 
+      description: esMatriculaNivel
         ? `Matrícula ${level} - Academia de Inmigrantes`
         : description || 'Pago Academia de Inmigrantes',
       automatic_payment_methods: {
@@ -127,17 +328,18 @@ app.post('/api/create-payment-intent', async (req, res) => {
     });
 
     console.log(`✅ PaymentIntent creado: ${paymentIntent.id}`);
+    console.log(`💳 Stripe recibió: ${paymentIntent.amount} céntimos (${paymentIntent.amount / 100} ${paymentIntent.currency})`);
 
     res.json({
       status: 'success',
       clientSecret: paymentIntent.client_secret,
       paymentIntentId: paymentIntent.id,
-      amount: paymentIntent.amount,
+      amount: paymentIntent.amount, // Devolver en céntimos como hace Stripe
       currency: paymentIntent.currency,
       created: paymentIntent.created,
       tipo: esMatriculaNivel ? 'matricula' : 'formacion-profesional'
     });
-    
+
   } catch (error) {
     console.error('❌ Error al crear el Payment Intent:', error);
     res.status(500).json({
@@ -156,7 +358,6 @@ app.post('/api/test-connection', async (req, res) => {
     console.log('🔧 NODE_ENV:', process.env.NODE_ENV);
     console.log('💳 STRIPE_SECRET_KEY configurada:', !!process.env.STRIPE_SECRET_KEY);
     
-    // Responder con un mensaje de éxito (solo una respuesta)
     res.status(200).json({
       status: 'success',
       message: 'Test endpoint funcionando correctamente',
@@ -225,7 +426,7 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log('🏠 Directorio:', process.cwd());
   console.log('🌍 URL:', `http://localhost:${PORT}`);
   console.log('\n🔧 Variables de entorno:');
-  console.log(`   - NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`   - NODE_ENV: ${NODE_ENV}`);
   console.log(`   - PORT: ${PORT}`);
   console.log(`   - STRIPE_SECRET_KEY: ${process.env.STRIPE_SECRET_KEY ? '✅ Configurada' : '❌ No configurada'}`);
   console.log('\n📡 Endpoints disponibles:');
