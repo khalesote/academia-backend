@@ -19,4 +19,7 @@ npm-debug.log
 .Trashes
 ehthumbs.db
 Thumbs.db
+<<<<<<< HEAD
 ".env" 
+=======
+>>>>>>> 6e3f62a3b4736a93f3b7c5660c2e949da6a16809
