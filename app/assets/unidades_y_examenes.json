@@ -1,0 +1,3262 @@
+{
+  "A1": {
+    "unidades": [
+      {
+        "unidad": 1,
+        "titulo": "Saludar y presentarse",
+        "avatar": "https://studio.d-id.com/share?id=78273e102878eaf5a66f74ccee64b5cb&utm_source=copy",
+        "duracion_video": 45,
+        "tema": "Saludar, presentarse, despedirse y usar expresiones básicas de cortesía.",
+        "tema_ar": "التحية والتعريف والوداع واستخدام التعبيرات الأساسية للمجاملة.",
+        "expresion_oral": [
+          "— Hola, me llamo Juan. ¿Cómo te llamas? — Encantado, yo soy María. — ¿Cómo estás? — Estoy bien, gracias. ¿Y tú? — Muy bien, gracias.",
+          "— Buenos días, señor López. ¿Cómo está usted? — Muy bien, gracias. ¿Y usted? — Bien, gracias. — Hasta luego, que tenga un buen día."
+        ],
+        "expresion_oral_ar": [
+          "— مرحبا، اسمي خوان. ما اسمك؟ — مسعد، أنا ماريا. — كيف حالك؟ — أنا بخير، شكرا. وأنت؟ — بخير جدا، شكرا.",
+          "— صباح الخير، سيد لوبيز. كيف حالك؟ — بخير جدا، شكرا. وأنت؟ — بخير، شكرا. — إلى اللقاء، أتمنى لك يوما سعيدا."
+        ],
+        "vocabulario": [
+          "hola, adiós, buenos días, buenas tardes, buenas noches, por favor, gracias, de nada, señor/a, don/doña, encantado/a, mucho gusto"
+        ],
+        "vocabulario_ar": [
+          "مرحبا، مع السلامة، صباح الخير، مساء الخير، تصبح على خير، من فضلك، شكرا، عفوا، سيد/سيدة، دون/دونا، مسعد/ة، تشرفت بمعرفتك"
+        ],
+        "gramatica": [
+          "Verbos de saludo y presentación: llamarse, ser, estar", 
+          "Formas de tratamiento: tú (informal) vs usted (formal)",
+          "Expresiones de cortesía: por favor, gracias, de nada"
+        ],
+        "gramatica_ar": [
+          "أفعال التحية والتعريف: يسمى، يكون، يكون", 
+          "أشكال المخاطبة: أنت (غير رسمي) مقابل حضرتك (رسمي)",
+          "تعبيرات المجاملة: من فضلك، شكرا، عفوا"
+        ],
+        "ejercicios": [
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Hola, me ______ Juan. ¿Y tú, cómo ______? (ترجمة: مرحبا، أنا اسمي خوان. وأنت، كيف حالك؟)",
+            "solucion": ["llamo", "llamas"]
+          },
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Buenos ______, señor López. ¿Cómo está ______? (ترجمة: صباح الخير، سيد لوبيز. كيف حالك؟)",
+            "solucion": ["días", "usted"]
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Cuál de estas palabras es un saludo formal? (أي من هذه الكلمات هي تحية رسمية؟)",
+            "opciones": ["Hola", "Buenos días", "Adiós", "Gracias"],
+            "respuesta_correcta": "Buenos días"
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué significa 'encantado'? (ماذا تعني 'مسعد'؟)",
+            "opciones": ["Gracias", "Mucho gusto", "Adiós", "Por favor"],
+            "respuesta_correcta": "Mucho gusto"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Escribe una breve presentación sobre ti (nombre, país, edad). (اكتب تعريفا قصيرا عن نفسك: الاسم، البلد، العمر)"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Escribe un diálogo formal entre dos personas que se conocen por primera vez. (اكتب حوارا رسميا بين شخصين يتعرفان لأول مرة)"
+          },
+          {
+            "tipo": "relacionar",
+            "enunciado": "Relaciona las palabras en español con su significado en árabe (صل الكلمات الإسبانية بمعناها بالعربية):",
+            "pares": [
+              {"izquierda": "Señor", "derecha": "سيد"},
+              {"izquierda": "Gracias", "derecha": "شكرا"},
+              {"izquierda": "Adiós", "derecha": "مع السلامة"},
+              {"izquierda": "Por favor", "derecha": "من فضلك"},
+              {"izquierda": "Encantado", "derecha": "مسعد"}
+            ]
+          }
+        ]
+      },
+      {
+        "unidad": 2,
+        "titulo": "Países y nacionalidades",
+        "avatar": "https://studio.d-id.com/share?id=78273e102878eaf5a66f74ccee64b5cb&utm_source=copy",
+        "duracion_video": 45,
+        "tema": "Hablar del país de origen y nacionalidad, preguntar y responder sobre procedencia y nacionalidad en situaciones cotidianas.",
+        "tema_ar": "التحدث عن بلد الأصل والجنسية، وطرح الأسئلة والإجابة عنها في المواقف اليومية.",
+        "expresion_oral": [
+          "— Hola, ¿de dónde eres? — Hola, soy de Colombia. ¿Y tú? — Yo soy de Siria. ¿Te gusta vivir aquí? — Sí, me gusta mucho, pero echo de menos mi país.",
+          "— ¿Cuál es tu nacionalidad? — Soy marroquí. ¿Y tú? — Soy española. ¿Hablas árabe? — Sí, hablo árabe, español y francés.",
+          "— ¿Dónde naciste? — Nací en Marruecos, pero vivo en España desde hace tres años. — ¿Y tu familia? — Mi familia vive en Marruecos."
+        ],
+        "expresion_oral_ar": [
+          "— مرحبًا، من أين أنت؟ — مرحبًا، أنا من كولومبيا. وأنت؟ — أنا من سوريا. هل يعجبك العيش هنا؟ — نعم، يعجبني كثيرًا، لكنني أفتقد بلدي.",
+          "— ما هي جنسيتك؟ — أنا مغربي. وأنت؟ — أنا إسبانية. هل تتحدث العربية؟ — نعم، أتكلم العربية والإسبانية والفرنسية.",
+          "— أين ولدت؟ — ولدت في المغرب، لكنني أعيش في إسبانيا منذ ثلاث سنوات. — وعائلتك؟ — عائلتي تعيش في المغرب."
+        ],
+        "vocabulario": [
+          "España, español/a", "Marruecos, marroquí", "México, mexicano/a", "Egipto, egipcio/a", "Colombia, colombiano/a", "Siria, sirio/a", "Francia, francés/a", "Alemania, alemán/a", "Italia, italiano/a", "Portugal, portugués/a", "Inglaterra, inglés/a", "Estados Unidos, estadounidense"
+        ],
+        "vocabulario_ar": [
+          "إسبانيا، إسباني/ة", "المغرب، مغربي/ة", "المكسيك، مكسيكي/ة", "مصر، مصري/ة", "كولومبيا، كولومبي/ة", "سوريا، سوري/ة", "فرنسا، فرنسي/ة", "ألمانيا، ألماني/ة", "إيطاليا، إيطالي/ة", "البرتغال، برتغالي/ة", "إنجلترا، إنجليزي/ة", "الولايات المتحدة، أمريكي/ة"
+        ],
+        "gramatica": [
+          "El verbo 'ser' para expresar origen y nacionalidad: Soy de..., soy marroquí.", 
+          "Preguntar por el origen: ¿De dónde eres?", 
+          "Preguntar por la nacionalidad: ¿Cuál es tu nacionalidad?",
+          "Expresar lugar de nacimiento: Nací en...",
+          "Expresar tiempo de residencia: Vivo aquí desde hace..."
+        ],
+        "gramatica_ar": [
+          "الفعل 'ser' للتعبير عن الأصل والجنسية: أنا من...، أنا مغربي.", 
+          "السؤال عن الأصل: من أين أنت؟", 
+          "السؤال عن الجنسية: ما هي جنسيتك؟",
+          "التعبير عن مكان الولادة: ولدت في...",
+          "التعبير عن مدة الإقامة: أعيش هنا منذ..."
+        ],
+        "ejercicios": [
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Soy de ______. (ترجمة: أنا من المغرب)",
+            "solucion": ["Marruecos"]
+          },
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Nací en ______ y soy ______. (ترجمة: ولدت في مصر وأنا مصري)",
+            "solucion": ["Egipto", "egipcio"]
+          },
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Vivo en España desde hace ______ años. (ترجمة: أعيش في إسبانيا منذ خمس سنوات)",
+            "solucion": ["cinco"]
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Cuál es la nacionalidad de una persona de Egipto? (ما هي جنسية شخص من مصر؟)",
+            "opciones": ["Español/a", "Egipcio/a", "Marroquí", "Sirio/a"],
+            "respuesta_correcta": "Egipcio/a"
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Cuál es la nacionalidad de alguien de Estados Unidos? (ما هي جنسية شخص من الولايات المتحدة؟)",
+            "opciones": ["Estadounidense", "Americano/a", "Norteamericano/a", "Anglosajón/a"],
+            "respuesta_correcta": "Estadounidense"
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué pregunta usamos para saber el origen de alguien? (أي سؤال نستخدم لمعرفة أصل شخص ما؟)",
+            "opciones": ["¿Cómo te llamas?", "¿De dónde eres?", "¿Cuántos años tienes?", "¿Dónde vives?"],
+            "respuesta_correcta": "¿De dónde eres?"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Escribe de dónde eres y qué idiomas hablas. (اكتب من أين أنت وما اللغات التي تتكلمها)"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Escribe sobre tu país de origen: qué te gusta, qué echas de menos. (اكتب عن بلدك الأصلي: ما الذي يعجبك، ما الذي تفتقده)"
+          },
+          {
+            "tipo": "relacionar",
+            "enunciado": "Relaciona los países con sus nacionalidades (صل البلدان بجنسياتها):",
+            "pares": [
+              {"izquierda": "España", "derecha": "Español/a"},
+              {"izquierda": "Marruecos", "derecha": "Marroquí"},
+              {"izquierda": "México", "derecha": "Mexicano/a"},
+              {"izquierda": "Francia", "derecha": "Francés/a"},
+              {"izquierda": "Alemania", "derecha": "Alemán/a"}
+            ]
+          }
+        ]
+      },
+      {
+        "unidad": 3,
+        "titulo": "La familia y los amigos",
+        "avatar": "https://studio.d-id.com/share?id=78273e102878eaf5a66f74ccee64b5cb&utm_source=copy",
+        "duracion_video": 45,
+        "tema": "Hablar de la familia, describir personas y relaciones, preguntar y responder sobre la familia y los amigos en situaciones cotidianas.",
+        "tema_ar": "التحدث عن العائلة، وصف الأشخاص والعلاقات، طرح الأسئلة والإجابة عنها حول العائلة والأصدقاء في المواقف اليومية.",
+        "expresion_oral": [
+          "— ¿Tienes hermanos o hermanas? — Sí, tengo dos hermanos y una hermana. ¿Y tú? — Yo soy hijo único. ¿Cómo se llaman tus padres? — Mi padre se llama Luis y mi madre, Carmen.",
+          "— ¿Quién es esa chica? — Es mi amiga Ana, es muy simpática y trabajadora. ¿Y ese chico? — Es mi primo Javier, vive en otra ciudad pero nos vemos en vacaciones.",
+          "— ¿Cómo es tu familia? — Mi familia es grande, somos seis. Mis padres, mis abuelos, mi hermana y yo. — ¡Qué bien! ¿Vivís todos juntos? — No, mis abuelos viven cerca pero nos visitan cada semana."
+        ],
+        "expresion_oral_ar": [
+          "— هل لديك إخوة أو أخوات؟ — نعم، لدي أخوان وأخت. وأنت؟ — أنا وحيد. ما اسم والديك؟ — والدي اسمه لويس ووالدتي كارمن.",
+          "— من هي تلك الفتاة؟ — هي صديقتي آنا، لطيفة ومجتهدة جدًا. ومن ذلك الشاب؟ — هو ابن عمي خافيير، يعيش في مدينة أخرى لكننا نلتقي في العطل.",
+          "— كيف هي عائلتك؟ — عائلتي كبيرة، نحن ستة. والديّ، جدي وجدتي، أختي وأنا. — رائع! هل تعيشون جميعًا معًا؟ — لا، أجدادي يسكنون قريبًا لكن يزوروننا كل أسبوع."
+        ],
+        "vocabulario": [
+          "padre, madre, hermano/a, abuelo/a, primo/a, hijo/a, amigo/a, familia, tío/a, sobrino/a, nieto/a, cuñado/a, suegro/a, nuera, yerno"
+        ],
+        "vocabulario_ar": [
+          "أب، أم، أخ/أخت، جد/جدة، ابن عم/ابنة عمة، ابن/ابنة، صديق/ة، عائلة، عم/عمة، ابن أخ/ابنة أخت، حفيد/ة، صهر/ة، حم/ة، كنّة، صهر"
+        ],
+        "gramatica": [
+          "El verbo 'tener' para hablar de la familia: Tengo dos hermanos.", 
+          "Adjetivos para describir personas: simpático, trabajador, alto, bajo, joven, mayor.", 
+          "Posesivos: mi, tu, su, nuestro/a, vuestro/a, su.",
+          "Expresiones de cantidad: muchos, pocos, algunos, ninguno."
+        ],
+        "gramatica_ar": [
+          "الفعل 'tener' للحديث عن العائلة: لدي أخوان.", 
+          "الصفات لوصف الأشخاص: لطيف، مجتهد، طويل، قصير، شاب، كبير.", 
+          "ضمائر الملكية: لي، لك، له/لها، لنا، لكم، لهم.",
+          "تعبيرات الكمية: كثير، قليل، بعض، لا أحد."
+        ],
+        "ejercicios": [
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Mi ______ se llama Luis y mi ______ Carmen. (ترجمة: اسم والدي لويس واسم والدتي كارمن)",
+            "solucion": ["padre", "madre"]
+          },
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Tengo dos ______ y una ______. (ترجمة: لدي أخوان وأخت)",
+            "solucion": ["hermanos", "hermana"]
+          },
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Mi ______ vive en otra ciudad. (ترجمة: ابن عمي يعيش في مدينة أخرى)",
+            "solucion": ["primo"]
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Quién es el hijo de tu tío? (من هو ابن عمك؟)",
+            "opciones": ["Primo", "Hermano", "Padre", "Amigo"],
+            "respuesta_correcta": "Primo"
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué significa 'hijo único'? (ماذا تعني 'وحيد'؟)",
+            "opciones": ["Sin hermanos", "Sin padres", "Sin amigos", "Sin familia"],
+            "respuesta_correcta": "Sin hermanos"
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Cómo se dice 'abuelo' en árabe? (كيف تقول 'جد' بالعربية؟)",
+            "opciones": ["أب", "جد", "عم", "خال"],
+            "respuesta_correcta": "جد"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Describe a tu familia en 3 frases. (صف عائلتك في ثلاث جمل)"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Escribe sobre tu mejor amigo/a: cómo es, qué le gusta hacer. (اكتب عن صديقك/صديقتك المفضل/ة: كيف هو/هي، ما الذي يحب/تحب فعله)"
+          },
+          {
+            "tipo": "relacionar",
+            "enunciado": "Relaciona los miembros de la familia en español con árabe (صل أفراد العائلة بالإسبانية مع العربية):",
+            "pares": [
+              {"izquierda": "Hermano", "derecha": "أخ"},
+              {"izquierda": "Madre", "derecha": "أم"},
+              {"izquierda": "Padre", "derecha": "أب"},
+              {"izquierda": "Abuelo", "derecha": "جد"},
+              {"izquierda": "Primo", "derecha": "ابن عم"}
+            ]
+          }
+        ]
+      },
+      {
+        "unidad": 4,
+        "titulo": "La casa y la ciudad",
+        "avatar": "https://studio.d-id.com/share?id=78273e102878eaf5a66f74ccee64b5cb&utm_source=copy",
+        "duracion_video": 45,
+        "tema": "Describir la casa, el barrio y la ciudad, preguntar y dar direcciones, hablar sobre el entorno y los lugares de interés.",
+        "tema_ar": "وصف المنزل والحي والمدينة، طرح الأسئلة وإعطاء الاتجاهات، التحدث عن البيئة والأماكن المهمة.",
+        "expresion_oral": [
+          "— ¿Dónde vives? — Vivo en un piso pequeño en el centro. ¿Y tú? — Yo vivo en las afueras, en una casa con jardín. ¿Te gusta tu barrio? — Sí, es tranquilo y hay muchos parques.",
+          "— ¿Cómo es tu casa? — Es grande y luminosa, tiene tres habitaciones y una terraza. ¿Y la tuya? — Mi casa es más pequeña, pero muy acogedora. ¿Dónde está el supermercado? — Está cerca, al lado de la plaza principal.",
+          "— Disculpe, ¿cómo llego a la estación de tren? — Siga todo recto, gire a la derecha en la segunda calle y la estación está al final. — Muchas gracias. — De nada.",
+          "— ¿Qué hay cerca de tu casa? — Hay un parque, una biblioteca y varios restaurantes. ¿Y en tu barrio? — En mi barrio hay un centro comercial y un hospital. ¿Es fácil llegar al centro? — Sí, hay autobuses cada 10 minutos."
+        ],
+        "expresion_oral_ar": [
+          "— أين تسكن؟ — أسكن في شقة صغيرة في وسط المدينة. وأنت؟ — أنا أسكن في الضواحي، في منزل مع حديقة. هل يعجبك حيّك؟ — نعم، إنه هادئ وهناك العديد من الحدائق.",
+          "— كيف هو منزلك؟ — إنه كبير ومضيء، فيه ثلاث غرف وشرفة. ومنزلك؟ — منزلي أصغر، لكنه مريح جدًا. أين يقع السوبرماركت؟ — قريب، بجانب الساحة الرئيسية.",
+          "— عذرًا، كيف أصل إلى محطة القطار؟ — سر مباشرة، ثم انعطف يمينًا في الشارع الثاني، والمحطة في النهاية. — شكرًا جزيلًا. — على الرحب والسعة.",
+          "— ماذا يوجد قريب من منزلك؟ — هناك حديقة ومكتبة وعدة مطاعم. وفي حيّك؟ — في حيّي هناك مركز تجاري ومستشفى. هل من السهل الوصول إلى وسط المدينة؟ — نعم، هناك حافلات كل 10 دقائق."
+        ],
+        "vocabulario": [
+          "casa, piso, calle, plaza, barrio, cocina, salón, habitación, jardín, terraza, supermercado, estación, parque, centro, afueras, biblioteca, restaurante, centro comercial, hospital, autobús, metro, semáforo, acera, edificio, ascensor"
+        ],
+        "vocabulario_ar": [
+          "منزل، شقة، شارع، ساحة، حي، مطبخ، غرفة المعيشة، غرفة، حديقة، شرفة، سوبرماركت، محطة، حديقة عامة، وسط المدينة، ضواحي، مكتبة، مطعم، مركز تجاري، مستشفى، حافلة، مترو، إشارة مرور، رصيف، مبنى، مصعد"
+        ],
+        "gramatica": [
+          "El verbo 'vivir' para expresar lugar de residencia: Vivo en...", 
+          "Preposiciones de lugar: en, al lado de, cerca de, lejos de, entre.", 
+          "Dar direcciones: Siga todo recto, gire a la derecha/izquierda.",
+          "Expresar distancia: cerca, lejos, a 5 minutos, al lado de..."
+        ],
+        "gramatica_ar": [
+          "الفعل 'vivir' للتعبير عن مكان السكن: أعيش في...", 
+          "حروف الجر للمكان: في، بجانب، قريب من، بعيد عن، بين.", 
+          "إعطاء الاتجاهات: سر مباشرة، انعطف يمينًا/يسارًا.",
+          "التعبير عن المسافة: قريب، بعيد، على بعد 5 دقائق، بجانب..."
+        ],
+        "ejercicios": [
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Vivo en una ______ en el centro. (ترجمة: أعيش في منزل في وسط المدينة)",
+            "solucion": ["casa"]
+          },
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: El supermercado está ______ de la plaza. (ترجمة: السوبرماركت بجانب الساحة)",
+            "solucion": ["al lado"]
+          },
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Siga todo ______ y gire a la ______. (ترجمة: سر مباشرة وانعطف يمينًا)",
+            "solucion": ["recto", "derecha"]
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Dónde compras comida? (أين تشتري الطعام؟)",
+            "opciones": ["Supermercado", "Parque", "Universidad", "Banco"],
+            "respuesta_correcta": "Supermercado"
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué hay en un barrio residencial? (ماذا يوجد في حي سكني؟)",
+            "opciones": ["Casas y pisos", "Fábricas", "Aeropuerto", "Puerto"],
+            "respuesta_correcta": "Casas y pisos"
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Cómo se dice 'plaza' en árabe? (كيف تقول 'ساحة' بالعربية؟)",
+            "opciones": ["شارع", "ساحة", "حديقة", "مبنى"],
+            "respuesta_correcta": "ساحة"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Describe tu casa o tu barrio. (صف منزلك أو حيّك)"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Escribe cómo llegar desde tu casa a un lugar importante de tu ciudad. (اكتب كيف تصل من منزلك إلى مكان مهم في مدينتك)"
+          },
+          {
+            "tipo": "relacionar",
+            "enunciado": "Relaciona los lugares en español con árabe (صل الأماكن بالإسبانية مع العربية):",
+            "pares": [
+              {"izquierda": "Casa", "derecha": "منزل"},
+              {"izquierda": "Parque", "derecha": "حديقة"},
+              {"izquierda": "Supermercado", "derecha": "سوبرماركت"},
+              {"izquierda": "Biblioteca", "derecha": "مكتبة"},
+              {"izquierda": "Hospital", "derecha": "مستشفى"}
+            ]
+          }
+        ]
+      },
+      {
+        "unidad": 5,
+        "titulo": "La vida cotidiana",
+        "avatar": "https://studio.d-id.com/share?id=78273e102878eaf5a66f74ccee64b5cb&utm_source=copy",
+        "duracion_video": 45,
+        "tema": "Hablar de la rutina diaria, actividades cotidianas y hábitos, preguntar y responder sobre horarios y costumbres.",
+        "tema_ar": "التحدث عن الروتين اليومي، الأنشطة اليومية والعادات، طرح الأسئلة والإجابة عنها حول الجداول الزمنية والعادات.",
+        "expresion_oral": [
+          "— ¿A qué hora te levantas normalmente? — Me levanto a las siete de la mañana. ¿Y tú? — Yo me levanto más tarde, a las ocho y media. ¿Desayunas en casa? — Sí, siempre desayuno antes de salir.",
+          "— ¿Qué haces después de trabajar? — Suelo ir al gimnasio o paseo al perro. ¿Y tú? — Yo prefiero leer un libro o ver la televisión. ¿A qué hora cenas? — Ceno a las nueve, con mi familia.",
+          "— ¿Cómo es tu día a día? — Por la mañana estudio en la universidad, después como con mis amigos y por la tarde trabajo en una tienda. — ¡Qué ocupado! ¿Cuándo descansas? — Los domingos suelo descansar y salir al parque.",
+          "— ¿Qué haces los fines de semana? — Los sábados limpio la casa y hago la compra, y los domingos descanso y veo películas. ¿Y tú? — Yo salgo con amigos o visito a mi familia. ¿A qué hora te acuestas? — Me acuesto a las once, pero los fines de semana más tarde."
+        ],
+        "expresion_oral_ar": [
+          "— في أي ساعة تستيقظ عادة؟ — أستيقظ في السابعة صباحًا. وأنت؟ — أستيقظ متأخرًا، في الثامنة والنصف. هل تتناول الفطور في المنزل؟ — نعم، دائمًا أتناول الفطور قبل الخروج.",
+          "— ماذا تفعل بعد العمل؟ — عادة أذهب إلى النادي الرياضي أو أتمشى مع الكلب. وأنت؟ — أفضل قراءة كتاب أو مشاهدة التلفزيون. في أي ساعة تتعشى؟ — أتعشى في التاسعة مع عائلتي.",
+          "— كيف هو يومك؟ — في الصباح أدرس في الجامعة، ثم أتناول الغداء مع أصدقائي، وفي المساء أعمل في متجر. — يا له من يوم مزدحم! متى ترتاح؟ — في أيام الأحد أرتاح عادة وأخرج إلى الحديقة.",
+          "— ماذا تفعل في عطلة نهاية الأسبوع؟ — أيام السبت أنظف المنزل وأتسوق، وأيام الأحد أرتاح وأشاهد الأفلام. وأنت؟ — أخرج مع الأصدقاء أو أزور عائلتي. في أي ساعة تنام؟ — أنام في الحادية عشرة، لكن في عطلة نهاية الأسبوع متأخرًا."
+        ],
+        "vocabulario": [
+          "levantarse, desayunar, trabajar, estudiar, cenar, dormir, comer, descansar, salir, leer, ver la televisión, pasear, gimnasio, universidad, tienda, parque, limpiar, hacer la compra, acostarse, fin de semana, rutina, hábito, horario, costumbre, ocupado, tranquilo"
+        ],
+        "vocabulario_ar": [
+          "يستيقظ، يتناول الفطور، يعمل، يدرس، يتعشى، ينام، يتغدى، يستريح، يخرج، يقرأ، يشاهد التلفاز، يتمشى، نادي رياضي، جامعة، متجر، حديقة، ينظف، يتسوق، ينام، عطلة نهاية الأسبوع، روتين، عادة، جدول، عادة، مشغول، هادئ"
+        ],
+        "gramatica": [
+          "Verbos reflexivos para la rutina diaria: me levanto, me acuesto.", 
+          "Expresar frecuencia: siempre, normalmente, a veces, nunca.", 
+          "Hablar de costumbres: suelo + infinitivo.",
+          "Expresar horarios: a las..., por la mañana/tarde/noche"
+        ],
+        "gramatica_ar": [
+          "الأفعال الانعكاسية للروتين اليومي: أستيقظ، أنام.", 
+          "التعبير عن التكرار: دائمًا، عادة، أحيانًا، أبدًا.", 
+          "التحدث عن العادات: عادة + مصدر الفعل.",
+          "التعبير عن الأوقات: في...، في الصباح/المساء/الليل"
+        ],
+        "ejercicios": [
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Me ______ a las siete. (ترجمة: أستيقظ في السابعة)",
+            "solucion": ["levanto"]
+          },
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Siempre ______ antes de salir. (ترجمة: دائمًا أتناول الفطور قبل الخروج)",
+            "solucion": ["desayuno"]
+          },
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Los domingos ______ y salgo al ______. (ترجمة: أيام الأحد أرتاح وأخرج إلى الحديقة)",
+            "solucion": ["descanso", "parque"]
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué verbo es reflexivo? (أي فعل هو فعل انعكاسي؟)",
+            "opciones": ["Levantarse", "Comer", "Leer", "Trabajar"],
+            "respuesta_correcta": "Levantarse"
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué significa 'suelo'? (ماذا تعني 'عادة'؟)",
+            "opciones": ["Siempre", "A veces", "Normalmente", "Nunca"],
+            "respuesta_correcta": "Normalmente"
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Cuándo se dice 'por la mañana'? (متى نقول 'في الصباح'؟)",
+            "opciones": ["De 6 a 12", "De 12 a 18", "De 18 a 24", "De 0 a 6"],
+            "respuesta_correcta": "De 6 a 12"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Escribe tu rutina diaria en 3 frases. (اكتب روتينك اليومي في ثلاث جمل)"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Describe qué haces los fines de semana: tus actividades y horarios. (صف ماذا تفعل في عطلة نهاية الأسبوع: أنشطتك وجداولك)"
+          },
+          {
+            "tipo": "relacionar",
+            "enunciado": "Relaciona las actividades con su traducción (صل الأنشطة بترجمتها):",
+            "pares": [
+              {"izquierda": "Desayunar", "derecha": "يتناول الفطور"},
+              {"izquierda": "Dormir", "derecha": "ينام"},
+              {"izquierda": "Trabajar", "derecha": "يعمل"},
+              {"izquierda": "Limpiar", "derecha": "ينظف"},
+              {"izquierda": "Descansar", "derecha": "يستريح"}
+            ]
+          }
+        ]
+      },
+      {
+        "unidad": 6,
+        "titulo": "El tiempo libre",
+        "avatar": "https://studio.d-id.com/share?id=78273e102878eaf5a66f74ccee64b5cb&utm_source=copy",
+        "duracion_video": 45,
+        "tema": "Hablar de aficiones, actividades de ocio y planes futuros, preguntar y responder sobre gustos y preferencias.",
+        "tema_ar": "التحدث عن الهوايات، أنشطة الترفيه والخطط المستقبلية، طرح الأسئلة والإجابة عنها حول الهوايات والتفضيلات.",
+        "expresion_oral": [
+          "— ¿Qué te gusta hacer en tu tiempo libre? — Me gusta leer novelas y escuchar música clásica. ¿Y tú? — Prefiero salir a pasear o practicar deporte con mis amigos.",
+          "— ¿Vas al cine los fines de semana? — Sí, a veces voy con mis amigos o con mi familia. ¿Qué tipo de películas te gustan? — Me gustan las películas de acción y comedia.",
+          "— ¿Tienes algún plan para este sábado? — Sí, voy a visitar un museo y después cenaré fuera. ¿Quieres venir conmigo? — ¡Claro, me encantaría!",
+          "— ¿Qué deportes practicas? — Juego al fútbol los martes y jueves, y también me gusta nadar. ¿Y tú? — Yo prefiero el tenis y el baloncesto. ¿A qué hora entrenas? — Entreno de 6 a 8 de la tarde."
+        ],
+        "expresion_oral_ar": [
+          "— ماذا تحب أن تفعل في وقت فراغك؟ — أحب قراءة الروايات وسماع الموسيقى الكلاسيكية. وأنت؟ — أفضل الخروج للتمشية أو ممارسة الرياضة مع أصدقائي.",
+          "— هل تذهب إلى السينما في عطلة نهاية الأسبوع؟ — نعم، أحيانًا أذهب مع أصدقائي أو عائلتي. ما نوع الأفلام التي تفضلها؟ — أحب أفلام الأكشن والكوميديا.",
+          "— هل لديك خطة ليوم السبت؟ — نعم، سأزور متحفًا ثم أتناول العشاء في الخارج. هل تريد أن تأتي معي؟ — بالطبع، سأكون سعيدًا!",
+          "— ما الرياضات التي تمارسها؟ — ألعب كرة القدم أيام الثلاثاء والخميس، وأحب أيضًا السباحة. وأنت؟ — أفضل التنس وكرة السلة. في أي ساعة تتدرب؟ — أتدرب من 6 إلى 8 مساءً."
+        ],
+        "vocabulario": [
+          "leer, escuchar música, cine, amigos, deporte, pasear, museo, película, acción, comedia, salir, cenar, plan, sábado, preferir, fútbol, tenis, baloncesto, nadar, entrenar, concierto, teatro, restaurante, bar, discoteca, fiesta, hobby, afición"
+        ],
+        "vocabulario_ar": [
+          "يقرأ، يستمع إلى الموسيقى، سينما، أصدقاء، رياضة، يتمشى، متحف، فيلم، أكشن، كوميديا، يخرج، يتعشى، خطة، يوم السبت، يفضل، كرة القدم، تنس، كرة السلة، سباحة، تدريب، حفلة موسيقية، مسرح، مطعم، بار، ديسكو، حفلة، هواية، اهتمام"
+        ],
+        "gramatica": [
+          "Verbo 'gustar' y similares: me gusta, me encanta, prefiero.", 
+          "Hablar de planes futuros: voy a + infinitivo, este fin de semana voy a...", 
+          "Preguntar por preferencias: ¿Qué te gusta hacer?",
+          "Expresar frecuencia: a veces, normalmente, siempre, nunca"
+        ],
+        "gramatica_ar": [
+          "الفعل 'gustar' وما يشبهه: يعجبني، أحب، أفضل.", 
+          "التحدث عن الخطط المستقبلية: سأفعل + مصدر، في نهاية الأسبوع سأ...", 
+          "السؤال عن التفضيلات: ماذا تحب أن تفعل؟",
+          "التعبير عن التكرار: أحيانًا، عادة، دائمًا، أبدًا"
+        ],
+        "ejercicios": [
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Me ______ leer novelas. (ترجمة: أحب قراءة الروايات)",
+            "solucion": ["gusta"]
+          },
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Voy a ______ un museo este sábado. (ترجمة: سأزور متحفًا يوم السبت)",
+            "solucion": ["visitar"]
+          },
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Juego al ______ los martes y ______. (ترجمة: ألعب كرة القدم أيام الثلاثاء والخميس)",
+            "solucion": ["fútbol", "jueves"]
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué verbo se usa para expresar gustos? (أي فعل يستخدم للتعبير عن الهوايات؟)",
+            "opciones": ["Gustar", "Tener", "Ser", "Estar"],
+            "respuesta_correcta": "Gustar"
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Dónde se ven películas? (أين تشاهد الأفلام؟)",
+            "opciones": ["Cine", "Museo", "Biblioteca", "Hospital"],
+            "respuesta_correcta": "Cine"
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué significa 'hobby'? (ماذا تعني 'هواية'؟)",
+            "opciones": ["Trabajo", "Hobby", "Estudio", "Comida"],
+            "respuesta_correcta": "Hobby"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Escribe sobre tus aficiones: qué te gusta hacer, cuándo lo haces. (اكتب عن هواياتك: ماذا تحب أن تفعل، متى تفعله)"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Describe tus planes para el próximo fin de semana: qué vas a hacer, con quién. (صف خططك لعطلة نهاية الأسبوع القادمة: ماذا ستفعل، مع من)"
+          },
+          {
+            "tipo": "relacionar",
+            "enunciado": "Relaciona las actividades de ocio con su traducción (صل أنشطة الترفيه بترجمتها):",
+            "pares": [
+              {"izquierda": "Leer", "derecha": "يقرأ"},
+              {"izquierda": "Cine", "derecha": "سينما"},
+              {"izquierda": "Deporte", "derecha": "رياضة"},
+              {"izquierda": "Museo", "derecha": "متحف"},
+              {"izquierda": "Música", "derecha": "موسيقى"}
+            ]
+          }
+        ]
+      },
+      {
+        "unidad": 7,
+        "titulo": "Ir de compras",
+        "avatar": null,
+        "duracion_video": null,
+        "tema": "Hablar de compras, pedir precios, describir productos y preguntar por tiendas o servicios.",
+        "tema_ar": "التحدث عن التسوق، طلب الأسعار، وصف المنتجات والسؤال عن المتاجر أو الخدمات.",
+        "expresion_oral": [
+          "— Buenos días, ¿en qué puedo ayudarle? — Quiero comprar una camisa. ¿Cuánto cuesta esta azul? — Cuesta veinte euros. ¿La quiere probar? — Sí, por favor.",
+          "— ¿Dónde está la panadería? — Está al lado del supermercado, en la calle Mayor. — Gracias. ¿Tienen pan integral? — Sí, tenemos pan integral y pan blanco.",
+          "— ¿Aceptan tarjeta de crédito? — Sí, puede pagar con tarjeta o en efectivo. — Perfecto, me llevo este pantalón."
+        ],
+        "expresion_oral_ar": [
+          "— صباح الخير، كيف يمكنني مساعدتك؟ — أريد شراء قميص. بكم هذا الأزرق؟ — ثمنه عشرون يورو. هل تريد تجربته؟ — نعم، من فضلك.",
+          "— أين المخبز؟ — بجانب السوبرماركت، في شارع مايور. — شكرًا. هل لديكم خبز أسمر؟ — نعم، لدينا خبز أسمر وخبز أبيض.",
+          "— هل تقبلون بطاقة الائتمان؟ — نعم، يمكنك الدفع بالبطاقة أو نقدًا. — ممتاز، سأشتري هذا البنطال."
+        ],
+        "vocabulario": [
+          "comprar, vender, tienda, supermercado, panadería, precio, probar, pagar, tarjeta de crédito, efectivo, producto, pantalón, camisa, pan, blanco, integral"
+        ],
+        "vocabulario_ar": [
+          "يشتري، يبيع، متجر، سوبرماركت، مخبز، سعر، يجرب، يدفع، بطاقة ائتمان، نقدًا، منتج، بنطال، قميص، خبز، أبيض، أسمر"
+        ],
+        "gramatica": [
+          "Pedir precios: ¿Cuánto cuesta...?", "Ofrecer y pedir productos: ¿Tiene...? ¿Quiere probar...?", "Formas de pago: pagar en efectivo, con tarjeta."
+        ],
+        "gramatica_ar": [
+          "طلب الأسعار: بكم...؟", "عرض وطلب المنتجات: هل لديك...؟ هل تريد تجربة...؟", "طرق الدفع: الدفع نقدًا، بالبطاقة."
+        ],
+        "ejercicios": [
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Quiero comprar una ______. (ترجمة: أريد شراء قميص)",
+            "solucion": ["camisa"]
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Dónde compras pan? (أين تشتري الخبز؟)",
+            "opciones": ["Panadería", "Farmacia", "Escuela", "Banco"],
+            "respuesta_correcta": "Panadería"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Escribe una conversación corta en una tienda. (اكتب حوارا قصيرا في متجر)"
+          },
+          {
+            "tipo": "relacionar",
+            "enunciado": "Relaciona los productos con su traducción (صل المنتجات بترجمتها):",
+            "pares": [
+              {"izquierda": "Pan", "derecha": "خبز"},
+              {"izquierda": "Camisa", "derecha": "قميص"},
+              {"izquierda": "Precio", "derecha": "سعر"}
+            ]
+          }
+        ]
+      },
+      {
+        "unidad": 8,
+        "titulo": "Comida y bebida",
+        "avatar": null,
+        "duracion_video": null,
+        "tema": "Hablar de comidas y bebidas, expresar gustos, pedir en un restaurante y preguntar por ingredientes o recomendaciones.",
+        "tema_ar": "التحدث عن الأطعمة والمشروبات، التعبير عن التفضيلات، الطلب في مطعم والسؤال عن المكونات أو التوصيات.",
+        "expresion_oral": [
+          "— ¿Qué te gusta desayunar? — Me gusta tomar café con leche y tostadas con mermelada. ¿Y tú? — Yo prefiero té y fruta. ¿Comes fuera a menudo? — Sí, suelo almorzar en un restaurante cerca del trabajo.",
+          "— Buenas noches, ¿tienen mesa para dos? — Sí, por aquí, por favor. ¿Qué van a tomar? — Yo quiero sopa de verduras y pollo al horno. ¿Y para beber? — Agua mineral, por favor.",
+          "— ¿Nos recomienda algún plato típico? — Sí, la paella es muy buena aquí. ¿Desean postre? — Sí, ¿qué tienen? — Flan y fruta fresca."
+        ],
+        "expresion_oral_ar": [
+          "— ماذا تحب أن تتناول في الإفطار؟ — أحب شرب القهوة بالحليب وتناول التوست بالمربى. وأنت؟ — أفضل الشاي والفواكه. هل تتناول الطعام خارج المنزل كثيرًا؟ — نعم، غالبًا أتناول الغداء في مطعم قريب من العمل.",
+          "— مساء الخير، هل لديكم طاولة لشخصين؟ — نعم، من هنا من فضلك. ماذا تريدون أن تطلبوا؟ — أريد شوربة خضار ودجاج مشوي. وماذا عن الشراب؟ — ماء معدني، من فضلك.",
+          "— هل تنصحنا بطبق تقليدي؟ — نعم، الباييا لذيذة جدًا هنا. هل ترغبون في الحلوى؟ — نعم، ماذا لديكم؟ — كريم كراميل وفواكه طازجة."
+        ],
+        "vocabulario": [
+          "desayuno, comida, cena, restaurante, menú, pedir, beber, sopa, verduras, pollo, agua mineral, paella, flan, fruta, postre, camarero, plato típico"
+        ],
+        "vocabulario_ar": [
+          "إفطار، غداء، عشاء، مطعم، قائمة الطعام، يطلب، يشرب، شوربة، خضار، دجاج، ماء معدني، باييا، كريم كراميل، فاكهة، حلوى، نادل، طبق تقليدي"
+        ],
+        "gramatica": [
+          "Pedir en un restaurante: ¿Qué van a tomar? Quiero..., para mí...", "Expresar gustos: Me gusta, prefiero, me apetece.", "Preguntar por recomendaciones: ¿Nos recomienda...?"
+        ],
+        "gramatica_ar": [
+          "الطلب في مطعم: ماذا تريدون أن تطلبوا؟ أريد...، بالنسبة لي...", "التعبير عن التفضيلات: يعجبني، أفضل، أرغب في.", "السؤال عن التوصيات: هل تنصحنا بـ...؟"
+        ],
+        "ejercicios": [
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Me gusta desayunar ______ con leche. (ترجمة: أحب أن أتناول القهوة بالحليب)",
+            "solucion": ["café"]
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué pides en un restaurante para terminar la comida? (ماذا تطلب في مطعم لإنهاء الوجبة؟)",
+            "opciones": ["Postre", "Entrada", "Sopa", "Pan"],
+            "respuesta_correcta": "Postre"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Escribe qué te gusta comer y beber. (اكتب ماذا تحب أن تأكل وتشرب)"
+          },
+          {
+            "tipo": "relacionar",
+            "enunciado": "Relaciona los alimentos con su traducción (صل الأطعمة بترجمتها):",
+            "pares": [
+              {"izquierda": "Café", "derecha": "قهوة"},
+              {"izquierda": "Sopa", "derecha": "شوربة"},
+              {"izquierda": "Pollo", "derecha": "دجاج"}
+            ]
+          }
+        ]
+      },
+      {
+        "unidad": 9,
+        "titulo": "Salud y bienestar",
+        "avatar": null,
+        "duracion_video": null,
+        "tema": "Hablar de la salud, el bienestar y el cuerpo, expresar síntomas, molestias y pedir ayuda médica.",
+        "tema_ar": "التحدث عن الصحة، العافية والجسم، التعبير عن الأعراض والانزعاجات وطلب المساعدة الطبية.",
+        "expresion_oral": [
+          "— ¿Qué te pasa? — Me duele la cabeza y tengo fiebre. ¿Has ido al médico? — Sí, me ha recetado descanso y mucha agua.\n<span style='color:#388e3c'>— ماذا بك؟ — أشعر بألم في رأسي وعندي حرارة. هل ذهبت إلى الطبيب؟ — نعم، وصف لي الراحة وشرب الكثير من الماء.</span>",
+          "— ¿Dónde te duele? — Me duele la garganta y no puedo hablar bien. ¿Quieres ir a la farmacia? — Sí, necesito comprar medicinas.\n<span style='color:#388e3c'>— أين يؤلمك؟ — أشعر بألم في حلقي ولا أستطيع التحدث جيدًا. هل تريد الذهاب إلى الصيدلية؟ — نعم، أحتاج لشراء أدوية.</span>",
+          "— ¿Cómo te encuentras hoy? — Mejor, ya no tengo dolor de estómago y puedo ir a clase.\n<span style='color:#388e3c'>— كيف تشعر اليوم؟ — أفضل، لم يعد لدي ألم في المعدة ويمكنني الذهاب إلى الصف.</span>"
+        ],
+        "expresion_oral_ar": [],
+        "vocabulario": [
+          "cabeza — <span style='color:#388e3c'>رأس</span>",
+          "cuerpo — <span style='color:#388e3c'>جسم</span>",
+          "dolor — <span style='color:#388e3c'>ألم</span>",
+          "fiebre — <span style='color:#388e3c'>حرارة</span>",
+          "médico — <span style='color:#388e3c'>طبيب</span>",
+          "farmacia — <span style='color:#388e3c'>صيدلية</span>",
+          "garganta — <span style='color:#388e3c'>حلق</span>",
+          "estómago — <span style='color:#388e3c'>معدة</span>",
+          "medicina — <span style='color:#388e3c'>دواء</span>",
+          "síntomas — <span style='color:#388e3c'>أعراض</span>",
+          "descanso — <span style='color:#388e3c'>راحة</span>",
+          "agua — <span style='color:#388e3c'>ماء</span>",
+          "clase — <span style='color:#388e3c'>صف</span>",
+          "hablar — <span style='color:#388e3c'>يتكلم</span>"
+        ],
+        "vocabulario_ar": [],
+        "gramatica": [
+          "Expresar dolor: me duele(n)..., tengo dolor de...\n<span style='color:#388e3c'>التعبير عن الألم: أشعر بألم في...، عندي ألم في...</span>",
+          "Preguntar por síntomas: ¿Qué te pasa? ¿Dónde te duele?\n<span style='color:#388e3c'>السؤال عن الأعراض: ماذا بك؟ أين يؤلمك؟</span>",
+          "Partes del cuerpo: cabeza, garganta, estómago.\n<span style='color:#388e3c'>أجزاء الجسم: رأس، حلق، معدة.</span>"
+        ],
+        "gramatica_ar": [],
+        "ejercicios": [
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Me duele la ______. (ترجمة: أشعر بألم في رأسي)",
+            "solucion": ["cabeza"]
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿A dónde vas si necesitas medicinas? (إلى أين تذهب إذا كنت بحاجة إلى أدوية؟)",
+            "opciones": ["Farmacia", "Cine", "Escuela", "Parque"],
+            "respuesta_correcta": "Farmacia"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Escribe 2 frases sobre la salud. (اكتب جملتين عن الصحة)"
+          },
+          {
+            "tipo": "relacionar",
+            "enunciado": "Relaciona las partes del cuerpo con su traducción (صل أجزاء الجسم بترجمتها):",
+            "pares": [
+              {"izquierda": "Cabeza", "derecha": "رأس"},
+              {"izquierda": "Garganta", "derecha": "حلق"},
+              {"izquierda": "Estómago", "derecha": "معدة"}
+            ]
+          }
+        ]
+      },
+      {
+        "unidad": 10,
+        "titulo": "El tiempo y las estaciones",
+        "avatar": null,
+        "duracion_video": null,
+        "tema": "Hablar del tiempo, el clima, las estaciones del año y actividades relacionadas con el clima.",
+        "tema_ar": "التحدث عن الطقس، المناخ، فصول السنة والأنشطة المرتبطة بالطقس.",
+        "expresion_oral": [
+          "— ¿Qué tiempo hace hoy? — Hace sol y calor, perfecto para ir a la playa. ¿Y mañana? — Dicen que va a llover y bajan las temperaturas.\n<span style='color:#388e3c'>— كيف الطقس اليوم؟ — الجو مشمس وحار، مناسب للذهاب إلى الشاطئ. وماذا عن الغد؟ — يقولون أنه ستمطر وتنخفض درجات الحرارة.</span>",
+          "— ¿Cuál es tu estación favorita? — Me gusta el otoño porque no hace ni mucho frío ni mucho calor. ¿Y a ti? — Prefiero la primavera, hay muchas flores y el clima es agradable.\n<span style='color:#388e3c'>— ما هو فصلك المفضل؟ — أحب الخريف لأنه ليس باردًا جدًا ولا حارًا جدًا. وأنت؟ — أفضل الربيع، هناك الكثير من الزهور والجو لطيف.</span>",
+          "— ¿Qué sueles hacer en invierno? — Me gusta quedarme en casa y leer o ver películas. Cuando nieva, salgo a jugar con mis amigos.\n<span style='color:#388e3c'>— ماذا تفعل عادة في الشتاء؟ — أحب البقاء في المنزل وقراءة الكتب أو مشاهدة الأفلام. وعندما تتساقط الثلوج أخرج للعب مع أصدقائي.</span>"
+        ],
+        "expresion_oral_ar": [],
+        "vocabulario": [
+          "sol — <span style='color:#388e3c'>شمس</span>",
+          "calor — <span style='color:#388e3c'>حرارة</span>",
+          "frío — <span style='color:#388e3c'>برد</span>",
+          "lluvia — <span style='color:#388e3c'>مطر</span>",
+          "estación — <span style='color:#388e3c'>فصل</span>",
+          "primavera — <span style='color:#388e3c'>ربيع</span>",
+          "verano — <span style='color:#388e3c'>صيف</span>",
+          "otoño — <span style='color:#388e3c'>خريف</span>",
+          "invierno — <span style='color:#388e3c'>شتاء</span>",
+          "playa — <span style='color:#388e3c'>شاطئ</span>",
+          "flores — <span style='color:#388e3c'>زهور</span>",
+          "nieve — <span style='color:#388e3c'>ثلج</span>",
+          "temperatura — <span style='color:#388e3c'>درجة الحرارة</span>",
+          "casa — <span style='color:#388e3c'>منزل</span>",
+          "película — <span style='color:#388e3c'>فيلم</span>",
+          "amigos — <span style='color:#388e3c'>أصدقاء</span>"
+        ],
+        "vocabulario_ar": [],
+        "gramatica": [
+          "Hablar del clima: Hace sol, hace frío, va a llover.\n<span style='color:#388e3c'>التحدث عن الطقس: الجو مشمس، الجو بارد، ستمطر.</span>",
+          "Estaciones del año: primavera, verano, otoño, invierno.\n<span style='color:#388e3c'>فصول السنة: ربيع، صيف، خريف، شتاء.</span>",
+          "Expresar preferencias: Me gusta, prefiero.\n<span style='color:#388e3c'>التعبير عن التفضيلات: أحب، أفضل.</span>"
+        ],
+        "gramatica_ar": [],
+        "ejercicios": [
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: En invierno hace ______. (ترجمة: في الشتاء الجو بارد)",
+            "solucion": ["frío"]
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Cuál es la estación del año cuando hace calor? (ما هو الفصل الذي يكون فيه الجو حارًا؟)",
+            "opciones": ["Invierno", "Verano", "Primavera", "Otoño"],
+            "respuesta_correcta": "Verano"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Describe el clima de tu país. (صف مناخ بلدك)"
+          },
+          {
+            "tipo": "relacionar",
+            "enunciado": "Relaciona las estaciones con su traducción (صل الفصول بترجمتها):",
+            "pares": [
+              {"izquierda": "Invierno", "derecha": "شتاء"},
+              {"izquierda": "Verano", "derecha": "صيف"},
+              {"izquierda": "Primavera", "derecha": "ربيع"}
+            ]
+          }
+        ]
+      }
+    ],
+    "examen": [
+      {
+        "pregunta": "¿Cuál es el tema principal de la unidad 'Saludar y presentarse'?",
+        "opciones": [
+          "Saludar, presentarse, despedirse.",
+          "Otro tema",
+          "Tema inventado",
+          "No sé"
+        ],
+        "respuesta_correcta": "Saludar, presentarse, despedirse.",
+        "unidad": 1
+      },
+      {
+        "pregunta": "¿Cuál es el tema principal de la unidad 'Países y nacionalidades'?",
+        "opciones": [
+          "Hablar del origen y nacionalidad.",
+          "Otro tema",
+          "Tema inventado",
+          "No sé"
+        ],
+        "respuesta_correcta": "Hablar del origen y nacionalidad.",
+        "unidad": 2
+      },
+      {
+        "pregunta": "¿Cuál es el tema principal de la unidad 'La familia y los amigos'?",
+        "opciones": [
+          "Hablar de la familia y describir personas.",
+          "Otro tema",
+          "Tema inventado",
+          "No sé"
+        ],
+        "respuesta_correcta": "Hablar de la familia y describir personas.",
+        "unidad": 3
+      },
+      {
+        "pregunta": "¿Cuál es el tema principal de la unidad 'La casa y la ciudad'?",
+        "opciones": [
+          "Describir la casa, el barrio y dar direcciones.",
+          "Otro tema",
+          "Tema inventado",
+          "No sé"
+        ],
+        "respuesta_correcta": "Describir la casa, el barrio y dar direcciones.",
+        "unidad": 4
+      },
+      {
+        "pregunta": "¿Cuál es el tema principal de la unidad 'La vida cotidiana'?",
+        "opciones": [
+          "Hablar de rutinas y actividades diarias.",
+          "Otro tema",
+          "Tema inventado",
+          "No sé"
+        ],
+        "respuesta_correcta": "Hablar de rutinas y actividades diarias.",
+        "unidad": 5
+      },
+      {
+        "pregunta": "¿Cuál es el tema principal de la unidad 'El tiempo libre'?",
+        "opciones": [
+          "Hablar de aficiones y planes.",
+          "Otro tema",
+          "Tema inventado",
+          "No sé"
+        ],
+        "respuesta_correcta": "Hablar de aficiones y planes.",
+        "unidad": 6
+      },
+      {
+        "pregunta": "¿Cuál es el tema principal de la unidad 'Ir de compras'?",
+        "opciones": [
+          "Comprar en tiendas y pedir precios.",
+          "Otro tema",
+          "Tema inventado",
+          "No sé"
+        ],
+        "respuesta_correcta": "Comprar en tiendas y pedir precios.",
+        "unidad": 7
+      },
+      {
+        "pregunta": "¿Cuál es el tema principal de la unidad 'Comidas y bebidas'?",
+        "opciones": [
+          "Hablar de alimentos y pedir en restaurantes.",
+          "Otro tema",
+          "Tema inventado",
+          "No sé"
+        ],
+        "respuesta_correcta": "Hablar de alimentos y pedir en restaurantes.",
+        "unidad": 8
+      },
+      {
+        "pregunta": "¿Cuál es el tema principal de la unidad 'La salud'?",
+        "opciones": [
+          "Hablar de síntomas y partes del cuerpo.",
+          "Otro tema",
+          "Tema inventado",
+          "No sé"
+        ],
+        "respuesta_correcta": "Hablar de síntomas y partes del cuerpo.",
+        "unidad": 9
+      },
+      {
+        "pregunta": "¿Cuál es el tema principal de la unidad 'El tiempo y el clima'?",
+        "opciones": [
+          "Hablar del clima y las estaciones.",
+          "Otro tema",
+          "Tema inventado",
+          "No sé"
+        ],
+        "respuesta_correcta": "Hablar del clima y las estaciones.",
+        "unidad": 10
+      },
+      {
+        "pregunta": "¿Cuál de estas frases es un saludo formal?",
+        "opciones": [
+          "Buenos días, señor.",
+          "Adiós, amigo.",
+          "Me llamo Ana.",
+          "¿Cómo te llamas?"
+        ],
+        "respuesta_correcta": "Buenos días, señor.",
+        "unidad": 1
+      },
+      {
+        "pregunta": "¿Cómo se despide alguien en una conversación formal?",
+        "opciones": [
+          "Hasta luego.",
+          "Hola.",
+          "Por favor.",
+          "Gracias."
+        ],
+        "respuesta_correcta": "Hasta luego.",
+        "unidad": 1
+      },
+      {
+        "pregunta": "¿Cuál es la nacionalidad de una persona de Marruecos?",
+        "opciones": [
+          "Español/a",
+          "Marroquí",
+          "Mexicano/a",
+          "Egipcio/a"
+        ],
+        "respuesta_correcta": "Marroquí",
+        "unidad": 2
+      },
+      {
+        "pregunta": "¿Cómo se pregunta por la nacionalidad de alguien?",
+        "opciones": [
+          "¿De dónde eres?",
+          "¿Cuál es tu nacionalidad?",
+          "¿Dónde vives?",
+          "¿Cómo te llamas?"
+        ],
+        "respuesta_correcta": "¿Cuál es tu nacionalidad?",
+        "unidad": 2
+      },
+      {
+        "pregunta": "¿Quién es el hijo de tu tío?",
+        "opciones": [
+          "Tu primo",
+          "Tu abuelo",
+          "Tu hermano",
+          "Tu padre"
+        ],
+        "respuesta_correcta": "Tu primo",
+        "unidad": 3
+      },
+      {
+        "pregunta": "¿Cómo se dice 'friend' en español?",
+        "opciones": [
+          "Hermano",
+          "Amigo",
+          "Padre",
+          "Primo"
+        ],
+        "respuesta_correcta": "Amigo",
+        "unidad": 3
+      },
+      {
+        "pregunta": "¿Qué palabra corresponde a un lugar donde compras comida?",
+        "opciones": [
+          "Supermercado",
+          "Parque",
+          "Universidad",
+          "Hospital"
+        ],
+        "respuesta_correcta": "Supermercado",
+        "unidad": 4
+      },
+      {
+        "pregunta": "¿Cuál es la preposición correcta? Vivo ___ el centro.",
+        "opciones": [
+          "en",
+          "a",
+          "de",
+          "por"
+        ],
+        "respuesta_correcta": "en",
+        "unidad": 4
+      },
+      {
+        "pregunta": "¿Qué verbo es reflexivo?",
+        "opciones": [
+          "Levantarse",
+          "Comer",
+          "Leer",
+          "Trabajar"
+        ],
+        "respuesta_correcta": "Levantarse",
+        "unidad": 5
+      },
+      {
+        "pregunta": "¿A qué hora cenas si cenas a las 21:00?",
+        "opciones": [
+          "A las nueve de la noche",
+          "A las siete de la mañana",
+          "A las tres de la tarde",
+          "A las doce del mediodía"
+        ],
+        "respuesta_correcta": "A las nueve de la noche",
+        "unidad": 5
+      },
+      {
+        "pregunta": "¿Qué actividad es una afición?",
+        "opciones": [
+          "Leer",
+          "Dormir",
+          "Trabajar",
+          "Comer"
+        ],
+        "respuesta_correcta": "Leer",
+        "unidad": 6
+      },
+      {
+        "pregunta": "¿Qué verbo se usa para expresar gustos?",
+        "opciones": [
+          "Gustar",
+          "Tener",
+          "Ser",
+          "Estar"
+        ],
+        "respuesta_correcta": "Gustar",
+        "unidad": 6
+      },
+      {
+        "pregunta": "¿Dónde compras pan?",
+        "opciones": [
+          "Panadería",
+          "Farmacia",
+          "Escuela",
+          "Banco"
+        ],
+        "respuesta_correcta": "Panadería",
+        "unidad": 7
+      },
+      {
+        "pregunta": "¿Qué pregunta haces para saber el precio de algo?",
+        "opciones": [
+          "¿Cuánto cuesta?",
+          "¿Dónde está?",
+          "¿Qué hora es?",
+          "¿Cómo te llamas?"
+        ],
+        "respuesta_correcta": "¿Cuánto cuesta?",
+        "unidad": 7
+      },
+      {
+        "pregunta": "¿Qué bebida es común en el desayuno en España?",
+        "opciones": [
+          "Café con leche",
+          "Zumo de naranja",
+          "Agua",
+          "Vino"
+        ],
+        "respuesta_correcta": "Café con leche",
+        "unidad": 8
+      },
+      {
+        "pregunta": "¿Qué pides en un restaurante para terminar la comida?",
+        "opciones": [
+          "Postre",
+          "Entrada",
+          "Sopa",
+          "Pan"
+        ],
+        "respuesta_correcta": "Postre",
+        "unidad": 8
+      },
+      {
+        "pregunta": "¿Qué dices si tienes dolor de cabeza?",
+        "opciones": [
+          "Me duele la cabeza",
+          "Tengo hambre",
+          "Estoy cansado",
+          "Me llamo Juan"
+        ],
+        "respuesta_correcta": "Me duele la cabeza",
+        "unidad": 9
+      },
+      {
+        "pregunta": "¿A dónde vas si necesitas medicinas?",
+        "opciones": [
+          "A la farmacia",
+          "Al cine",
+          "A la escuela",
+          "Al parque"
+        ],
+        "respuesta_correcta": "A la farmacia",
+        "unidad": 9
+      },
+      {
+        "pregunta": "¿Cuál es la estación del año cuando hace frío y nieva?",
+        "opciones": [
+          "Invierno",
+          "Verano",
+          "Primavera",
+          "Otoño"
+        ],
+        "respuesta_correcta": "Invierno",
+        "unidad": 10
+      },
+      {
+        "pregunta": "¿Qué tiempo hace si hay sol y calor?",
+        "opciones": [
+          "Hace buen tiempo",
+          "Hace frío",
+          "Llueve",
+          "Nieva"
+        ],
+        "respuesta_correcta": "Hace buen tiempo",
+        "unidad": 10
+      }
+    ]
+  },
+  "A2": {
+    "unidades": [
+      {
+        "unidad": 1,
+        "titulo": "La biografía y experiencias personales",
+        "avatar": "https://studio.d-id.com/share?id=78273e102878eaf5a66f74ccee64b5cb&utm_source=copy",
+        "duracion_video": 45,
+        "tema": "Hablar de la vida, experiencias pasadas y biografía personal.",
+        "tema_ar": "التحدث عن الحياة، التجارب الماضية والسيرة الذاتية الشخصية.",
+        "expresion_oral": [
+          "— ¿Dónde naciste? — Nací en Marruecos, pero vivo en España desde hace cinco años. — ¿Qué hacías antes de venir aquí? — Trabajaba como profesor en mi país.",
+          "— ¿Cuál ha sido tu experiencia más importante? — Creo que fue cuando decidí venir a España a estudiar. — ¿Por qué decidiste venir? — Porque quería mejorar mi español y conocer otra cultura.",
+          "— ¿Qué recuerdas de tu infancia? — Recuerdo que jugaba mucho con mis hermanos en la calle. — ¿Y de tu adolescencia? — Fue una época difícil pero aprendí mucho sobre mí mismo."
+        ],
+        "expresion_oral_ar": [
+          "— أين ولدت؟ — ولدت في المغرب، لكنني أعيش في إسبانيا منذ خمس سنوات. — ماذا كنت تفعل قبل أن تأتي إلى هنا؟ — كنت أعمل مدرسًا في بلدي.",
+          "— ما هي تجربتك الأهم؟ — أعتقد أنها كانت عندما قررت المجيء إلى إسبانيا للدراسة. — لماذا قررت المجيء؟ — لأنني أردت تحسين لغتي الإسبانية والتعرف على ثقافة أخرى.",
+          "— ماذا تتذكر من طفولتك؟ — أتذكر أنني كنت ألعب كثيرًا مع إخوتي في الشارع. — وماذا عن مراهقتك؟ — كانت فترة صعبة لكنني تعلمت الكثير عن نفسي."
+        ],
+        "vocabulario": [
+          "nacer, vivir, trabajar, estudiar, mudarse, experiencia, país, ciudad, año, antes, después, infancia, adolescencia, juventud, madurez, recuerdo, pasado, presente, futuro, decisión, cambio"
+        ],
+        "vocabulario_ar": [
+          "وُلد، يعيش، يعمل، يدرس، ينتقل، تجربة، بلد، مدينة، سنة، قبل، بعد، طفولة، مراهقة، شباب، نضج، ذكرى، ماضي، حاضر، مستقبل، قرار، تغيير"
+        ],
+        "gramatica": [
+          "Pretérito perfecto e imperfecto: he vivido, vivía.", 
+          "Preguntar por experiencias: ¿Has viajado a otro país?",
+          "Expresar duración: desde hace..., durante...",
+          "Conectores temporales: antes, después, cuando, mientras"
+        ],
+        "gramatica_ar": [
+          "الماضي التام والماضي الناقص: عشتُ، كنت أعيش.", 
+          "السؤال عن التجارب: هل سافرت إلى بلد آخر؟",
+          "التعبير عن المدة: منذ...، خلال...",
+          "أدوات الربط الزمنية: قبل، بعد، عندما، بينما"
+        ],
+        "ejercicios": [
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Yo ___ (nacer) en Siria y ___ (vivir) en España desde 2018. (ترجمة: ولدت في سوريا وأعيش في إسبانيا منذ 2018)",
+            "solucion": ["nací", "vivo"]
+          },
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Antes ___ (trabajar) como profesor, pero ahora ___ (estudiar) español. (ترجمة: قبل كنت أعمل مدرسًا، لكن الآن أدرس الإسبانية)",
+            "solucion": ["trabajaba", "estudio"]
+          },
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Mi experiencia más importante ___ (ser) cuando decidí venir a España. (ترجمة: تجربتي الأهم كانت عندما قررت المجيء إلى إسبانيا)",
+            "solucion": ["fue"]
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué tiempo verbal se usa para acciones habituales en el pasado? (أي زمن يستخدم للأفعال المعتادة في الماضي؟)",
+            "opciones": ["Pretérito imperfecto", "Pretérito perfecto", "Futuro", "Condicional"],
+            "respuesta_correcta": "Pretérito imperfecto"
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué significa 'mudarse'? (ماذا تعني 'الانتقال'؟)",
+            "opciones": ["Cambiar de casa", "Cambiar de trabajo", "Cambiar de país", "Cambiar de coche"],
+            "respuesta_correcta": "Cambiar de casa"
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Cómo se dice 'experiencia' en árabe? (كيف تقول 'تجربة' بالعربية؟)",
+            "opciones": ["تذكر", "تجربة", "حياة", "ماضي"],
+            "respuesta_correcta": "تجربة"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Escribe 3 frases sobre tu experiencia personal usando 'antes' y 'después'. (اكتب 3 جمل عن تجربتك الشخصية باستخدام 'قبل' و'بعد')"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Describe tu infancia: dónde vivías, qué te gustaba hacer, qué recuerdas. (صف طفولتك: أين كنت تعيش، ما الذي كنت تحب فعله، ماذا تتذكر)"
+          },
+          {
+            "tipo": "relacionar",
+            "enunciado": "Relaciona las palabras de biografía con su traducción (صل كلمات السيرة الذاتية بترجمتها):",
+            "pares": [
+              {"izquierda": "Nacer", "derecha": "وُلد"},
+              {"izquierda": "Vivir", "derecha": "يعيش"},
+              {"izquierda": "Trabajar", "derecha": "يعمل"},
+              {"izquierda": "Estudiar", "derecha": "يدرس"},
+              {"izquierda": "Experiencia", "derecha": "تجربة"}
+            ]
+          }
+        ]
+      },
+      {
+        "unidad": 2,
+        "titulo": "La salud y el bienestar",
+        "avatar": "https://studio.d-id.com/share?id=78273e102878eaf5a66f74ccee64b5cb&utm_source=copy",
+        "duracion_video": 45,
+        "tema": "Dar consejos y hablar de hábitos saludables, síntomas y visitas médicas.",
+        "tema_ar": "إعطاء النصائح والتحدث عن العادات الصحية والأعراض والزيارات الطبية.",
+        "expresion_oral": [
+          "— ¿Qué haces para mantenerte en forma? — Hago ejercicio tres veces por semana y como sano. — ¿Qué tipo de ejercicio prefieres? — Me gusta correr y nadar.",
+          "— ¿Cómo te sientes últimamente? — Me siento un poco estresado por el trabajo. — ¿Has ido al médico? — Sí, me dijo que necesito descansar más.",
+          "— ¿Qué te pasa? — Tengo dolor de cabeza y fiebre. — ¿Cuándo empezó? — Ayer por la tarde. — Necesitas tomar medicina y descansar. — ¿Puedo hacer una cita con el médico?"
+        ],
+        "expresion_oral_ar": [
+          "— ماذا تفعل للبقاء في حالة جيدة؟ — أمارس الرياضة ثلاث مرات في الأسبوع وآكل طعامًا صحيًا. — ما نوع الرياضة التي تفضلها؟ — أحب الجري والسباحة.",
+          "— كيف تشعر مؤخرًا؟ — أشعر بقليل من التوتر بسبب العمل. — هل ذهبت إلى الطبيب؟ — نعم، قال لي إنني أحتاج إلى مزيد من الراحة.",
+          "— ما مشكلتك؟ — لدي صداع وحمى. — متى بدأ؟ — أمس في المساء. — تحتاج أن تأخذ دواء وتستريح. — هل يمكنني حجز موعد مع الطبيب؟"
+        ],
+        "vocabulario": [
+          "salud, bienestar, ejercicio, dieta, estrés, relajación, médico, farmacia, medicamento, descanso, dolor, fiebre, resfriado, gripe, tos, dolor de cabeza, dolor de estómago, cita médica, receta, pastilla, jarabe, vitaminas"
+        ],
+        "vocabulario_ar": [
+          "صحة، عافية، رياضة، حمية، توتر، استرخاء، طبيب، صيدلية، دواء، راحة، ألم، حمى، برد، إنفلونزا، سعال، صداع، ألم في المعدة، موعد طبي، وصفة طبية، حبة، شراب، فيتامينات"
+        ],
+        "gramatica": [
+          "Consejos con imperativo: Haz ejercicio, come sano.", 
+          "Expresar sensaciones: Me siento..., estoy...",
+          "Expresar dolor: Me duele..., tengo dolor de...",
+          "Expresar necesidad: Necesito..., tengo que..."
+        ],
+        "gramatica_ar": [
+          "النصائح باستخدام الأمر: مارس الرياضة، كل طعامًا صحيًا.", 
+          "التعبير عن الأحاسيس: أشعر بـ...، أنا...",
+          "التعبير عن الألم: يؤلمني...، لدي ألم في...",
+          "التعبير عن الحاجة: أحتاج...، يجب أن..."
+        ],
+        "ejercicios": [
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Para mantener la ______, debes hacer ejercicio. (ترجمة: للبقاء في صحة جيدة، يجب أن تمارس الرياضة)",
+            "solucion": ["salud"]
+          },
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Me ______ la cabeza y tengo ______. (ترجمة: يؤلمني رأسي ولدي حمى)",
+            "solucion": ["duele", "fiebre"]
+          },
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Necesito hacer una ______ con el ______. (ترجمة: أحتاج حجز موعد مع الطبيب)",
+            "solucion": ["cita", "médico"]
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué es bueno para reducir el estrés? (ما هو جيد لتقليل التوتر؟)",
+            "opciones": ["Ejercicio", "Comida rápida", "Dormir poco", "Trabajar más"],
+            "respuesta_correcta": "Ejercicio"
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Dónde compras medicamentos? (أين تشتري الأدوية؟)",
+            "opciones": ["Farmacia", "Supermercado", "Banco", "Escuela"],
+            "respuesta_correcta": "Farmacia"
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué significa 'Me duele la cabeza'? (ماذا تعني 'يؤلمني رأسي'؟)",
+            "opciones": ["Tengo hambre", "Tengo dolor de cabeza", "Estoy cansado", "Tengo sed"],
+            "respuesta_correcta": "Tengo dolor de cabeza"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Escribe 3 consejos para una vida saludable. (اكتب 3 نصائح لحياة صحية)"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Describe una visita al médico: qué síntomas tienes, qué te dice el médico, qué medicinas te receta. (صف زيارة للطبيب: ما الأعراض التي لديك، ماذا يقول لك الطبيب، ما الأدوية التي يصفها لك)"
+          },
+          {
+            "tipo": "relacionar",
+            "enunciado": "Relaciona las palabras de salud con su traducción (صل كلمات الصحة بترجمتها):",
+            "pares": [
+              {"izquierda": "Salud", "derecha": "صحة"},
+              {"izquierda": "Ejercicio", "derecha": "رياضة"},
+              {"izquierda": "Médico", "derecha": "طبيب"},
+              {"izquierda": "Farmacia", "derecha": "صيدلية"},
+              {"izquierda": "Dolor", "derecha": "ألم"}
+            ]
+          }
+        ]
+      },
+      {
+        "unidad": 3,
+        "titulo": "El trabajo y la vida profesional",
+        "avatar": "https://studio.d-id.com/share?id=78273e102878eaf5a66f74ccee64b5cb&utm_source=copy",
+        "duracion_video": 45,
+        "tema": "Hablar de profesiones, buscar empleo, describir el trabajo y condiciones laborales.",
+        "tema_ar": "التحدث عن المهن، البحث عن عمل، وصف العمل وظروف العمل.",
+        "expresion_oral": [
+          "— ¿En qué trabajas? — Soy ingeniero informático en una empresa tecnológica. — ¿Cuánto tiempo llevas trabajando ahí? — Llevo tres años en esta empresa.",
+          "— ¿Te gusta tu trabajo? — Sí, es interesante pero a veces es estresante. — ¿Qué horario tienes? — Trabajo de 9 a 6, de lunes a viernes.",
+          "— ¿Estás buscando trabajo? — Sí, estoy enviando currículums. — ¿Qué tipo de trabajo buscas? — Busco algo relacionado con mi formación en administración."
+        ],
+        "expresion_oral_ar": [
+          "— في ماذا تعمل؟ — أنا مهندس معلوماتي في شركة تقنية. — منذ متى تعمل هناك؟ — أعمل في هذه الشركة منذ ثلاث سنوات.",
+          "— هل يعجبك عملك؟ — نعم، إنه مثير للاهتمام لكن أحيانًا مرهق. — ما جدول عملك؟ — أعمل من 9 إلى 6، من الاثنين إلى الجمعة.",
+          "— هل تبحث عن عمل؟ — نعم، أرسل السير الذاتية. — ما نوع العمل الذي تبحث عنه؟ — أبحث عن شيء يتعلق بتكويني في الإدارة."
+        ],
+        "vocabulario": [
+          "trabajo, profesión, empresa, oficina, jefe, compañero, salario, horario, vacaciones, entrevista, currículum, formación, experiencia, contrato, despido, promoción, ambiente laboral, estrés, motivación, satisfacción, desarrollo profesional"
+        ],
+        "vocabulario_ar": [
+          "عمل، مهنة، شركة، مكتب، مدير، زميل، راتب، جدول عمل، إجازة، مقابلة، سيرة ذاتية، تكوين، خبرة، عقد، طرد، ترقية، بيئة عمل، توتر، تحفيز، رضا، تطور مهني"
+        ],
+        "gramatica": [
+          "Presente de indicativo para describir el trabajo: Trabajo, soy...", 
+          "Expresar opiniones: Me gusta, es interesante...",
+          "Expresar duración: Llevo... años trabajando aquí",
+          "Expresar búsqueda: Estoy buscando..., busco..."
+        ],
+        "gramatica_ar": [
+          "المضارع لوصف العمل: أعمل، أنا...", 
+          "التعبير عن الآراء: يعجبني، مثير للاهتمام...",
+          "التعبير عن المدة: أعمل هنا منذ... سنوات",
+          "التعبير عن البحث: أبحث عن...، أبحث..."
+        ],
+        "ejercicios": [
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Soy ______ en una empresa. (ترجمة: أنا مهندس في شركة)",
+            "solucion": ["ingeniero"]
+          },
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Llevo ______ años trabajando en esta ______. (ترجمة: أعمل في هذه الشركة منذ خمس سنوات)",
+            "solucion": ["cinco", "empresa"]
+          },
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Estoy ______ trabajo y enviando ______. (ترجمة: أبحث عن عمل وأرسل السير الذاتية)",
+            "solucion": ["buscando", "currículums"]
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Quién dirige una empresa? (من يدير الشركة؟)",
+            "opciones": ["El jefe", "El compañero", "El cliente", "El vecino"],
+            "respuesta_correcta": "El jefe"
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué documento necesitas para una entrevista de trabajo? (أي وثيقة تحتاج لمقابلة عمل؟)",
+            "opciones": ["Currículum", "Pasaporte", "Libro", "Comida"],
+            "respuesta_correcta": "Currículum"
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué significa 'promoción'? (ماذا تعني 'ترقية'؟)",
+            "opciones": ["Subir de puesto", "Cambiar de trabajo", "Renunciar", "Descansar"],
+            "respuesta_correcta": "Subir de puesto"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Describe tu trabajo ideal: qué te gustaría hacer, qué condiciones prefieres. (صف عملك المثالي: ما الذي تود أن تفعله، ما الظروف التي تفضلها)"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Escribe sobre tu experiencia laboral: dónde has trabajado, qué has aprendido. (اكتب عن خبرتك العملية: أين عملت، ماذا تعلمت)"
+          },
+          {
+            "tipo": "relacionar",
+            "enunciado": "Relaciona las palabras del trabajo con su traducción (صل كلمات العمل بترجمتها):",
+            "pares": [
+              {"izquierda": "Trabajo", "derecha": "عمل"},
+              {"izquierda": "Empresa", "derecha": "شركة"},
+              {"izquierda": "Salario", "derecha": "راتب"},
+              {"izquierda": "Jefe", "derecha": "مدير"},
+              {"izquierda": "Entrevista", "derecha": "مقابلة"}
+            ]
+          }
+        ]
+      },
+      {
+        "unidad": 4,
+        "titulo": "Viajes y turismo",
+        "avatar": "https://studio.d-id.com/share?id=78273e102878eaf5a66f74ccee64b5cb&utm_source=copy",
+        "duracion_video": 45,
+        "tema": "Hablar de viajes, reservar alojamiento, describir lugares y experiencias turísticas.",
+        "tema_ar": "التحدث عن السفر، حجز الإقامة، وصف الأماكن والتجارب السياحية.",
+        "expresion_oral": [
+          "— ¿Has viajado a otros países? — Sí, he estado en Francia e Italia. — ¿Cuál te gustó más? — Me gustó más Italia, la comida es deliciosa.",
+          "— ¿Dónde te alojaste? — En un hotel céntrico, muy cómodo y limpio. — ¿Cuánto costó la habitación? — 80 euros por noche, con desayuno incluido.",
+          "— ¿Qué lugares visitaste? — Visité museos, monumentos y parques. — ¿Hiciste fotos? — Sí, muchas. Te muestro algunas cuando llegue a casa."
+        ],
+        "expresion_oral_ar": [
+          "— هل سافرت إلى بلدان أخرى؟ — نعم، كنت في فرنسا وإيطاليا. — أيها أعجبك أكثر؟ — أعجبني إيطاليا أكثر، الطعام لذيذ.",
+          "— أين أقمت؟ — في فندق في وسط المدينة، مريح ونظيف جدًا. — كم كلفت الغرفة؟ — 80 يورو في الليلة، مع الإفطار.",
+          "— ما الأماكن التي زرتها؟ — زرت المتاحف والآثار والحدائق. — هل التقطت صورًا؟ — نعم، كثيرًا. سأريك بعضها عندما أعود إلى البيت."
+        ],
+        "vocabulario": [
+          "viaje, turismo, hotel, habitación, reserva, billete, avión, tren, autobús, museo, monumento, plaza, calle, guía, mapa, cámara, foto, recuerdo, souvenir, equipaje, maleta, pasaporte, visado"
+        ],
+        "vocabulario_ar": [
+          "سفر، سياحة، فندق، غرفة، حجز، تذكرة، طائرة، قطار، حافلة، متحف، أثر، ساحة، شارع، دليل، خريطة، كاميرا، صورة، ذكرى، هدية تذكارية، أمتعة، حقيبة، جواز سفر، تأشيرة"
+        ],
+        "gramatica": [
+          "Pretérito perfecto para experiencias: He viajado, he estado...", 
+          "Expresar preferencias: Me gustó más..., prefiero...",
+          "Expresar cantidad: Muchos, pocos, algunos, ninguno",
+          "Expresar duración: Durante..., por..."
+        ],
+        "gramatica_ar": [
+          "الماضي التام للتجارب: سافرت، كنت...", 
+          "التعبير عن التفضيلات: أعجبني أكثر...، أفضل...",
+          "التعبير عن الكمية: كثير، قليل، بعض، لا أحد",
+          "التعبير عن المدة: خلال...، لمدة..."
+        ],
+        "ejercicios": [
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: He ______ a Francia e Italia. (ترجمة: سافرت إلى فرنسا وإيطاليا)",
+            "solucion": ["viajado"]
+          },
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Me alojé en un ______ céntrico. (ترجمة: أقمت في فندق في وسط المدينة)",
+            "solucion": ["hotel"]
+          },
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Visité ______ y ______. (ترجمة: زرت المتاحف والآثار)",
+            "solucion": ["museos", "monumentos"]
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Dónde te alojas cuando viajas? (أين تقيم عندما تسافر؟)",
+            "opciones": ["Hotel", "Escuela", "Banco", "Farmacia"],
+            "respuesta_correcta": "Hotel"
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué necesitas para viajar al extranjero? (ماذا تحتاج للسفر إلى الخارج؟)",
+            "opciones": ["Pasaporte", "Libro", "Comida", "Ropa"],
+            "respuesta_correcta": "Pasaporte"
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué significa 'souvenir'? (ماذا تعني 'هدية تذكارية'؟)",
+            "opciones": ["Comida", "Recuerdo", "Ropa", "Libro"],
+            "respuesta_correcta": "Recuerdo"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Describe tu último viaje: dónde fuiste, qué hiciste, qué te gustó más. (صف رحلتك الأخيرة: أين ذهبت، ماذا فعلت، ما الذي أعجبك أكثر)"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Escribe sobre un lugar que te gustaría visitar: por qué te interesa, qué quieres ver. (اكتب عن مكان تود زيارته: لماذا يثير اهتمامك، ماذا تريد أن ترى)"
+          },
+          {
+            "tipo": "relacionar",
+            "enunciado": "Relaciona las palabras de viajes con su traducción (صل كلمات السفر بترجمتها):",
+            "pares": [
+              {"izquierda": "Viaje", "derecha": "سفر"},
+              {"izquierda": "Aventura", "derecha": "مغامرة"},
+              {"izquierda": "Destino", "derecha": "وجهة"}
+            ]
+          }
+        ]
+      },
+      {
+        "unidad": 5,
+        "titulo": "La tecnología y los medios de comunicación",
+        "avatar": "https://studio.d-id.com/share?id=78273e102878eaf5a66f74ccee64b5cb&utm_source=copy",
+        "duracion_video": 45,
+        "tema": "Hablar de tecnología, internet, redes sociales y medios de comunicación modernos.",
+        "tema_ar": "التحدث عن التكنولوجيا والإنترنت ووسائل التواصل الاجتماعي ووسائل الإعلام الحديثة.",
+        "expresion_oral": [
+          "— ¿Usas mucho las redes sociales? — Sí, especialmente Instagram y WhatsApp. — ¿Cuántas horas al día pasas en internet? — Unas 3 o 4 horas, principalmente para trabajar y comunicarme.",
+          "— ¿Qué opinas de la tecnología actual? — Es muy útil pero a veces es adictiva. — ¿Qué aplicaciones usas más? — Uso mucho Google Maps para orientarme y YouTube para aprender.",
+          "— ¿Prefieres leer noticias en internet o en papel? — Prefiero internet porque es más rápido y actualizado. — ¿Y las redes sociales? — Las uso para mantener contacto con mi familia en mi país.",
+          "— ¿Tienes problemas con la tecnología? — A veces tengo problemas con el wifi o cuando se actualiza el móvil. — ¿Quién te ayuda? — Mi hijo me ayuda, él sabe más que yo de tecnología."
+        ],
+        "expresion_oral_ar": [
+          "— هل تستخدم وسائل التواصل الاجتماعي كثيرًا؟ — نعم، خاصة إنستغرام وواتساب. — كم ساعة في اليوم تقضي على الإنترنت؟ — حوالي 3 أو 4 ساعات، أساسًا للعمل والتواصل.",
+          "— ما رأيك في التكنولوجيا الحالية؟ — مفيدة جدًا لكن أحيانًا تسبب الإدمان. — ما التطبيقات التي تستخدمها أكثر؟ — أستخدم كثيرًا خرائط جوجل للتنقل ويوتيوب للتعلم.",
+          "— هل تفضل قراءة الأخبار على الإنترنت أم على الورق؟ — أفضل الإنترنت لأنه أسرع ومحدث. — ووسائل التواصل الاجتماعي؟ — أستخدمها للتواصل مع عائلتي في بلدي.",
+          "— هل لديك مشاكل مع التكنولوجيا؟ — أحيانًا لدي مشاكل مع الواي فاي أو عند تحديث الهاتف. — من يساعدك؟ — ابني يساعدني، هو يعرف أكثر مني في التكنولوجيا."
+        ],
+        "vocabulario": [
+          "tecnología, internet, móvil, ordenador, aplicación, red social, correo electrónico, wifi, pantalla, teclado, smartphone, tablet, navegador, buscador, descargar, subir, compartir, seguir, like, comentario, noticia, periódico, televisión, radio, podcast, streaming, videollamada, mensaje, archivo, carpeta, contraseña"
+        ],
+        "vocabulario_ar": [
+          "تكنولوجيا، إنترنت، هاتف محمول، حاسوب، تطبيق، شبكة اجتماعية، بريد إلكتروني، واي فاي، شاشة، لوحة المفاتيح، هاتف ذكي، لوحة، متصفح، محرك بحث، تحميل، رفع، مشاركة، متابعة، إعجاب، تعليق، خبر، صحيفة، تلفاز، راديو، بودكاست، بث، مكالمة فيديو، رسالة، ملف، مجلد، كلمة مرور"
+        ],
+        "gramatica": [
+          "Expresar opiniones: Opino que..., creo que...", 
+          "Ventajas y desventajas: Es útil pero..., es bueno pero...",
+          "Expresar frecuencia: Uso mucho..., a veces..., normalmente...",
+          "Comparar preferencias: Prefiero... porque..., es mejor que..."
+        ],
+        "gramatica_ar": [
+          "التعبير عن الآراء: أعتقد أن...، أظن أن...", 
+          "المزايا والعيوب: مفيد لكن...، جيد لكن...",
+          "التعبير عن التكرار: أستخدم كثيرًا...، أحيانًا...، عادة...",
+          "مقارنة التفضيلات: أفضل... لأن...، أفضل من..."
+        ],
+        "ejercicios": [
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Uso mucho ______ y ______. (ترجمة: أستخدم كثيرًا إنستغرام وواتساب)",
+            "solucion": ["Instagram", "WhatsApp"]
+          },
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: El ______ es muy útil pero a veces es ______. (ترجمة: الإنترنت مفيد جدًا لكن أحيانًا يسبب الإدمان)",
+            "solucion": ["internet", "adictivo"]
+          },
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Prefiero leer ______ en ______. (ترجمة: أفضل قراءة الأخبار على الإنترنت)",
+            "solucion": ["noticias", "internet"]
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué necesitas para conectarte a internet? (ماذا تحتاج للاتصال بالإنترنت؟)",
+            "opciones": ["Wifi", "Comida", "Ropa", "Libro"],
+            "respuesta_correcta": "Wifi"
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué aplicación se usa para navegar? (أي تطبيق يستخدم للتنقل؟)",
+            "opciones": ["Google Maps", "WhatsApp", "Instagram", "YouTube"],
+            "respuesta_correcta": "Google Maps"
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué significa 'smartphone'? (ماذا تعني 'هاتف ذكي'؟)",
+            "opciones": ["Teléfono inteligente", "Ordenador", "Tablet", "Televisión"],
+            "respuesta_correcta": "Teléfono inteligente"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Escribe sobre tu uso de la tecnología: qué aplicaciones usas, cuánto tiempo pasas en internet. (اكتب عن استخدامك للتكنولوجيا: ما التطبيقات التي تستخدمها، كم وقت تقضي على الإنترنت)"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Describe las ventajas y desventajas de las redes sociales para ti. (صف مزايا وعيوب وسائل التواصل الاجتماعي بالنسبة لك)"
+          },
+          {
+            "tipo": "relacionar",
+            "enunciado": "Relaciona las palabras de tecnología con su traducción (صل كلمات التكنولوجيا بترجمتها):",
+            "pares": [
+              {"izquierda": "Internet", "derecha": "إنترنت"},
+              {"izquierda": "Móvil", "derecha": "هاتف محمول"},
+              {"izquierda": "Aplicación", "derecha": "تطبيق"},
+              {"izquierda": "Wifi", "derecha": "واي فاي"},
+              {"izquierda": "Pantalla", "derecha": "شاشة"}
+            ]
+          }
+        ]
+      },
+      {
+        "unidad": 6,
+        "titulo": "La vida en sociedad",
+        "avatar": null,
+        "duracion_video": null,
+        "tema": "Hablar de normas, costumbres y expresar opiniones.",
+        "tema_ar": "التحدث عن القواعد والعادات والتعبير عن الآراء.",
+        "expresion_oral": [
+          "— ¿Qué opinas de las normas sociales? — Creo que son necesarias para la convivencia.",
+          "— ¿Cómo te adaptaste a la cultura española? — Fue difícil al principio, pero ahora me siento integrado."
+        ],
+        "expresion_oral_ar": [
+          "— ما رأيك في القواعد الاجتماعية؟ — أعتقد أنها ضرورية للتعايش.",
+          "— كيف تكيفت مع الثقافة الإسبانية؟ — كان صعبًا في البداية، لكن الآن أشعر بالاندماج."
+        ],
+        "vocabulario": [
+          "sociedad, normas, costumbres, cultura, integración, respeto, tolerancia, convivencia, tradición, modernidad"
+        ],
+        "vocabulario_ar": [
+          "مجتمع، قواعد، عادات، ثقافة، اندماج، احترام، تسامح، تعايش، تقليد، حداثة"
+        ],
+        "gramatica": [
+          "Expresar opiniones: Opino que..., creo que..., pienso que...",
+          "Comparar culturas: En mi país..., aquí en España..."
+        ],
+        "gramatica_ar": [
+          "التعبير عن الآراء: أعتقد أن...، أظن أن...، أفكر أن...",
+          "مقارنة الثقافات: في بلدي...، هنا في إسبانيا..."
+        ],
+        "ejercicios": [
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Las ______ sociales son importantes. (ترجمة: القواعد الاجتماعية مهمة)",
+            "solucion": ["normas"]
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué es necesario para la convivencia? (ما هو ضروري للتعايش؟)",
+            "opciones": ["Respeto", "Dinero", "Casa", "Coche"],
+            "respuesta_correcta": "Respeto"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Compara las costumbres de tu país con las de España. (قارن عادات بلدك مع عادات إسبانيا)"
+          },
+          {
+            "tipo": "relacionar",
+            "enunciado": "Relaciona las palabras de sociedad con su traducción (صل كلمات المجتمع بترجمتها):",
+            "pares": [
+              {"izquierda": "Sociedad", "derecha": "مجتمع"},
+              {"izquierda": "Cultura", "derecha": "ثقافة"},
+              {"izquierda": "Respeto", "derecha": "احترام"}
+            ]
+          }
+        ]
+      },
+      {
+        "unidad": 7,
+        "titulo": "La naturaleza y el medio ambiente",
+        "avatar": "https://studio.d-id.com/share?id=78273e102878eaf5a66f74ccee64b5cb&utm_source=copy",
+        "duracion_video": 45,
+        "tema": "Hablar de la naturaleza, problemas ambientales, soluciones y sostenibilidad.",
+        "tema_ar": "التحدث عن الطبيعة والمشاكل البيئية والحلول والاستدامة.",
+        "expresion_oral": [
+          "— ¿Qué haces para cuidar el medio ambiente? — Reciclo y uso transporte público. — ¿Reciclas en casa? — Sí, separo el papel, el plástico y el vidrio.",
+          "— ¿Te preocupa el cambio climático? — Sí, creo que todos debemos hacer algo. — ¿Qué podemos hacer? — Podemos ahorrar energía, usar menos plástico y plantar árboles.",
+          "— ¿Cómo es la naturaleza en tu país? — Hay montañas, ríos y bosques muy bonitos. — ¿Y aquí en España? — Aquí hay playas preciosas y parques naturales increíbles.",
+          "— ¿Qué problemas ambientales hay en tu ciudad? — Hay mucha contaminación del aire por los coches. — ¿Y las soluciones? — Necesitamos más transporte público y energías renovables."
+        ],
+        "expresion_oral_ar": [
+          "— ماذا تفعل للعناية بالبيئة؟ — أعيد التدوير وأستخدم النقل العام. — هل تعيد التدوير في المنزل؟ — نعم، أفصل الورق والبلاستيك والزجاج.",
+          "— هل يقلقك التغير المناخي؟ — نعم، أعتقد أن علينا جميعًا أن نفعل شيئًا. — ماذا يمكننا أن نفعل؟ — يمكننا توفير الطاقة واستخدام أقل بلاستيك وزراعة الأشجار.",
+          "— كيف هي الطبيعة في بلدك؟ — هناك جبال وأنهار وغابات جميلة جدًا. — وهنا في إسبانيا؟ — هنا شواطئ جميلة وحدائق طبيعية رائعة.",
+          "— ما المشاكل البيئية الموجودة في مدينتك؟ — هناك تلوث كثير للهواء بسبب السيارات. — والحلول؟ — نحتاج مزيد من النقل العام والطاقات المتجددة."
+        ],
+        "vocabulario": [
+          "naturaleza, medio ambiente, contaminación, reciclaje, energía, sostenible, cambio climático, bosque, océano, protección, montaña, río, playa, parque natural, aire, agua, tierra, plástico, papel, vidrio, orgánico, renovable, solar, eólica, ahorro, conservación, biodiversidad, extinción, contaminar, limpiar, cuidar"
+        ],
+        "vocabulario_ar": [
+          "طبيعة، بيئة، تلوث، إعادة تدوير، طاقة، مستدام، تغير مناخي، غابة، محيط، حماية، جبل، نهر، شاطئ، حديقة طبيعية، هواء، ماء، أرض، بلاستيك، ورق، زجاج، عضوي، متجدد، شمسي، ريحي، توفير، حفظ، تنوع حيوي، انقراض، تلويث، تنظيف، عناية"
+        ],
+        "gramatica": [
+          "Expresar preocupación: Me preocupa..., estoy preocupado por...", 
+          "Dar consejos: Deberías..., sería bueno que...",
+          "Expresar necesidad: Necesitamos..., es necesario...",
+          "Describir problemas: Hay..., existe..., se produce..."
+        ],
+        "gramatica_ar": [
+          "التعبير عن القلق: يقلقني...، أنا قلق من...", 
+          "إعطاء النصائح: يجب أن...، سيكون جيدًا أن...",
+          "التعبير عن الحاجة: نحتاج...، من الضروري...",
+          "وصف المشاكل: هناك...، يوجد...، يحدث..."
+        ],
+        "ejercicios": [
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: El ______ climático es un problema grave. (ترجمة: التغير المناخي مشكلة خطيرة)",
+            "solucion": ["cambio"]
+          },
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Reciclo el ______, el ______ y el ______. (ترجمة: أعيد تدوير الورق والبلاستيك والزجاج)",
+            "solucion": ["papel", "plástico", "vidrio"]
+          },
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Necesitamos más ______ renovables como la ______. (ترجمة: نحتاج مزيد من الطاقات المتجددة مثل الطاقة الشمسية)",
+            "solucion": ["energías", "solar"]
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué ayuda a proteger el medio ambiente? (ما الذي يساعد في حماية البيئة؟)",
+            "opciones": ["Reciclar", "Contaminar", "Desperdiciar", "Ignorar"],
+            "respuesta_correcta": "Reciclar"
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué significa 'sostenible'? (ماذا تعني 'مستدام'؟)",
+            "opciones": ["Que dura poco", "Que no contamina", "Que cuesta mucho", "Que es difícil"],
+            "respuesta_correcta": "Que no contamina"
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Cómo se dice 'contaminación' en árabe? (كيف تقول 'تلوث' بالعربية؟)",
+            "opciones": ["طبيعة", "تلوث", "بيئة", "حماية"],
+            "respuesta_correcta": "تلوث"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Escribe 3 acciones para proteger el medio ambiente. (اكتب 3 أفعال لحماية البيئة)"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Describe los problemas ambientales de tu ciudad y propón soluciones. (صف المشاكل البيئية في مدينتك واقترح حلولاً)"
+          },
+          {
+            "tipo": "relacionar",
+            "enunciado": "Relaciona las palabras del medio ambiente con su traducción (صل كلمات البيئة بترجمتها):",
+            "pares": [
+              {"izquierda": "Naturaleza", "derecha": "طبيعة"},
+              {"izquierda": "Contaminación", "derecha": "تلوث"},
+              {"izquierda": "Reciclaje", "derecha": "إعادة تدوير"},
+              {"izquierda": "Bosque", "derecha": "غابة"},
+              {"izquierda": "Energía", "derecha": "طاقة"}
+            ]
+          }
+        ]
+      },
+      {
+        "unidad": 8,
+        "titulo": "La cultura y el ocio",
+        "avatar": "https://studio.d-id.com/share?id=78273e102878eaf5a66f74ccee64b5cb&utm_source=copy",
+        "duracion_video": 45,
+        "tema": "Hablar de actividades culturales, cine, música, literatura y eventos culturales.",
+        "tema_ar": "التحدث عن الأنشطة الثقافية والسينما والموسيقى والأدب والفعاليات الثقافية.",
+        "expresion_oral": [
+          "— ¿Qué tipo de películas te gustan? — Me gustan las películas de drama y comedia. — ¿Vas al cine a menudo? — Sí, voy una vez al mes, me encanta la experiencia del cine.",
+          "— ¿Lees mucho? — Sí, especialmente novelas y libros de historia. — ¿Qué autores prefieres? — Me gustan los autores españoles como García Márquez y Cervantes.",
+          "— ¿Qué música escuchas? — Escucho música tradicional de mi país y también música española. — ¿Has ido a algún concierto? — Sí, fui a un concierto de flamenco el mes pasado.",
+          "— ¿Qué actividades culturales hay en tu ciudad? — Hay museos, teatros y galerías de arte. — ¿Cuál te gusta más? — Me gusta mucho el teatro, voy cuando puedo."
+        ],
+        "expresion_oral_ar": [
+          "— ما نوع الأفلام التي تفضلها؟ — أحب أفلام الدراما والكوميديا. — هل تذهب إلى السينما كثيرًا؟ — نعم، أذهب مرة في الشهر، أحب تجربة السينما.",
+          "— هل تقرأ كثيرًا؟ — نعم، خاصة الروايات وكتب التاريخ. — ما المؤلفون الذين تفضلهم؟ — أحب المؤلفين الإسبان مثل غارسيا ماركيز وسرفانتس.",
+          "— ما الموسيقى التي تستمع إليها؟ — أستمع إلى الموسيقى التقليدية لبلدي وأيضًا الموسيقى الإسبانية. — هل ذهبت إلى أي حفلة موسيقية؟ — نعم، ذهبت إلى حفلة فلامنكو الشهر الماضي.",
+          "— ما الأنشطة الثقافية الموجودة في مدينتك؟ — هناك متاحف ومسارح ومعارض فنية. — أيها تفضل أكثر؟ — أحب المسرح كثيرًا، أذهب عندما أستطيع."
+        ],
+        "vocabulario": [
+          "cultura, arte, literatura, música, cine, teatro, museo, exposición, concierto, festival, película, actor, director, autor, libro, novela, poesía, pintura, escultura, danza, flamenco, ópera, ballet, galería, biblioteca, archivo, patrimonio, tradición, moderno, clásico, contemporáneo"
+        ],
+        "vocabulario_ar": [
+          "ثقافة، فن، أدب، موسيقى، سينما، مسرح، متحف، معرض، حفلة موسيقية، مهرجان، فيلم، ممثل، مخرج، مؤلف، كتاب، رواية، شعر، رسم، نحت، رقص، فلامنكو، أوبرا، باليه، معرض، مكتبة، أرشيف، تراث، تقليدي، حديث، كلاسيكي، معاصر"
+        ],
+        "gramatica": [
+          "Expresar preferencias: Me gusta más..., prefiero...", 
+          "Hablar de frecuencia: A menudo, de vez en cuando, raramente...",
+          "Expresar experiencias: He ido..., he visto..., he leído...",
+          "Describir gustos: Me encanta..., me interesa..., me fascina..."
+        ],
+        "gramatica_ar": [
+          "التعبير عن التفضيلات: يعجبني أكثر...، أفضل...", 
+          "التحدث عن التكرار: كثيرًا، أحيانًا، نادرًا...",
+          "التعبير عن التجارب: ذهبت...، رأيت...، قرأت...",
+          "وصف الهوايات: أحب...، يثير اهتمامي...، يدهشني..."
+        ],
+        "ejercicios": [
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Me gustan las películas de ______ y ______. (ترجمة: أحب أفلام الدراما والكوميديا)",
+            "solucion": ["drama", "comedia"]
+          },
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: He ______ a un concierto de ______. (ترجمة: ذهبت إلى حفلة فلامنكو)",
+            "solucion": ["ido", "flamenco"]
+          },
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: En mi ciudad hay ______, ______ y galerías de arte. (ترجمة: في مدينتي هناك متاحف ومسارح ومعارض فنية)",
+            "solucion": ["museos", "teatros"]
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Dónde se ven películas? (أين تشاهد الأفلام؟)",
+            "opciones": ["Cine", "Museo", "Biblioteca", "Hospital"],
+            "respuesta_correcta": "Cine"
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué es el flamenco? (ما هو الفلامنكو؟)",
+            "opciones": ["Un baile español", "Un libro", "Una película", "Un museo"],
+            "respuesta_correcta": "Un baile español"
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Cómo se dice 'museo' en árabe? (كيف تقول 'متحف' بالعربية؟)",
+            "opciones": ["مسرح", "متحف", "سينما", "مكتبة"],
+            "respuesta_correcta": "متحف"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Escribe sobre tus actividades culturales favoritas: qué te gusta hacer, dónde vas. (اكتب عن أنشطتك الثقافية المفضلة: ما الذي تحب أن تفعله، أين تذهب)"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Describe una película o libro que te haya gustado mucho: de qué trata, por qué te gustó. (صف فيلمًا أو كتابًا أعجبك كثيرًا: عن ماذا يتحدث، لماذا أعجبك)"
+          },
+          {
+            "tipo": "relacionar",
+            "enunciado": "Relaciona las palabras de cultura con su traducción (صل كلمات الثقافة بترجمتها):",
+            "pares": [
+              {"izquierda": "Cultura", "derecha": "ثقافة"},
+              {"izquierda": "Arte", "derecha": "فن"},
+              {"izquierda": "Música", "derecha": "موسيقى"},
+              {"izquierda": "Teatro", "derecha": "مسرح"},
+              {"izquierda": "Literatura", "derecha": "أدب"}
+            ]
+          }
+        ]
+      },
+      {
+        "unidad": 9,
+        "titulo": "La educación y el aprendizaje",
+        "avatar": null,
+        "duracion_video": null,
+        "tema": "Hablar de estudios, cursos y métodos de aprendizaje.",
+        "tema_ar": "التحدث عن الدراسات والدورات وطرق التعلم.",
+        "expresion_oral": [
+          "— ¿Qué estás estudiando actualmente? — Estoy haciendo un curso de español avanzado.",
+          "— ¿Cómo aprendes mejor? — Prefiero las clases prácticas y la conversación."
+        ],
+        "expresion_oral_ar": [
+          "— ماذا تدرس حاليًا؟ — أدرس دورة إسبانية متقدمة.",
+          "— كيف تتعلم بشكل أفضل؟ — أفضل الدروس العملية والمحادثة."
+        ],
+        "vocabulario": [
+          "educación, aprendizaje, curso, clase, profesor, estudiante, examen, tarea, libro, idioma"
+        ],
+        "vocabulario_ar": [
+          "تعليم، تعلم، دورة، درس، مدرس، طالب، امتحان، واجب، كتاب، لغة"
+        ],
+        "gramatica": [
+          "Presente continuo para actividades actuales: Estoy estudiando...",
+          "Expresar preferencias de aprendizaje: Prefiero..., me resulta más fácil..."
+        ],
+        "gramatica_ar": [
+          "المضارع المستمر للأنشطة الحالية: أدرس...",
+          "التعبير عن تفضيلات التعلم: أفضل...، أجد أنه أسهل..."
+        ],
+        "ejercicios": [
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Estoy ______ español. (ترجمة: أدرس الإسبانية)",
+            "solucion": ["estudiando"]
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Quién enseña en una clase? (من يدرس في الصف؟)",
+            "opciones": ["El profesor", "El estudiante", "El padre", "El amigo"],
+            "respuesta_correcta": "El profesor"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Describe tu método de aprendizaje preferido. (صف طريقة التعلم المفضلة لديك)"
+          },
+          {
+            "tipo": "relacionar",
+            "enunciado": "Relaciona las palabras de educación con su traducción (صل كلمات التعليم بترجمتها):",
+            "pares": [
+              {"izquierda": "Educación", "derecha": "تعليم"},
+              {"izquierda": "Universidad", "derecha": "جامعة"},
+              {"izquierda": "Conocimiento", "derecha": "معرفة"}
+            ]
+          }
+        ]
+      },
+      {
+        "unidad": 10,
+        "titulo": "El futuro y los proyectos",
+        "avatar": "https://studio.d-id.com/share?id=78273e102878eaf5a66f74ccee64b5cb&utm_source=copy",
+        "duracion_video": 45,
+        "tema": "Hablar de planes futuros, proyectos personales y profesionales, y expectativas.",
+        "tema_ar": "التحدث عن الخطط المستقبلية والمشاريع الشخصية والمهنية والتوقعات.",
+        "expresion_oral": [
+          "— ¿Qué planes tienes para el futuro? — Quiero mejorar mi español y encontrar un trabajo mejor. — ¿Y a largo plazo? — Me gustaría abrir mi propio negocio.",
+          "— ¿Qué proyectos tienes en mente? — Estoy pensando en estudiar una carrera universitaria aquí en España. — ¿Qué te gustaría estudiar? — Me interesa la psicología o el trabajo social.",
+          "— ¿Cómo te ves dentro de 5 años? — Me veo viviendo en España, con un trabajo estable y tal vez una familia. — ¿Y en 10 años? — Espero tener mi propia empresa y haber viajado por todo el mundo.",
+          "— ¿Qué necesitas para alcanzar tus objetivos? — Necesito mejorar mi español, ahorrar dinero y hacer contactos profesionales. — ¿Y qué te motiva? — Me motiva la idea de dar una mejor vida a mi familia."
+        ],
+        "expresion_oral_ar": [
+          "— ما خططك للمستقبل؟ — أريد تحسين إسبانيتي والعثور على عمل أفضل. — وعلى المدى الطويل؟ — أود فتح عملي الخاص.",
+          "— ما المشاريع التي لديك في ذهنك؟ — أفكر في دراسة شهادة جامعية هنا في إسبانيا. — ماذا تود أن تدرس؟ — يثير اهتمامي علم النفس أو العمل الاجتماعي.",
+          "— كيف ترى نفسك خلال 5 سنوات؟ — أرى نفسي أعيش في إسبانيا، مع عمل مستقر وربما عائلة. — وخلال 10 سنوات؟ — أتمنى أن يكون لي شركتي الخاصة وأن أكون قد سافرت حول العالم.",
+          "— ماذا تحتاج لتحقيق أهدافك؟ — أحتاج تحسين إسبانيتي، توفير المال وإقامة علاقات مهنية. — وما الذي يحفزك؟ — يحفزني فكرة إعطاء حياة أفضل لعائلتي."
+        ],
+        "vocabulario": [
+          "futuro, proyecto, plan, objetivo, meta, sueño, aspiración, expectativa, esperanza, ilusión, motivación, esfuerzo, trabajo, éxito, fracaso, oportunidad, desafío, riesgo, seguridad, estabilidad, crecimiento, desarrollo, progreso, cambio, evolución, transformación, realización, cumplimiento, logro, conquista, triunfo"
+        ],
+        "vocabulario_ar": [
+          "مستقبل، مشروع، خطة، هدف، غاية، حلم، طموح، توقع، أمل، وهم، تحفيز، جهد، عمل، نجاح، فشل، فرصة، تحد، مخاطرة، أمان، استقرار، نمو، تطور، تقدم، تغيير، تطور، تحول، تحقيق، إنجاز، إنجاز، فتح، انتصار"
+        ],
+        "gramatica": [
+          "Futuro simple para planes: Voy a..., quiero..., me gustaría...", 
+          "Expresar expectativas: Espero..., confío en..., creo que...",
+          "Expresar condiciones: Si..., cuando..., después de...",
+          "Expresar motivación: Me motiva..., me ilusiona..., me interesa..."
+        ],
+        "gramatica_ar": [
+          "المستقبل للخطط: سأفعل...، أريد...، أود...", 
+          "التعبير عن التوقعات: أتمنى...، أثق في...، أعتقد أن...",
+          "التعبير عن الشروط: إذا...، عندما...، بعد...",
+          "التعبير عن التحفيز: يحفزني...، يثير حماسي...، يثير اهتمامي..."
+        ],
+        "ejercicios": [
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Quiero mejorar mi ______ y encontrar un trabajo ______. (ترجمة: أريد تحسين إسبانيتي والعثور على عمل أفضل)",
+            "solucion": ["español", "mejor"]
+          },
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Me ______ abrir mi propio ______. (ترجمة: أود فتح عملي الخاص)",
+            "solucion": ["gustaría", "negocio"]
+          },
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Espero tener mi propia ______ y haber ______ por todo el mundo. (ترجمة: أتمنى أن يكون لي شركتي الخاصة وأن أكون قد سافرت حول العالم)",
+            "solucion": ["empresa", "viajado"]
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué significa 'objetivo'? (ماذا تعني 'هدف'؟)",
+            "opciones": ["Sueño", "Meta", "Plan", "Proyecto"],
+            "respuesta_correcta": "Meta"
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué necesitas para alcanzar tus metas? (ماذا تحتاج لتحقيق أهدافك؟)",
+            "opciones": ["Esfuerzo", "Dinero", "Suerte", "Tiempo"],
+            "respuesta_correcta": "Esfuerzo"
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Cómo se dice 'futuro' en árabe? (كيف تقول 'مستقبل' بالعربية؟)",
+            "opciones": ["حاضر", "ماضي", "مستقبل", "زمن"],
+            "respuesta_correcta": "مستقبل"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Escribe sobre tus planes para el futuro: qué quieres hacer, dónde te ves. (اكتب عن خططك للمستقبل: ماذا تريد أن تفعل، أين ترى نفسك)"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Describe un proyecto importante para ti: qué es, por qué es importante, qué necesitas para realizarlo. (صف مشروعًا مهمًا بالنسبة لك: ما هو، لماذا مهم، ماذا تحتاج لتحقيقه)"
+          },
+          {
+            "tipo": "relacionar",
+            "enunciado": "Relaciona las palabras del futuro con su traducción (صل كلمات المستقبل بترجمتها):",
+            "pares": [
+              {"izquierda": "Futuro", "derecha": "مستقبل"},
+              {"izquierda": "Proyecto", "derecha": "مشروع"},
+              {"izquierda": "Objetivo", "derecha": "هدف"},
+              {"izquierda": "Sueño", "derecha": "حلم"},
+              {"izquierda": "Éxito", "derecha": "نجاح"}
+            ]
+          }
+        ]
+      },
+      {
+        "unidad": 6,
+        "titulo": "La sociedad y la convivencia",
+        "avatar": "https://studio.d-id.com/share?id=78273e102878eaf5a66f74ccee64b5cb&utm_source=copy",
+        "duracion_video": 45,
+        "tema": "Hablar de sociedad, convivencia, costumbres y valores culturales.",
+        "tema_ar": "التحدث عن المجتمع والتعايش والعادات والقيم الثقافية.",
+        "expresion_oral": [
+          "— Cómo es la sociedad en tu país? — Es muy familiar y tradicional. — ¿Y aquí en España? — Aquí es más individualista pero muy acogedora.",
+          "— ¿Qué costumbres te han sorprendido más? — Me sorprende que la gente cene tan tarde, a las 9 o 10. — ¿Y qué te gusta de la cultura española? — Me gusta la siesta y el ambiente de las terrazas.",
+          "— ¿Cómo te relacionas con tus vecinos? — Los saludo siempre y a veces tomamos café juntos. — ¿Hay diferencias culturales importantes? — Sí, pero aprendemos a respetarnos y convivir bien.",
+          "— ¿Qué valores son importantes en tu cultura? — En mi cultura son importantes la familia, el respeto a los mayores y la hospitalidad. — ¿Y aquí? — Aquí valoran mucho la independencia y la libertad personal."
+        ],
+        "expresion_oral_ar": [
+          "— كيف هو المجتمع في بلدك؟ — عائلي وتقليدي جدًا. — وهنا في إسبانيا؟ — هنا أكثر فردية لكنه مرحب جدًا.",
+          "— ما العادات التي أدهشتك أكثر؟ — أدهشني أن الناس يتعشون متأخرًا، في التاسعة أو العاشرة. — وما الذي يعجبك في الثقافة الإسبانية؟ — يعجبني القيلولة وأجواء الشرفات.",
+          "— كيف تتعامل مع جيرانك؟ — أحييهم دائمًا وأحيانًا نشرب القهوة معًا. — هل هناك اختلافات ثقافية مهمة؟ — نعم، لكننا نتعلم الاحترام والتعايش الجيد.",
+          "— ما القيم المهمة في ثقافتك؟ — في ثقافتي المهمة العائلة واحترام الكبار والضيافة. — وهنا؟ — هنا يقدرون كثيرًا الاستقلالية والحرية الشخصية."
+        ],
+        "vocabulario": [
+          "sociedad, convivencia, costumbre, cultura, tradición, valor, respeto, tolerancia, solidaridad, integración, diversidad, igualdad, libertad, justicia, paz, diálogo, comprensión, adaptación, identidad, raíz, herencia, modernidad, cambio, evolución"
+        ],
+        "vocabulario_ar": [
+          "مجتمع، تعايش، عادة، ثقافة، تقليد، قيمة، احترام، تسامح، تضامن، اندماج، تنوع، مساواة، حرية، عدالة، سلام، حوار، فهم، تكيف، هوية، جذر، تراث، حداثة، تغيير، تطور"
+        ],
+        "gramatica": [
+          "Comparar culturas: Es más..., es menos..., es diferente...", 
+          "Expresar sorpresa: Me sorprende..., es sorprendente...",
+          "Expresar opiniones: Creo que..., opino que..., pienso que...",
+          "Describir costumbres: La gente..., aquí se..."
+        ],
+        "gramatica_ar": [
+          "مقارنة الثقافات: أكثر...، أقل...، مختلف...", 
+          "التعبير عن الدهشة: يدهشني...، مدهش...",
+          "التعبير عن الآراء: أعتقد أن...، أرى أن...، أظن أن...",
+          "وصف العادات: الناس...، هنا..."
+        ],
+        "ejercicios": [
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: La ______ es muy importante para la convivencia. (ترجمة: الاحترام مهم جدًا للتعايش)",
+            "solucion": ["tolerancia"]
+          },
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: En mi cultura valoran mucho la ______ y el ______. (ترجمة: في ثقافتي يقدرون كثيرًا العائلة والاحترام)",
+            "solucion": ["familia", "respeto"]
+          },
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Me ______ que la gente cene tan tarde. (ترجمة: يدهشني أن الناس يتعشون متأخرًا)",
+            "solucion": ["sorprende"]
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué es necesario para la convivencia? (ما هو ضروري للتعايش؟)",
+            "opciones": ["Respeto", "Dinero", "Casa", "Coche"],
+            "respuesta_correcta": "Respeto"
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué significa 'tolerancia'? (ماذا تعني 'تسامح'؟)",
+            "opciones": ["Aceptar diferencias", "Ignorar", "Discutir", "Separar"],
+            "respuesta_correcta": "Aceptar diferencias"
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Cómo se dice 'cultura' en árabe? (كيف تقول 'ثقافة' بالعربية؟)",
+            "opciones": ["مجتمع", "ثقافة", "عائلة", "بلد"],
+            "respuesta_correcta": "ثقافة"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Compara las costumbres de tu país con las de España. (قارن عادات بلدك مع عادات إسبانيا)"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Escribe sobre la integración cultural: qué facilita y qué dificulta la convivencia entre culturas. (اكتب عن الاندماج الثقافي: ما الذي يسهل وما الذي يعيق التعايش بين الثقافات)"
+          },
+          {
+            "tipo": "relacionar",
+            "enunciado": "Relaciona las palabras de sociedad con su traducción (صل كلمات المجتمع بترجمتها):",
+            "pares": [
+              {"izquierda": "Sociedad", "derecha": "مجتمع"},
+              {"izquierda": "Cultura", "derecha": "ثقافة"},
+              {"izquierda": "Respeto", "derecha": "احترام"},
+              {"izquierda": "Tolerancia", "derecha": "تسامح"},
+              {"izquierda": "Libertad", "derecha": "حرية"}
+            ]
+          }
+        ]
+      }
+    ],
+    "examen": [
+      {
+        "pregunta": "¿Cuál es el tema principal de la unidad 'La biografía y experiencias personales'?",
+        "opciones": [
+          "Hablar de la vida, experiencias pasadas y biografía personal.",
+          "Otro tema",
+          "Tema inventado",
+          "No sé"
+        ],
+        "respuesta_correcta": "Hablar de la vida, experiencias pasadas y biografía personal.",
+        "unidad": 1
+      },
+      {
+        "pregunta": "¿Cuál es el tema principal de la unidad 'La salud y el bienestar'?",
+        "opciones": [
+          "Dar consejos y hablar de hábitos saludables, síntomas y visitas médicas.",
+          "Otro tema",
+          "Tema inventado",
+          "No sé"
+        ],
+        "respuesta_correcta": "Dar consejos y hablar de hábitos saludables, síntomas y visitas médicas.",
+        "unidad": 2
+      },
+      {
+        "pregunta": "¿Cuál es el tema principal de la unidad 'El trabajo y la vida profesional'?",
+        "opciones": [
+          "Hablar de profesiones, buscar empleo, describir el trabajo y condiciones laborales.",
+          "Otro tema",
+          "Tema inventado",
+          "No sé"
+        ],
+        "respuesta_correcta": "Hablar de profesiones, buscar empleo, describir el trabajo y condiciones laborales.",
+        "unidad": 3
+      },
+      {
+        "pregunta": "¿Cuál es el tema principal de la unidad 'Viajes y turismo'?",
+        "opciones": [
+          "Hablar de viajes, reservar alojamiento, describir lugares y experiencias turísticas.",
+          "Otro tema",
+          "Tema inventado",
+          "No sé"
+        ],
+        "respuesta_correcta": "Hablar de viajes, reservar alojamiento, describir lugares y experiencias turísticas.",
+        "unidad": 4
+      },
+      {
+        "pregunta": "¿Cuál es el tema principal de la unidad 'La tecnología y los medios de comunicación'?",
+        "opciones": [
+          "Hablar de tecnología, internet y redes sociales.",
+          "Otro tema",
+          "Tema inventado",
+          "No sé"
+        ],
+        "respuesta_correcta": "Hablar de tecnología, internet y redes sociales.",
+        "unidad": 5
+      },
+      {
+        "pregunta": "¿Cuál es el tema principal de la unidad 'La vida en sociedad'?",
+        "opciones": [
+          "Hablar de normas, costumbres y expresar opiniones.",
+          "Otro tema",
+          "Tema inventado",
+          "No sé"
+        ],
+        "respuesta_correcta": "Hablar de normas, costumbres y expresar opiniones.",
+        "unidad": 6
+      },
+      {
+        "pregunta": "¿Cuál es el tema principal de la unidad 'La naturaleza y el medio ambiente'?",
+        "opciones": [
+          "Hablar de la naturaleza, problemas ambientales, soluciones y sostenibilidad.",
+          "Otro tema",
+          "Tema inventado",
+          "No sé"
+        ],
+        "respuesta_correcta": "Hablar de la naturaleza, problemas ambientales, soluciones y sostenibilidad.",
+        "unidad": 7
+      },
+      {
+        "pregunta": "¿Cuál es el tema principal de la unidad 'La cultura y el ocio'?",
+        "opciones": [
+          "Hablar de actividades culturales, cine, música, literatura y eventos culturales.",
+          "Otro tema",
+          "Tema inventado",
+          "No sé"
+        ],
+        "respuesta_correcta": "Hablar de actividades culturales, cine, música, literatura y eventos culturales.",
+        "unidad": 8
+      },
+      {
+        "pregunta": "¿Cuál es el tema principal de la unidad 'La educación y el aprendizaje'?",
+        "opciones": [
+          "Hablar de estudios, cursos y métodos de aprendizaje.",
+          "Otro tema",
+          "Tema inventado",
+          "No sé"
+        ],
+        "respuesta_correcta": "Hablar de estudios, cursos y métodos de aprendizaje.",
+        "unidad": 9
+      },
+      {
+        "pregunta": "¿Cuál es el tema principal de la unidad 'El futuro y los proyectos'?",
+        "opciones": [
+          "Hablar de planes futuros, proyectos personales y profesionales, y expectativas.",
+          "Otro tema",
+          "Tema inventado",
+          "No sé"
+        ],
+        "respuesta_correcta": "Hablar de planes futuros, proyectos personales y profesionales, y expectativas.",
+        "unidad": 10
+      }
+    ]
+  },
+  "B1": {
+    "unidades": [
+      {
+        "unidad": 1,
+        "titulo": "Relaciones personales y sociales",
+        "avatar": "https://studio.d-id.com/share?id=78273e102878eaf5a66f74ccee64b5cb&utm_source=copy",
+        "duracion_video": 45,
+        "tema": "Hablar de relaciones, sentimientos y emociones.",
+        "tema_ar": "التحدث عن العلاقات والمشاعر والعواطف.",
+        "expresion_oral": [
+          "— ¿Cómo te sientes en tu relación actual? — Me siento muy feliz y comprendido.",
+          "— ¿Qué opinas sobre las redes sociales en las relaciones? — Creo que pueden ser útiles pero también problemáticas."
+        ],
+        "expresion_oral_ar": [
+          "— كيف تشعر في علاقتك الحالية؟ — أشعر بسعادة كبيرة ومفهوم.",
+          "— ما رأيك في وسائل التواصل الاجتماعي في العلاقات؟ — أعتقد أنها يمكن أن تكون مفيدة لكن أيضًا إشكالية."
+        ],
+        "vocabulario": [
+          "relación, sentimiento, emoción, amor, amistad, confianza, comunicación, respeto, comprensión, conflicto"
+        ],
+        "vocabulario_ar": [
+          "علاقة، شعور، عاطفة، حب، صداقة، ثقة، تواصل، احترام، فهم، نزاع"
+        ],
+        "gramatica": [
+          "Subjuntivo para expresar sentimientos: Me alegra que..., me molesta que...",
+          "Condicional para consejos: Deberías..., sería mejor que..."
+        ],
+        "gramatica_ar": [
+          "المضارع المنصوب للتعبير عن المشاعر: يسعدني أن...، يزعجني أن...",
+          "المضارع الشرطي للنصائح: يجب أن...، سيكون أفضل أن..."
+        ],
+        "ejercicios": [
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Me alegra que ______ feliz. (ترجمة: يسعدني أن تكون سعيدًا)",
+            "solucion": ["seas"]
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué es fundamental en una relación? (ما هو أساسي في العلاقة؟)",
+            "opciones": ["Confianza", "Dinero", "Casa", "Coche"],
+            "respuesta_correcta": "Confianza"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Describe una relación importante en tu vida. (صف علاقة مهمة في حياتك)"
+          },
+          {
+            "tipo": "relacionar",
+            "enunciado": "Relaciona las palabras de relaciones con su traducción (صل كلمات العلاقات بترجمتها):",
+            "pares": [
+              {"izquierda": "Amor", "derecha": "حب"},
+              {"izquierda": "Amistad", "derecha": "صداقة"},
+              {"izquierda": "Confianza", "derecha": "ثقة"}
+            ]
+          }
+        ]
+      },
+      {
+        "unidad": 2,
+        "titulo": "Trabajo y vida profesional",
+        "avatar": "https://studio.d-id.com/share?id=78273e102878eaf5a66f74ccee64b5cb&utm_source=copy",
+        "duracion_video": 45,
+        "tema": "Hablar de condiciones laborales, entrevistas y aspiraciones.",
+        "tema_ar": "التحدث عن ظروف العمل والمقابلات والطموحات.",
+        "expresion_oral": [
+          "— ¿Cómo fue tu última entrevista de trabajo? — Fue muy estresante pero creo que salió bien.",
+          "— ¿Qué buscas en un trabajo ideal? — Busco un buen ambiente laboral y oportunidades de crecimiento."
+        ],
+        "expresion_oral_ar": [
+          "— كيف كانت آخر مقابلة عمل لك؟ — كانت مرهقة جدًا لكن أعتقد أنها سارت بشكل جيد.",
+          "— ماذا تبحث في العمل المثالي؟ — أبحث عن بيئة عمل جيدة وفرص للتطور."
+        ],
+        "vocabulario": [
+          "entrevista, currículum, experiencia, habilidades, salario, beneficios, promoción, ambiente laboral, estrés, motivación"
+        ],
+        "vocabulario_ar": [
+          "مقابلة، سيرة ذاتية، خبرة، مهارات، راتب، مزايا، ترقية، بيئة عمل، توتر، تحفيز"
+        ],
+        "gramatica": [
+          "Pretérito perfecto para experiencias: He trabajado..., he tenido...",
+          "Condicional para aspiraciones: Me gustaría..., querría..."
+        ],
+        "gramatica_ar": [
+          "الماضي التام للتجارب: عملت...، كان لدي...",
+          "المضارع الشرطي للطموحات: أود...، أريد..."
+        ],
+        "ejercicios": [
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: He ______ en varias empresas. (ترجمة: عملت في عدة شركات)",
+            "solucion": ["trabajado"]
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué documento necesitas para una entrevista? (أي وثيقة تحتاج للمقابلة؟)",
+            "opciones": ["Currículum", "Pasaporte", "Libro", "Comida"],
+            "respuesta_correcta": "Currículum"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Describe tu trabajo ideal y por qué te gustaría. (صف عملك المثالي ولماذا تود ذلك)"
+          },
+          {
+            "tipo": "relacionar",
+            "enunciado": "Relaciona las palabras del trabajo con su traducción (صل كلمات العمل بترجمتها):",
+            "pares": [
+              {"izquierda": "Entrevista", "derecha": "مقابلة"},
+              {"izquierda": "Experiencia", "derecha": "خبرة"},
+              {"izquierda": "Salario", "derecha": "راتب"}
+            ]
+          }
+        ]
+      },
+      {
+        "unidad": 3,
+        "titulo": "Educación y formación",
+        "avatar": "https://studio.d-id.com/share?id=78273e102878eaf5a66f74ccee64b5cb&utm_source=copy",
+        "duracion_video": 45,
+        "tema": "Hablar de estudios, formación continua y experiencias educativas.",
+        "tema_ar": "التحدث عن الدراسات والتكوين المستمر والتجارب التعليمية.",
+        "expresion_oral": [
+          "— ¿Qué estudios tienes? — Tengo un título universitario en administración. — ¿Dónde estudiaste? — Estudié en mi país, pero ahora estoy haciendo un curso de español.",
+          "— ¿Te gusta estudiar? — Sí, me encanta aprender cosas nuevas. — ¿Qué estás estudiando ahora? — Estoy estudiando español y también un curso de informática.",
+          "— ¿Cómo es el sistema educativo en tu país? — Es diferente al español, tenemos 12 años de educación obligatoria. — ¿Y aquí? — Aquí son 10 años, pero hay más opciones de formación profesional.",
+          "— ¿Qué asignaturas te gustaban más? — Me gustaban las matemáticas y la historia. — ¿Y las que menos? — No me gustaban mucho la física y la química."
+        ],
+        "expresion_oral_ar": [
+          "— ما الدراسات التي لديك؟ — لدي شهادة جامعية في الإدارة. — أين درست؟ — درست في بلدي، لكن الآن أدرس دورة في الإسبانية.",
+          "— هل تحب الدراسة؟ — نعم، أحب تعلم أشياء جديدة. — ماذا تدرس الآن؟ — أدرس الإسبانية وأيضًا دورة في المعلوماتية.",
+          "— كيف هو النظام التعليمي في بلدك؟ — مختلف عن الإسباني، لدينا 12 سنة من التعليم الإجباري. — وهنا؟ — هنا 10 سنوات، لكن هناك خيارات أكثر للتدريب المهني.",
+          "— ما المواد التي كنت تحبها أكثر؟ — كنت أحب الرياضيات والتاريخ. — والتي أقل؟ — لم أحب كثيرًا الفيزياء والكيمياء."
+        ],
+        "vocabulario": [
+          "educación, formación, estudio, aprendizaje, universidad, colegio, instituto, escuela, profesor, alumno, estudiante, clase, asignatura, materia, curso, título, diploma, certificado, examen, nota, aprobar, suspender, aprender, enseñar, estudiar, leer, escribir, investigar, práctica, teoría, conocimiento"
+        ],
+        "vocabulario_ar": [
+          "تعليم، تكوين، دراسة، تعلم، جامعة، مدرسة، معهد، مدرسة، أستاذ، تلميذ، طالب، صف، مادة، مادة، دورة، شهادة، دبلوم، شهادة، امتحان، علامة، نجح، رسب، تعلم، علم، درس، قرأ، كتب، بحث، تطبيق، نظرية، معرفة"
+        ],
+        "gramatica": [
+          "Expresar gustos en el pasado: Me gustaban..., no me gustaban...", 
+          "Comparar sistemas: Es diferente..., es más..., es menos...",
+          "Expresar duración: Llevo... años estudiando, estudié durante...",
+          "Hablar de planes: Voy a estudiar..., quiero aprender..."
+        ],
+        "gramatica_ar": [
+          "التعبير عن الهوايات في الماضي: كنت أحب...، لم أحب...", 
+          "مقارنة الأنظمة: مختلف...، أكثر...، أقل...",
+          "التعبير عن المدة: أدرس منذ... سنوات، درست لمدة...",
+          "التحدث عن الخطط: سأدرس...، أريد أن أتعلم..."
+        ],
+        "ejercicios": [
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Tengo un ______ universitario en administración. (ترجمة: لدي شهادة جامعية في الإدارة)",
+            "solucion": ["título"]
+          },
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Estoy estudiando ______ y también un curso de ______. (ترجمة: أدرس الإسبانية وأيضًا دورة في المعلوماتية)",
+            "solucion": ["español", "informática"]
+          },
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Me ______ las matemáticas y la ______. (ترجمة: كنت أحب الرياضيات والتاريخ)",
+            "solucion": ["gustaban", "historia"]
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Quién enseña en la universidad? (من يدرس في الجامعة؟)",
+            "opciones": ["Profesor", "Alumno", "Padre", "Hermano"],
+            "respuesta_correcta": "Profesor"
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué significa 'aprobar'? (ماذا تعني 'نجح'؟)",
+            "opciones": ["Suspender", "Aprobar", "Estudiar", "Enseñar"],
+            "respuesta_correcta": "Aprobar"
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Cómo se dice 'universidad' en árabe? (كيف تقول 'جامعة' بالعربية؟)",
+            "opciones": ["مدرسة", "جامعة", "معهد", "صف"],
+            "respuesta_correcta": "جامعة"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Escribe sobre tu experiencia educativa: qué has estudiado, qué te gustaba más. (اكتب عن تجربتك التعليمية: ماذا درست، ما الذي كنت تحبه أكثر)"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Describe las diferencias entre el sistema educativo de tu país y el español. (صف الاختلافات بين النظام التعليمي في بلدك والإسباني)"
+          },
+          {
+            "tipo": "relacionar",
+            "enunciado": "Relaciona las palabras de educación con su traducción (صل كلمات التعليم بترجمتها):",
+            "pares": [
+              {"izquierda": "Educación", "derecha": "تعليم"},
+              {"izquierda": "Universidad", "derecha": "جامعة"},
+              {"izquierda": "Profesor", "derecha": "أستاذ"},
+              {"izquierda": "Estudiante", "derecha": "طالب"},
+              {"izquierda": "Examen", "derecha": "امتحان"}
+            ]
+          }
+        ]
+      },
+      {
+        "unidad": 4,
+        "titulo": "Cultura, tradiciones y sociedad",
+        "avatar": "https://studio.d-id.com/share?id=78273e102878eaf5a66f74ccee64b5cb&utm_source=copy",
+        "duracion_video": 45,
+        "tema": "Hablar de costumbres, tradiciones, festividades y diferencias culturales.",
+        "tema_ar": "التحدث عن العادات والتقاليد والأعياد والاختلافات الثقافية.",
+        "expresion_oral": [
+          "— ¿Qué tradiciones de tu país echas de menos? — Echo de menos las celebraciones familiares y la comida tradicional.",
+          "— ¿Cómo has adaptado las costumbres españolas? — He aprendido a celebrar las fiestas locales y respetar las tradiciones."
+        ],
+        "expresion_oral_ar": [
+          "— ما التقاليد التي تفتقدها من بلدك؟ — أفتقد الاحتفالات العائلية والطعام التقليدي.",
+          "— كيف تكيفت مع عادات إسبانيا؟ — تعلمت الاحتفال بالأعياد المحلية واحترام التقاليد."
+        ],
+        "vocabulario": [
+          "cultura, tradición, costumbre, festividad, celebración, identidad, diversidad, respeto, adaptación, integración"
+        ],
+        "vocabulario_ar": [
+          "ثقافة، تقليد، عادة، عيد، احتفال، هوية، تنوع، احترام، تكيف، اندماج"
+        ],
+        "gramatica": [
+          "Echar de menos + infinitivo: Echo de menos celebrar...",
+          "Aprender a + infinitivo: He aprendido a respetar..."
+        ],
+        "gramatica_ar": [
+          "الافتقاد + مصدر: أفتقد الاحتفال بـ...",
+          "التعلم + مصدر: تعلمت احترام..."
+        ],
+        "ejercicios": [
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Echo de ______ mi país. (ترجمة: أفتقد بلدي)",
+            "solucion": ["menos"]
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué es importante para la integración cultural? (ما هو مهم للاندماج الثقافي؟)",
+            "opciones": ["Respeto", "Dinero", "Casa", "Coche"],
+            "respuesta_correcta": "Respeto"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Compara las tradiciones de tu país con las de España. (قارن تقاليد بلدك مع تقاليد إسبانيا)"
+          },
+          {
+            "tipo": "relacionar",
+            "enunciado": "Relaciona las palabras de cultura con su traducción (صل كلمات الثقافة بترجمتها):",
+            "pares": [
+              {"izquierda": "Cultura", "derecha": "ثقافة"},
+              {"izquierda": "Tradición", "derecha": "تقليد"},
+              {"izquierda": "Festividad", "derecha": "عيد"}
+            ]
+          }
+        ]
+      },
+      {
+        "unidad": 5,
+        "titulo": "Medios de comunicación y actualidad",
+        "avatar": "https://studio.d-id.com/share?id=78273e102878eaf5a66f74ccee64b5cb&utm_source=copy",
+        "duracion_video": 45,
+        "tema": "Hablar de noticias, medios, prensa y opinión pública.",
+        "tema_ar": "التحدث عن الأخبار والوسائل والصحافة والرأي العام.",
+        "expresion_oral": [
+          "— ¿Qué opinas de las noticias actuales? — Creo que es importante estar informado pero también ser crítico.",
+          "— ¿Qué medios de comunicación prefieres? — Prefiero la prensa escrita y algunos canales de televisión."
+        ],
+        "expresion_oral_ar": [
+          "— ما رأيك في الأخبار الحالية؟ — أعتقد أنه من المهم أن تكون على اطلاع لكن أيضًا أن تكون نقديًا.",
+          "— ما وسائل الإعلام التي تفضلها؟ — أفضل الصحافة المكتوبة وبعض قنوات التلفزيون."
+        ],
+        "vocabulario": [
+          "noticia, medio de comunicación, prensa, televisión, radio, internet, información, opinión, crítica, actualidad"
+        ],
+        "vocabulario_ar": [
+          "خبر، وسيلة إعلام، صحافة، تلفزيون، راديو، إنترنت، معلومات، رأي، نقد، راهن"
+        ],
+        "gramatica": [
+          "Expresar opiniones: Creo que..., opino que..., pienso que...",
+          "Ser crítico: Es importante ser crítico..., hay que cuestionar..."
+        ],
+        "gramatica_ar": [
+          "التعبير عن الآراء: أعتقد أن...، أرى أن...، أفكر أن...",
+          "النقد: من المهم أن تكون نقديًا...، يجب التشكيك..."
+        ],
+        "ejercicios": [
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Es importante estar ______. (ترجمة: من المهم أن تكون على اطلاع)",
+            "solucion": ["informado"]
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué medio de comunicación es más antiguo? (أي وسيلة إعلام أقدم؟)",
+            "opciones": ["Prensa", "Televisión", "Internet", "Radio"],
+            "respuesta_correcta": "Prensa"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Escribe sobre la importancia de estar informado. (اكتب عن أهمية الاطلاع)"
+          },
+          {
+            "tipo": "relacionar",
+            "enunciado": "Relaciona las palabras de medios con su traducción (صل كلمات الوسائل بترجمتها):",
+            "pares": [
+              {"izquierda": "Noticia", "derecha": "خبر"},
+              {"izquierda": "Prensa", "derecha": "صحافة"},
+              {"izquierda": "Televisión", "derecha": "تلفزيون"}
+            ]
+          }
+        ]
+      },
+      {
+        "unidad": 6,
+        "titulo": "Salud, bienestar y consumo",
+        "avatar": null,
+        "duracion_video": null,
+        "tema": "Hablar de salud física y mental, consumo responsable y hábitos de vida.",
+        "tema_ar": "التحدث عن الصحة الجسدية والعقلية والاستهلاك المسؤول وعادات الحياة.",
+        "expresion_oral": [
+          "— ¿Cómo cuidas tu salud mental? — Practico meditación y trato de mantener una actitud positiva.",
+          "— ¿Qué opinas del consumo responsable? — Creo que es fundamental para el futuro del planeta."
+        ],
+        "expresion_oral_ar": [
+          "— كيف تعتني بصحتك العقلية؟ — أمارس التأمل وأحاول الحفاظ على موقف إيجابي.",
+          "— ما رأيك في الاستهلاك المسؤول؟ — أعتقد أنه أساسي لمستقبل الكوكب."
+        ],
+        "vocabulario": [
+          "salud mental, bienestar, consumo, responsabilidad, hábitos, meditación, actitud, sostenibilidad, calidad de vida, equilibrio"
+        ],
+        "vocabulario_ar": [
+          "صحة عقلية، عافية، استهلاك، مسؤولية، عادات، تأمل، موقف، استدامة، جودة الحياة، توازن"
+        ],
+        "gramatica": [
+          "Infinitivo para consejos: Es importante practicar..., hay que mantener...",
+          "Expresar creencias: Creo que es fundamental..., pienso que es necesario..."
+        ],
+        "gramatica_ar": [
+          "المصدر للنصائح: من المهم ممارسة...، يجب الحفاظ على...",
+          "التعبير عن المعتقدات: أعتقد أنه أساسي...، أظن أنه ضروري..."
+        ],
+        "ejercicios": [
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Es importante practicar ______. (ترجمة: من المهم ممارسة التأمل)",
+            "solucion": ["meditación"]
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué es fundamental para el bienestar? (ما هو أساسي للعافية؟)",
+            "opciones": ["Equilibrio", "Dinero", "Casa", "Coche"],
+            "respuesta_correcta": "Equilibrio"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Escribe sobre tus hábitos de vida saludable. (اكتب عن عادات حياتك الصحية)"
+          },
+          {
+            "tipo": "relacionar",
+            "enunciado": "Relaciona las palabras de bienestar con su traducción (صل كلمات العافية بترجمتها):",
+            "pares": [
+              {"izquierda": "Bienestar", "derecha": "عافية"},
+              {"izquierda": "Salud mental", "derecha": "صحة عقلية"},
+              {"izquierda": "Equilibrio", "derecha": "توازن"}
+            ]
+          }
+        ]
+      },
+      {
+        "unidad": 7,
+        "titulo": "Medio ambiente y sostenibilidad",
+        "avatar": null,
+        "duracion_video": null,
+        "tema": "Hablar de problemas ambientales, energías renovables y sostenibilidad.",
+        "tema_ar": "التحدث عن المشاكل البيئية والطاقات المتجددة والاستدامة.",
+        "expresion_oral": [
+          "— ¿Qué haces para reducir tu huella de carbono? — Uso transporte público y reciclo todo lo posible.",
+          "— ¿Qué opinas de las energías renovables? — Creo que son la solución para el futuro."
+        ],
+        "expresion_oral_ar": [
+          "— ماذا تفعل لتقليل بصمتك الكربونية؟ — أستخدم النقل العام وأعيد التدوير قدر الإمكان.",
+          "— ما رأيك في الطاقات المتجددة؟ — أعتقد أنها الحل للمستقبل."
+        ],
+        "vocabulario": [
+          "medio ambiente, sostenibilidad, energía renovable, huella de carbono, reciclaje, contaminación, cambio climático, conservación, biodiversidad, ecología"
+        ],
+        "vocabulario_ar": [
+          "بيئة، استدامة، طاقة متجددة، بصمة كربونية، إعادة تدوير، تلوث، تغير مناخي، غابة، محيط، حماية، جبل، نهر، شاطئ، حديقة طبيعية، هواء، ماء، أرض، بلاستيك، ورق، زجاج، عضوي، متجدد، شمسي، ريحي، توفير، حفظ، تنوع حيوي، انقراض، تلويث، تنظيف، عناية"
+        ],
+        "gramatica": [
+          "Infinitivo para acciones: Es importante reciclar..., hay que reducir...",
+          "Expresar opiniones sobre el futuro: Creo que son la solución..., pienso que es necesario..."
+        ],
+        "gramatica_ar": [
+          "المصدر للأفعال: من المهم إعادة التدوير...، يجب التقليل...",
+          "التعبير عن الآراء حول المستقبل: أعتقد أنها الحل...، أظن أنه ضروري..."
+        ],
+        "ejercicios": [
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Es importante ______ el medio ambiente. (ترجمة: من المهم حماية البيئة)",
+            "solucion": ["proteger"]
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué tipo de energía es más sostenible? (أي نوع من الطاقة أكثر استدامة؟)",
+            "opciones": ["Renovable", "Nuclear", "Carbón", "Petróleo"],
+            "respuesta_correcta": "Renovable"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Escribe sobre acciones para proteger el medio ambiente. (اكتب عن أفعال لحماية البيئة)"
+          },
+          {
+            "tipo": "relacionar",
+            "enunciado": "Relaciona las palabras del medio ambiente con su traducción (صل كلمات البيئة بترجمتها):",
+            "pares": [
+              {"izquierda": "Sostenibilidad", "derecha": "استدامة"},
+              {"izquierda": "Reciclaje", "derecha": "إعادة تدوير"},
+              {"izquierda": "Contaminación", "derecha": "تلوث"}
+            ]
+          }
+        ]
+      },
+      {
+        "unidad": 8,
+        "titulo": "Ciencia, tecnología e innovación",
+        "avatar": null,
+        "duracion_video": null,
+        "tema": "Hablar de avances científicos, tecnología y futuro.",
+        "tema_ar": "التحدث عن التقدم العلمي والتكنولوجيا والمستقبل.",
+        "expresion_oral": [
+          "— ¿Qué avance tecnológico te parece más importante? — Creo que la inteligencia artificial cambiará todo.",
+          "— ¿Cómo crees que será el futuro? — Espero que la tecnología mejore nuestra calidad de vida."
+        ],
+        "expresion_oral_ar": [
+          "— أي تقدم تقني تعتبره الأهم؟ — أعتقد أن الذكاء الاصطناعي سيغير كل شيء.",
+          "— كيف تعتقد أن المستقبل سيكون؟ — أتمنى أن تحسن التكنولوجيا جودة حياتنا."
+        ],
+        "vocabulario": [
+          "ciencia, tecnología, innovación, inteligencia artificial, investigación, desarrollo, avance, futuro, descubrimiento, invención"
+        ],
+        "vocabulario_ar": [
+          "علم، تكنولوجيا، ابتكار، ذكاء اصطناعي، بحث، تطوير، تقدم، مستقبل، اكتشاف، اختراع"
+        ],
+        "gramatica": [
+          "Futuro para predicciones: Cambiará..., mejorará...",
+          "Expresar esperanzas: Espero que..., confío en que..."
+        ],
+        "gramatica_ar": [
+          "المستقبل للتوقعات: سيتغير...، سيتحسن...",
+          "التعبير عن الآمال: أتمنى أن...، أثق في أن..."
+        ],
+        "ejercicios": [
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: La tecnología ______ el futuro. (ترجمة: التكنولوجيا ستغير المستقبل)",
+            "solucion": ["cambiará"]
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué campo está revolucionando la tecnología actual? (أي مجال يحدث ثورة في التكنولوجيا الحالية؟)",
+            "opciones": ["Inteligencia artificial", "Agricultura", "Cocina", "Música"],
+            "respuesta_correcta": "Inteligencia artificial"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Escribe sobre cómo crees que será el futuro tecnológico. (اكتب عن كيف تعتقد أن المستقبل التقني سيكون)"
+          },
+          {
+            "tipo": "relacionar",
+            "enunciado": "Relaciona las palabras de tecnología con su traducción (صل كلمات التكنولوجيا بترجمتها):",
+            "pares": [
+              {"izquierda": "Ciencia", "derecha": "علم"},
+              {"izquierda": "Innovación", "derecha": "ابتكار"},
+              {"izquierda": "Futuro", "derecha": "مستقبل"}
+            ]
+          }
+        ]
+      },
+      {
+        "unidad": 9,
+        "titulo": "Viajes, ocio y tiempo libre",
+        "avatar": null,
+        "duracion_video": null,
+        "tema": "Hablar de viajes, experiencias turísticas y actividades de ocio.",
+        "tema_ar": "التحدث عن السفر والتجارب السياحية وأنشطة الترفيه.",
+        "expresion_oral": [
+          "— ¿Cuál ha sido tu viaje más memorable? — Fue cuando visité Japón, la cultura me fascinó.",
+          "— ¿Qué tipo de turismo prefieres? — Prefiero el turismo cultural y de aventura."
+        ],
+        "expresion_oral_ar": [
+          "— ما هي أكثر رحلة لا تنسى لك؟ — كانت عندما زرت اليابان، أثارت الثقافة إعجابي.",
+          "— أي نوع من السياحة تفضل؟ — أفضل السياحة الثقافية والمغامرة."
+        ],
+        "vocabulario": [
+          "viaje, turismo, experiencia, aventura, cultura, destino, exploración, descubrimiento, recuerdo, aventura"
+        ],
+        "vocabulario_ar": [
+          "سفر، سياحة، تجربة، مغامرة، ثقافة، وجهة، استكشاف، اكتشاف، ذكرى، مغامرة"
+        ],
+        "gramatica": [
+          "Pretérito perfecto para experiencias: Ha sido..., me ha fascinado...",
+          "Expresar preferencias: Prefiero..., me gusta más..."
+        ],
+        "gramatica_ar": [
+          "الماضي التام للتجارب: كانت...، أثارت إعجابي...",
+          "التعبير عن التفضيلات: أفضل...، أحب أكثر..."
+        ],
+        "ejercicios": [
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Ha sido mi viaje más ______. (ترجمة: كانت أكثر رحلة لا تنسى لي)",
+            "solucion": ["memorable"]
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué tipo de turismo incluye visitar museos? (أي نوع من السياحة يشمل زيارة المتاحف؟)",
+            "opciones": ["Cultural", "De playa", "De montaña", "De compras"],
+            "respuesta_correcta": "Cultural"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Describe tu viaje ideal y por qué te gustaría hacerlo. (صف رحلتك المثالية ولماذا تود القيام بها)"
+          },
+          {
+            "tipo": "relacionar",
+            "enunciado": "Relaciona las palabras de viaje con su traducción (صل كلمات السفر بترجمتها):",
+            "pares": [
+              {"izquierda": "Viaje", "derecha": "سفر"},
+              {"izquierda": "Aventura", "derecha": "مغامرة"},
+              {"izquierda": "Destino", "derecha": "وجهة"}
+            ]
+          }
+        ]
+      },
+      {
+        "unidad": 10,
+        "titulo": "Vida futura y proyectos personales",
+        "avatar": null,
+        "duracion_video": null,
+        "tema": "Hablar de planes, sueños, proyectos y toma de decisiones.",
+        "tema_ar": "التحدث عن الخطط والأحلام والمشاريع واتخاذ القرارات.",
+        "expresion_oral": [
+          "— ¿Cuáles son tus proyectos para los próximos años? — Quiero estudiar un máster y cambiar de trabajo.",
+          "— ¿Cómo tomas las decisiones importantes? — Reflexiono mucho y consulto con personas de confianza."
+        ],
+        "expresion_oral_ar": [
+          "— ما هي مشاريعك للسنوات القادمة؟ — أريد دراسة ماجستير وتغيير العمل.",
+          "— كيف تتخذ القرارات المهمة؟ — أفكر كثيرًا وأستشير أشخاصًا موثوقين."
+        ],
+        "vocabulario": [
+          "proyecto, plan, sueño, meta, objetivo, decisión, futuro, realización, éxito, logro"
+        ],
+        "vocabulario_ar": [
+          "مشروع، خطة، حلم، هدف، غاية، قرار، مستقبل، تحقيق، نجاح، إنجاز"
+        ],
+        "gramatica": [
+          "Futuro para planes: Quiero..., voy a..., pienso...",
+          "Expresar procesos: Reflexiono..., consulto..., decido..."
+        ],
+        "gramatica_ar": [
+          "المستقبل للخطط: أريد...، سأفعل...، أعتزم...",
+          "التعبير عن العمليات: أفكر...، أستشير...، أقرر..."
+        ],
+        "ejercicios": [
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Quiero ______ mis sueños. (ترجمة: أريد تحقيق أحلامي)",
+            "solucion": ["realizar"]
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué es importante para tomar decisiones? (ما هو مهم لاتخاذ القرارات؟)",
+            "opciones": ["Reflexión", "Dinero", "Casa", "Coche"],
+            "respuesta_correcta": "Reflexión"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Escribe sobre tus proyectos y sueños para el futuro. (اكتب عن مشاريعك وأحلامك للمستقبل)"
+          },
+          {
+            "tipo": "relacionar",
+            "enunciado": "Relaciona las palabras del futuro con su traducción (صل كلمات المستقبل بترجمتها):",
+            "pares": [
+              {"izquierda": "Proyecto", "derecha": "مشروع"},
+              {"izquierda": "Sueño", "derecha": "حلم"},
+              {"izquierda": "Éxito", "derecha": "نجاح"}
+            ]
+          }
+        ]
+      }
+    ],
+    "examen": [
+      {
+        "pregunta": "¿Cuál es el tema principal de la unidad 'Relaciones personales y sociales'?",
+        "opciones": [
+          "Hablar de relaciones, sentimientos y emociones.",
+          "Otro tema",
+          "Tema inventado",
+          "No sé"
+        ],
+        "respuesta_correcta": "Hablar de relaciones, sentimientos y emociones.",
+        "unidad": 1
+      },
+      {
+        "pregunta": "¿Cuál es el tema principal de la unidad 'Trabajo y vida profesional'?",
+        "opciones": [
+          "Hablar de condiciones laborales, entrevistas y aspiraciones.",
+          "Otro tema",
+          "Tema inventado",
+          "No sé"
+        ],
+        "respuesta_correcta": "Hablar de condiciones laborales, entrevistas y aspiraciones.",
+        "unidad": 2
+      },
+      {
+        "pregunta": "¿Cuál es el tema principal de la unidad 'Educación y formación'?",
+        "opciones": [
+          "Hablar de estudios, formación continua y experiencias educativas.",
+          "Otro tema",
+          "Tema inventado",
+          "No sé"
+        ],
+        "respuesta_correcta": "Hablar de estudios, formación continua y experiencias educativas.",
+        "unidad": 3
+      },
+      {
+        "pregunta": "¿Cuál es el tema principal de la unidad 'Cultura, tradiciones y sociedad'?",
+        "opciones": [
+          "Tema inventado",
+          "Hablar de costumbres, tradiciones, festividades y diferencias culturales.",
+          "No sé",
+          "Otro tema"
+        ],
+        "respuesta_correcta": "Hablar de costumbres, tradiciones, festividades y diferencias culturales.",
+        "unidad": 4
+      },
+      {
+        "pregunta": "¿Cuál es el tema principal de la unidad 'Medios de comunicación y actualidad'?",
+        "opciones": [
+          "No sé",
+          "Hablar de noticias, medios, prensa y opinión pública.",
+          "Tema inventado",
+          "Otro tema"
+        ],
+        "respuesta_correcta": "Hablar de noticias, medios, prensa y opinión pública.",
+        "unidad": 5
+      },
+      {
+        "pregunta": "¿Cuál es el tema principal de la unidad 'Salud, bienestar y consumo'?",
+        "opciones": [
+          "Otro tema",
+          "No sé",
+          "Hablar de salud física y mental, consumo responsable y hábitos de vida.",
+          "Tema inventado"
+        ],
+        "respuesta_correcta": "Hablar de salud física y mental, consumo responsable y hábitos de vida.",
+        "unidad": 6
+      },
+      {
+        "pregunta": "¿Cuál es el tema principal de la unidad 'Medio ambiente y sostenibilidad'?",
+        "opciones": [
+          "Tema inventado",
+          "Otro tema",
+          "No sé",
+          "Hablar de problemas ambientales, energías renovables y sostenibilidad."
+        ],
+        "respuesta_correcta": "Hablar de problemas ambientales, energías renovables y sostenibilidad.",
+        "unidad": 7
+      },
+      {
+        "pregunta": "¿Cuál es el tema principal de la unidad 'Ciencia, tecnología e innovación'?",
+        "opciones": [
+          "No sé",
+          "Tema inventado",
+          "Hablar de avances científicos, tecnología y futuro.",
+          "Otro tema"
+        ],
+        "respuesta_correcta": "Hablar de avances científicos, tecnología y futuro.",
+        "unidad": 8
+      },
+      {
+        "pregunta": "¿Cuál es el tema principal de la unidad 'Viajes, ocio y tiempo libre'?",
+        "opciones": [
+          "Otro tema",
+          "Tema inventado",
+          "No sé",
+          "Hablar de viajes, experiencias turísticas y actividades de ocio."
+        ],
+        "respuesta_correcta": "Hablar de viajes, experiencias turísticas y actividades de ocio.",
+        "unidad": 9
+      },
+      {
+        "pregunta": "¿Cuál es el tema principal de la unidad 'Vida futura y proyectos personales'?",
+        "opciones": [
+          "No sé",
+          "Hablar de planes, sueños, proyectos y toma de decisiones.",
+          "Otro tema",
+          "Tema inventado"
+        ],
+        "respuesta_correcta": "Hablar de planes, sueños, proyectos y toma de decisiones.",
+        "unidad": 10
+      }
+    ]
+  },
+  "B2": {
+    "examen": [
+      {
+        "pregunta": "¿Cuál es la capital de España?",
+        "opciones": [
+          "Valencia",
+          "Madrid",
+          "Sevilla",
+          "Barcelona"
+        ],
+        "respuesta_correcta": "Madrid"
+      },
+      {
+        "pregunta": "¿En qué continente está Egipto?",
+        "opciones": [
+          "Europa",
+          "África",
+          "América",
+          "Asia"
+        ],
+        "respuesta_correcta": "África"
+      },
+      {
+        "pregunta": "¿Cuál es el idioma oficial de Brasil?",
+        "opciones": [
+          "Español",
+          "Francés",
+          "Portugués",
+          "Italiano"
+        ],
+        "respuesta_correcta": "Portugués"
+      },
+      {
+        "pregunta": "¿Cuántos días tiene una semana?",
+        "opciones": [
+          "Cinco",
+          "Diez",
+          "Siete",
+          "Doce"
+        ],
+        "respuesta_correcta": "Siete"
+      },
+      {
+        "pregunta": "¿Qué planeta es conocido como el planeta rojo?",
+        "opciones": [
+          "Saturno",
+          "Marte",
+          "Venus",
+          "Júpiter"
+        ],
+        "respuesta_correcta": "Marte"
+      }
+    ],
+    "unidades": [
+      {
+        "unidad": 1,
+        "titulo": "Sociedad y ciudadanía",
+        "avatar": "https://studio.d-id.com/share?id=78273e102878eaf5a66f74ccee64b5cb&utm_source=copy",
+        "duracion_video": 45,
+        "tema": "Debatir sobre derechos, deberes y convivencia social.",
+        "tema_ar": "مناقشة الحقوق والواجبات والتعايش الاجتماعي.",
+        "expresion_oral": [
+          "— ¿Qué opinas sobre los derechos y deberes de los ciudadanos? — Creo que es fundamental encontrar un equilibrio entre ambos.",
+          "— ¿Cómo podemos mejorar la convivencia social? — A través del diálogo, el respeto y la educación."
+        ],
+        "expresion_oral_ar": [
+          "— ما رأيك في حقوق وواجبات المواطنين؟ — أعتقد أنه من الأساسي إيجاد توازن بينهما.",
+          "— كيف يمكننا تحسين التعايش الاجتماعي؟ — من خلال الحوار والاحترام والتعليم."
+        ],
+        "vocabulario": [
+          "derechos, deberes, ciudadanía, convivencia, democracia, participación, responsabilidad, igualdad, justicia, libertad"
+        ],
+        "vocabulario_ar": [
+          "حقوق، واجبات، مواطنة، تعايش، ديمقراطية، مشاركة، مسؤولية، مساواة، عدالة، حرية"
+        ],
+        "gramatica": [
+          "Subjuntivo para opiniones: Creo que sea importante..., opino que sea necesario...",
+          "Expresar posibilidades: Podríamos..., sería posible..."
+        ],
+        "gramatica_ar": [
+          "المضارع المنصوب للآراء: أعتقد أنه مهم...، أرى أنه ضروري...",
+          "التعبير عن الإمكانيات: يمكننا...، سيكون ممكنًا..."
+        ],
+        "ejercicios": [
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: Los ______ y deberes son fundamentales. (ترجمة: الحقوق والواجبات أساسية)",
+            "solucion": ["derechos"]
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué es esencial para la democracia? (ما هو أساسي للديمقراطية؟)",
+            "opciones": ["Participación", "Dinero", "Casa", "Coche"],
+            "respuesta_correcta": "Participación"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Escribe sobre la importancia de los derechos ciudadanos. (اكتب عن أهمية الحقوق المدنية)"
+          },
+          {
+            "tipo": "relacionar",
+            "enunciado": "Relaciona las palabras de ciudadanía con su traducción (صل كلمات المواطنة بترجمتها):",
+            "pares": [
+              {"izquierda": "Derechos", "derecha": "حقوق"},
+              {"izquierda": "Democracia", "derecha": "ديمقراطية"},
+              {"izquierda": "Justicia", "derecha": "عدالة"}
+            ]
+          }
+        ]
+      },
+      {
+        "unidad": 2,
+        "titulo": "Política y economía",
+        "avatar": "https://studio.d-id.com/share?id=78273e102878eaf5a66f74ccee64b5cb&utm_source=copy",
+        "duracion_video": 45,
+        "tema": "Hablar de política, economía y actualidad internacional.",
+        "tema_ar": "التحدث عن السياسة والاقتصاد والراهن الدولي.",
+        "expresion_oral": [
+          "— ¿Qué opinas sobre la situación económica actual? — Creo que necesitamos políticas más inclusivas.",
+          "— ¿Cómo afecta la política internacional a nuestro país? — Tiene un impacto directo en nuestra economía."
+        ],
+        "expresion_oral_ar": [
+          "— ما رأيك في الوضع الاقتصادي الحالي؟ — أعتقد أننا نحتاج سياسات أكثر شمولية.",
+          "— كيف تؤثر السياسة الدولية على بلدنا؟ — لها تأثير مباشر على اقتصادنا."
+        ],
+        "vocabulario": [
+          "política, economía, gobierno, partido, elecciones, crisis, desarrollo, globalización, mercado, inversión"
+        ],
+        "vocabulario_ar": [
+          "سياسة، اقتصاد، حكومة، حزب، انتخابات، أزمة، تطور، عولمة، سوق، استثمار"
+        ],
+        "gramatica": [
+          "Condicional para hipótesis: Si fuera presidente..., si tuviera el poder...",
+          "Expresar consecuencias: Tendría un impacto..., afectaría..."
+        ],
+        "gramatica_ar": [
+          "المضارع الشرطي للفرضيات: لو كنت رئيسًا...، لو كان لدي السلطة...",
+          "التعبير عن النتائج: سيكون له تأثير...، سيؤثر..."
+        ],
+        "ejercicios": [
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: La ______ internacional afecta la economía. (ترجمة: السياسة الدولية تؤثر على الاقتصاد)",
+            "solucion": ["política"]
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué proceso determina quién gobierna? (أي عملية تحدد من يحكم؟)",
+            "opciones": ["Elecciones", "Lotería", "Herencia", "Suerte"],
+            "respuesta_correcta": "Elecciones"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Escribe sobre la relación entre política y economía. (اكتب عن العلاقة بين السياسة والاقتصاد)"
+          },
+          {
+            "tipo": "relacionar",
+            "enunciado": "Relaciona las palabras de política con su traducción (صل كلمات السياسة بترجمتها):",
+            "pares": [
+              {"izquierda": "Política", "derecha": "سياسة"},
+              {"izquierda": "Economía", "derecha": "اقتصاد"},
+              {"izquierda": "Gobierno", "derecha": "حكومة"}
+            ]
+          }
+        ]
+      },
+      {
+        "unidad": 3,
+        "titulo": "Ciencia, tecnología y sociedad",
+        "avatar": "https://studio.d-id.com/share?id=78273e102878eaf5a66f74ccee64b5cb&utm_source=copy",
+        "duracion_video": 45,
+        "tema": "Debatir sobre avances científicos, ética y sociedad digital.",
+        "tema_ar": "مناقشة التقدم العلمي والأخلاق والمجتمع الرقمي.",
+        "expresion_oral": [
+          "— ¿Qué opinas sobre la inteligencia artificial? — Creo que tiene grandes beneficios pero también riesgos éticos.",
+          "— ¿Cómo afecta la tecnología a la sociedad? — Está transformando completamente nuestras relaciones sociales."
+        ],
+        "expresion_oral_ar": [
+          "— ما رأيك في الذكاء الاصطناعي؟ — أعتقد أنه له فوائد كبيرة لكن أيضًا مخاطر أخلاقية.",
+          "— كيف تؤثر التكنولوجيا على المجتمع؟ — إنها تحول علاقاتنا الاجتماعية بالكامل."
+        ],
+        "vocabulario": [
+          "ciencia, tecnología, ética, sociedad digital, inteligencia artificial, investigación, innovación, impacto, transformación, futuro"
+        ],
+        "vocabulario_ar": [
+          "علم، تكنولوجيا، أخلاق، مجتمع رقمي، ذكاء اصطناعي، بحث، ابتكار، تأثير، تحول، مستقبل"
+        ],
+        "gramatica": [
+          "Subjuntivo para opiniones complejas: Creo que sea importante considerar...",
+          "Expresar transformaciones: Está transformando..., está cambiando..."
+        ],
+        "gramatica_ar": [
+          "المضارع المنصوب للآراء المعقدة: أعتقد أنه مهم أن نأخذ في الاعتبار...",
+          "التعبير عن التحولات: إنها تحول...، إنها تغير..."
+        ],
+        "ejercicios": [
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: La inteligencia ______ está cambiando el mundo. (ترجمة: الذكاء الاصطناعي يغير العالم)",
+            "solucion": ["artificial"]
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué es importante en la investigación científica? (ما هو مهم في البحث العلمي؟)",
+            "opciones": ["Ética", "Dinero", "Fama", "Poder"],
+            "respuesta_correcta": "Ética"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Escribe sobre los pros y contras de la tecnología moderna. (اكتب عن إيجابيات وسلبيات التكنولوجيا الحديثة)"
+          },
+          {
+            "tipo": "relacionar",
+            "enunciado": "Relaciona las palabras de ciencia con su traducción (صل كلمات العلم بترجمتها):",
+            "pares": [
+              {"izquierda": "Ciencia", "derecha": "علم"},
+              {"izquierda": "Tecnología", "derecha": "تكنولوجيا"},
+              {"izquierda": "Ética", "derecha": "أخلاق"}
+            ]
+          }
+        ]
+      },
+      {
+        "unidad": 4,
+        "titulo": "Arte, literatura y cultura",
+        "avatar": "https://studio.d-id.com/share?id=78273e102878eaf5a66f74ccee64b5cb&utm_source=copy",
+        "duracion_video": 45,
+        "tema": "Hablar de arte, literatura, cine y música avanzada.",
+        "tema_ar": "التحدث عن الفن والأدب والسينما والموسيقى المتقدمة.",
+        "expresion_oral": [
+          "— ¿Qué movimiento artístico te interesa más? — Me fascina el surrealismo por su creatividad única.",
+          "— ¿Cómo influye la literatura en la sociedad? — Refleja y moldea nuestra visión del mundo."
+        ],
+        "expresion_oral_ar": [
+          "— أي حركة فنية تهمك أكثر؟ — أثار السريالية إعجابي لإبداعها الفريد.",
+          "— كيف تؤثر الأدب على المجتمع؟ — يعكس ويشكل رؤيتنا للعالم."
+        ],
+        "vocabulario": [
+          "arte, literatura, cultura, movimiento, creatividad, expresión, influencia, interpretación, estética, patrimonio"
+        ],
+        "vocabulario_ar": [
+          "فن، أدب، ثقافة، حركة، إبداع، تعبير، تأثير، تفسير، جمالية، تراث"
+        ],
+        "gramatica": [
+          "Subjuntivo para expresar fascinación: Me fascina que sea..., me interesa que tenga...",
+          "Expresar influencia: Refleja..., moldea..., influye en..."
+        ],
+        "gramatica_ar": [
+          "المضارع المنصوب للتعبير عن الإعجاب: أثار إعجابي أن يكون...، يهمني أن يكون له...",
+          "التعبير عن التأثير: يعكس...، يشكل...، يؤثر في..."
+        ],
+        "ejercicios": [
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: El ______ refleja la sociedad. (ترجمة: الفن يعكس المجتمع)",
+            "solucion": ["arte"]
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué caracteriza al surrealismo? (ما الذي يميز السريالية؟)",
+            "opciones": ["Creatividad única", "Realismo", "Simplicidad", "Tradición"],
+            "respuesta_correcta": "Creatividad única"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Escribe sobre la importancia del arte en la sociedad. (اكتب عن أهمية الفن في المجتمع)"
+          },
+          {
+            "tipo": "relacionar",
+            "enunciado": "Relaciona las palabras de arte con su traducción (صل كلمات الفن بترجمتها):",
+            "pares": [
+              {"izquierda": "Arte", "derecha": "فن"},
+              {"izquierda": "Literatura", "derecha": "أدب"},
+              {"izquierda": "Cultura", "derecha": "ثقافة"}
+            ]
+          }
+        ]
+      },
+      {
+        "unidad": 5,
+        "titulo": "Medios de comunicación y globalización",
+        "avatar": "https://studio.d-id.com/share?id=78273e102878eaf5a66f74ccee64b5cb&utm_source=copy",
+        "duracion_video": 45,
+        "tema": "Hablar de medios, globalización y manipulación mediática.",
+        "tema_ar": "التحدث عن الوسائل والعولمة والتلاعب الإعلامي.",
+        "expresion_oral": [
+          "— ¿Qué opinas sobre la globalización? — Creo que tiene aspectos positivos y negativos que debemos analizar.",
+          "— ¿Cómo influyen los medios en la opinión pública? — Tienen un poder enorme para moldear las percepciones."
+        ],
+        "expresion_oral_ar": [
+          "— ما رأيك في العولمة؟ — أعتقد أنها لها جوانب إيجابية وسلبية يجب أن نحللها.",
+          "— كيف تؤثر الوسائل على الرأي العام؟ — لها قوة هائلة لتشكيل التصورات."
+        ],
+        "vocabulario": [
+          "medios, globalización, manipulación, opinión pública, información, influencia, poder, percepción, análisis, crítica"
+        ],
+        "vocabulario_ar": [
+          "وسائل، عولمة، تلاعب، رأي عام، معلومات، تأثير، قوة، تصور، تحليل، نقد"
+        ],
+        "gramatica": [
+          "Subjuntivo para análisis complejos: Es importante que analicemos..., creo que debamos considerar...",
+          "Expresar poder e influencia: Tienen el poder de..., pueden influir en..."
+        ],
+        "gramatica_ar": [
+          "المضارع المنصوب للتحليلات المعقدة: من المهم أن نحلل...، أعتقد أن علينا أن نأخذ في الاعتبار...",
+          "التعبير عن القوة والتأثير: لهم القوة لـ...، يمكنهم التأثير في..."
+        ],
+        "ejercicios": [
+          {
+            "tipo": "rellenar_huecos",
+            "enunciado": "Completa: La ______ conecta el mundo. (ترجمة: العولمة تربط العالم)",
+            "solucion": ["globalización"]
+          },
+          {
+            "tipo": "opcion_multiple",
+            "enunciado": "¿Qué es fundamental para evitar la manipulación mediática? (ما هو أساسي لتجنب التلاعب الإعلامي؟)",
+            "opciones": ["Pensamiento crítico", "Ignorancia", "Pasividad", "Credulidad"],
+            "respuesta_correcta": "Pensamiento crítico"
+          },
+          {
+            "tipo": "escribir",
+            "enunciado": "Escribe sobre los efectos de la globalización en la sociedad actual. (اكتب عن آثار العولمة في المجتمع الحالي)"
+          },
+          {
+            "tipo": "relacionar",
+            "enunciado": "Relaciona las palabras de medios con su traducción (صل كلمات الوسائل بترجمتها):",
+            "pares": [
+              {"izquierda": "Medios", "derecha": "وسائل"},
+              {"izquierda": "Globalización", "derecha": "عولمة"},
+              {"izquierda": "Información", "derecha": "معلومات"}
+            ]
+          }
+        ]
+      }
+    ],
+    "examen": [
+      {
+        "pregunta": "¿Cuál es el tema principal de la unidad 'Sociedad y ciudadanía'?",
+        "opciones": [
+          "Debatir sobre derechos, deberes y convivencia social.",
+          "Otro tema",
+          "Tema inventado",
+          "No sé"
+        ],
+        "respuesta_correcta": "Debatir sobre derechos, deberes y convivencia social.",
+        "unidad": 1
+      },
+      {
+        "pregunta": "¿Cuál es el tema principal de la unidad 'Política y economía'?",
+        "opciones": [
+          "Hablar de política, economía y actualidad internacional.",
+          "Otro tema",
+          "Tema inventado",
+          "No sé"
+        ],
+        "respuesta_correcta": "Hablar de política, economía y actualidad internacional.",
+        "unidad": 2
+      },
+      {
+        "pregunta": "¿Cuál es el tema principal de la unidad 'Ciencia, tecnología y sociedad'?",
+        "opciones": [
+          "Debatir sobre avances científicos, ética y sociedad digital.",
+          "Otro tema",
+          "Tema inventado",
+          "No sé"
+        ],
+        "respuesta_correcta": "Debatir sobre avances científicos, ética y sociedad digital.",
+        "unidad": 3
+      },
+      {
+        "pregunta": "¿Cuál es el tema principal de la unidad 'Arte, literatura y cultura'?",
+        "opciones": [
+          "Hablar de arte, literatura, cine y música avanzada.",
+          "Otro tema",
+          "Tema inventado",
+          "No sé"
+        ],
+        "respuesta_correcta": "Hablar de arte, literatura, cine y música avanzada.",
+        "unidad": 4
+      },
+      {
+        "pregunta": "¿Cuál es el tema principal de la unidad 'Medios de comunicación y globalización'?",
+        "opciones": [
+          "Hablar de medios, globalización y manipulación mediática.",
+          "Otro tema",
+          "Tema inventado",
+          "No sé"
+        ],
+        "respuesta_correcta": "Hablar de medios, globalización y manipulación mediática.",
+        "unidad": 5
+      }
+    ]
+  }
+}

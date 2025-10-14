@@ -1,0 +1,44 @@
+{
+  "examen": [
+    {
+      "pregunta": "¿Cuál es la capital de España?",
+      "opciones": [
+        "Madrid",
+        "Barcelona",
+        "Valencia",
+        "Sevilla"
+      ],
+      "respuesta_correcta": "Madrid"
+    },
+    {
+      "pregunta": "¿En qué continente está Egipto?",
+      "opciones": [
+        "África",
+        "Asia",
+        "Europa",
+        "América"
+      ],
+      "respuesta_correcta": "África"
+    },
+    {
+      "pregunta": "¿Cuál es el idioma oficial de Brasil?",
+      "opciones": [
+        "Portugués",
+        "Español",
+        "Italiano",
+        "Francés"
+      ],
+      "respuesta_correcta": "Portugués"
+    },
+    {
+      "pregunta": "¿Cuántos días tiene una semana?",
+      "opciones": [
+        "Siete",
+        "Cinco",
+        "Diez",
+        "Doce"
+      ],
+      "respuesta_correcta": "Siete"
+    }
+  ]
+}
