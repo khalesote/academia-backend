@@ -6,6 +6,7 @@ const Stripe = require('stripe');
 const app = express();
 const PORT = process.env.PORT || 10000;
 const NODE_ENV = process.env.NODE_ENV || 'production';
+const FORMACION_PRICE_EUR = parseFloat(process.env.FORMACION_PRICE_EUR || '0.5');
 
 // Inicializar Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
@@ -116,19 +117,20 @@ app.post('/api/create-payment-intent', async (req, res) => {
     // Validación específica para formación profesional: EXACTAMENTE 10.00 euros
     if (esFormacionProfesional) {
       const amountNumber = Number(amount);
-      console.log(' AmountNumber calculado para formación profesional:', amountNumber);
+      const expectedAmount = FORMACION_PRICE_EUR;
+      console.log(' AmountNumber calculado para formación profesional:', amountNumber, 'Esperado:', expectedAmount);
 
-      if (!amount || isNaN(amountNumber) || Math.abs(amountNumber - 10.00) > 0.001) {
+      if (!amount || isNaN(amountNumber) || Math.abs(amountNumber - expectedAmount) > 0.001) {
         console.error(' Validación fallida para formación profesional:', {
           originalAmount: amount,
-          amountNumber: amountNumber,
-          expectedAmount: 10.00,
-          difference: Math.abs(amountNumber - 10.00)
+          amountNumber,
+          expectedAmount,
+          difference: Math.abs(amountNumber - expectedAmount)
         });
         return res.status(400).json({
-          error: 'El monto debe ser EXACTAMENTE 10.00 euros para formación profesional',
+          error: `El monto debe ser EXACTAMENTE ${expectedAmount.toFixed(2)} euros para formación profesional`,
           receivedAmount: amount,
-          expectedAmount: 10.00
+          expectedAmount
         });
       }
     } else {
