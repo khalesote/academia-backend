@@ -1,49 +1,79 @@
-import 'dotenv/config';
-import express from 'express';
-import cors from 'cors';
-import Stripe from 'stripe';
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const Stripe = require('stripe');
 
-// Configuración inicial
 const app = express();
-const PORT = process.env.PORT || 10000; // Aseguramos que use el puerto 10000
-const NODE_ENV = process.env.NODE_ENV || 'development';
-
-// Validar variables de entorno
-const requiredEnvVars = ['STRIPE_SECRET_KEY'];
-const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
-
-if (missingVars.length > 0) {
-  console.error(`❌ ERROR: Faltan variables de entorno requeridas: ${missingVars.join(', ')}`);
-  process.exit(1);
-}
+const PORT = process.env.PORT || 10000;
+const NODE_ENV = process.env.NODE_ENV || 'production';
 
 // Inicializar Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: '2023-10-16',
 });
 
-// Middleware
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}));
-app.use(express.json());
+// Webhook de Stripe - DEBE estar antes de cualquier otro middleware que procese el body
+app.post('/api/webhook', 
+  express.raw({ type: 'application/json' }),
+  async (req, res) => {
+    console.log('🔔 Webhook recibido');
+    
+    const sig = req.headers['stripe-signature'];
+    const payload = req.body;
 
-// Middleware de logs
-app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
-  next();
-});
+    try {
+      // Validar que venga la firma
+      if (!sig) {
+        console.error('❌ No se encontró la firma de Stripe');
+        return res.status(400).send('Webhook Error: No se encontró la firma de Stripe');
+      }
 
-// Configuración de CORS
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+      // Verificar el evento con Stripe
+      const event = stripe.webhooks.constructEvent(
+        payload,
+        sig,
+        process.env.STRIPE_WEBHOOK_SECRET
+      );
 
-// Parsear JSON
+      console.log(`✅ Webhook verificado: ${event.type}`);
+
+      // Manejar el evento
+      switch (event.type) {
+        case 'payment_intent.succeeded':
+          const paymentIntent = event.data.object;
+          console.log('✅ Pago exitoso:', paymentIntent.id);
+          console.log('📝 Metadata:', paymentIntent.metadata);
+          // Aquí va la lógica para desbloquear el curso
+          // Ejemplo: actualizar base de datos, enviar email, etc.
+          break;
+          
+        case 'payment_intent.payment_failed':
+          const failedIntent = event.data.object;
+          console.error('❌ Pago fallido:', failedIntent.id);
+          // Manejar pago fallido
+          break;
+          
+        default:
+          console.log(`⚠️  Evento no manejado: ${event.type}`);
+      }
+
+      res.json({ received: true });
+      
+    } catch (err) {
+      console.error('❌ Error en webhook:', err.message);
+      console.error('🔍 Debug info:', {
+        bodyType: typeof payload,
+        bodyLength: payload ? payload.length : 'undefined',
+        hasSignature: !!sig,
+        signaturePrefix: sig ? sig.substring(0, 10) + '...' : 'no signature'
+      });
+      return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+  }
+);
+
+// Middleware para CORS y JSON (después del webhook)
+app.use(cors());
 app.use(express.json());
 
 // Ruta de salud
@@ -56,112 +86,82 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Ruta para desbloquear un curso después del pago
-app.post('/api/unlock-course', async (req, res) => {
-  try {
-    const { userId, courseId, paymentIntentId } = req.body;
-    
-    console.log('🔓 Solicitando desbloqueo de curso:', { userId, courseId, paymentIntentId });
-    
-    if (!userId || !courseId || !paymentIntentId) {
-      return res.status(400).json({
-        success: false,
-        error: 'Se requieren userId, courseId y paymentIntentId'
-      });
-    }
-    
-    // Aquí iría la lógica para guardar en tu base de datos
-    // Por ejemplo, actualizar el estado del usuario en la base de datos
-    console.log(`✅ Curso ${courseId} desbloqueado para el usuario ${userId}`);
-    
-    // Simulamos una respuesta exitosa
-    res.json({
-      success: true,
-      message: `Curso ${courseId} desbloqueado exitosamente`,
-      courseId,
-      userId,
-      paymentIntentId,
-      unlockedAt: new Date().toISOString()
-    });
-    
-  } catch (error) {
-    console.error('❌ Error al desbloquear el curso:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Error interno al procesar la solicitud',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
-  }
-});
-
-// Webhook para eventos de Stripe
-app.post('/api/webhook', express.raw({type: 'application/json'}), async (req, res) => {
-  const sig = req.headers['stripe-signature'];
-  let event;
-
-  try {
-    event = stripe.webhooks.constructEvent(
-      req.body,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET
-    );
-  } catch (err) {
-    console.error(`❌ Error de verificación de webhook: ${err.message}`);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
-  }
-
-  // Manejar el evento
-  switch (event.type) {
-    case 'payment_intent.succeeded':
-      const paymentIntent = event.data.object;
-      console.log('✅ Pago exitoso (webhook):', paymentIntent.id);
-      // Aquí puedes actualizar tu base de datos
-      break;
-    case 'payment_intent.payment_failed':
-      const failedIntent = event.data.object;
-      console.error('❌ Pago fallido (webhook):', failedIntent.id);
-      // Manejar pago fallido
-      break;
-    default:
-      console.log(`🔔 Evento no manejado: ${event.type}`);
-  }
-
-  // Devolver una respuesta exitosa
-  res.json({received: true});
-});
-
 // Ruta para crear un Payment Intent
 app.post('/api/create-payment-intent', async (req, res) => {
   try {
-    const { amount, currency = 'eur', metadata = {}, level, description } = req.body;
+    const { amount, currency = 'eur', metadata = {}, level, description, tipo } = req.body;
 
-    // Validar monto
-    if (!amount || isNaN(amount) || amount < 50) {
-      return res.status(400).json({
-        error: 'El monto debe ser un número mayor a 50 céntimos',
-      });
+    console.log(' Datos recibidos del frontend:', {
+      amount,
+      currency,
+      description,
+      tipo,
+      level,
+      amountType: typeof amount,
+      amountValue: amount,
+      amountNumber: Number(amount)
+    });
+
+    // DETECCIÓN DE FORMACIÓN PROFESIONAL
+    const esFormacionProfesional = tipo === 'formacion-profesional' ||
+                                 (description && (description.toLowerCase().includes('formación profesional') || 
+                                                 description.toLowerCase().includes('formacion')));
+
+    console.log(' Tipo de pago detectado:', {
+      esFormacionProfesional,
+      tieneLevel: !!level,
+      description: description
+    });
+
+    // Validación específica para formación profesional: EXACTAMENTE 10.00 euros
+    if (esFormacionProfesional) {
+      const amountNumber = Number(amount);
+      console.log(' AmountNumber calculado para formación profesional:', amountNumber);
+
+      if (!amount || isNaN(amountNumber) || Math.abs(amountNumber - 10.00) > 0.001) {
+        console.error(' Validación fallida para formación profesional:', {
+          originalAmount: amount,
+          amountNumber: amountNumber,
+          expectedAmount: 10.00,
+          difference: Math.abs(amountNumber - 10.00)
+        });
+        return res.status(400).json({
+          error: 'El monto debe ser EXACTAMENTE 10.00 euros para formación profesional',
+          receivedAmount: amount,
+          expectedAmount: 10.00
+        });
+      }
+    } else {
+      // Validación normal para otros tipos de pago
+      const amountNumber = Number(amount);
+      if (!amount || isNaN(amountNumber) || amountNumber < 0.5) {
+        return res.status(400).json({
+          error: 'El monto debe ser un número mayor o igual a 0.50 euros',
+          receivedAmount: amount,
+          expectedMinimum: 0.5
+        });
+      }
     }
 
-    // Determinar el tipo de pago
-    const esMatriculaNivel = !!level;
-    const esFormacionProfesional = !level && description?.includes('formación');
+    // Calcular monto en céntimos para Stripe
+    const amountInCents = Math.round(Number(amount) * 100);
+    console.log(` Conversión: ${amount} ${currency} → ${amountInCents} céntimos`);
 
-    // Configuración del pago
-    // Crear el Payment Intent
+    // Crear el Payment Intent en Stripe
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100), // Convertir a céntimos
+      amount: amountInCents, // Stripe espera céntimos
       currency,
       metadata: {
         app: 'academia-inmigrantes',
-        environment: NODE_ENV || 'production',
-        descripcion: req.body.descripcion || 'Pago Academia de Inmigrantes',
+        environment: NODE_ENV,
+        descripcion: description || 'Pago Academia de Inmigrantes',
         bloque: req.body.bloque || 'general',
-        returnUrl: req.body.returnUrl || 'academiainmigrantes://stripe-redirect',
-        ...(esMatriculaNivel && { level }),
+        returnUrl: req.body.returnUrl || 'academiadeinmigrantes://stripe-redirect',
+        ...(level && { level }),
         ...(esFormacionProfesional && { tipo: 'formacion-profesional' }),
         ...metadata
       },
-      description: esMatriculaNivel 
+      description: level
         ? `Matrícula ${level} - Academia de Inmigrantes`
         : description || 'Pago Academia de Inmigrantes',
       automatic_payment_methods: {
@@ -169,7 +169,8 @@ app.post('/api/create-payment-intent', async (req, res) => {
       }
     });
 
-    console.log(`✅ PaymentIntent creado: ${paymentIntent.id}`);
+    console.log(` PaymentIntent creado: ${paymentIntent.id}`);
+    console.log(` Stripe recibió: ${paymentIntent.amount} céntimos (${paymentIntent.amount / 100} ${paymentIntent.currency})`);
 
     res.json({
       status: 'success',
@@ -178,100 +179,43 @@ app.post('/api/create-payment-intent', async (req, res) => {
       amount: paymentIntent.amount,
       currency: paymentIntent.currency,
       created: paymentIntent.created,
-      tipo: esMatriculaNivel ? 'matricula' : 'formacion-profesional'
+      tipo: level ? 'matricula' : 'formacion-profesional'
     });
-    
   } catch (error) {
-    console.error('❌ Error al crear el Payment Intent:', error);
+    console.error(' Error en create-payment-intent:', error);
     res.status(500).json({
-      error: error.message || 'Error al procesar el pago',
+      error: 'Error al crear el intento de pago',
+      details: error.message
     });
   }
 });
 
-// Ruta de prueba para diagnosticar problemas de conexión
-app.post('/api/test-connection', async (req, res) => {
-  try {
-    console.log('🔍 Test connection endpoint llamado');
-    console.log('📅 Timestamp:', new Date().toISOString());
-    console.log('🌐 Headers:', req.headers);
-    console.log('📦 Body recibido:', req.body);
-    console.log('🔧 NODE_ENV:', process.env.NODE_ENV);
-    console.log('💳 STRIPE_SECRET_KEY configurada:', !!process.env.STRIPE_SECRET_KEY);
-    
-    // Responder con un mensaje de éxito (solo una respuesta)
-    res.status(200).json({
-      status: 'success',
-      message: 'Test endpoint funcionando correctamente',
-      timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV || 'development',
-      receivedHeaders: req.headers,
-      receivedBody: req.body,
-      stripeConfigured: !!process.env.STRIPE_SECRET_KEY
-    });
-  } catch (error) {
-    console.error('❌ Error en test endpoint:', error);
-    res.status(500).json({
-      error: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    });
-  }
+// Ruta de prueba
+app.get('/', (req, res) => {
+  res.send('¡API de pagos de Academia de Inmigrantes funcionando!');
 });
 
-// Ruta no encontrada
-app.use((req, res) => {
-  res.status(404).json({
-    status: 'error',
-    message: 'Ruta no encontrada',
-    path: req.path,
-    method: req.method,
-    timestamp: new Date().toISOString()
-  });
+// Manejo de errores global
+process.on('unhandledRejection', (error) => {
+  console.error(' Error no manejado:', error);
 });
 
-// Manejo de errores
-app.use((err, req, res, next) => {
-  const errorId = Date.now().toString(36) + Math.random().toString(36).substr(2);
-  
-  console.error(`❌ [${errorId}] Error en ${req.method} ${req.path}:`, {
-    message: err.message,
-    stack: err.stack,
-    originalUrl: req.originalUrl,
-    body: req.body,
-    query: req.query,
-    params: req.params
-  });
-
-  const statusCode = err.statusCode || 500;
-  
-  res.status(statusCode).json({
-    status: 'error',
-    message: err.message || 'Error interno del servidor',
-    errorId,
-    timestamp: new Date().toISOString(),
-    ...(NODE_ENV === 'development' && {
-      stack: err.stack,
-      path: req.path,
-      method: req.method
-    })
-  });
-});
-
-// Iniciar servidor
-const server = app.listen(PORT, '0.0.0.0', () => {
+// Iniciar el servidor
+const server = app.listen(PORT, () => {
   console.log('\n' + '='.repeat(80));
-  console.log(`🚀 Servidor ${NODE_ENV} iniciado correctamente`);
-  console.log('='.repeat(80));
-  console.log('📅', new Date().toLocaleString());
-  console.log('💻 Plataforma:', process.platform, process.arch);
-  console.log('📦 Node.js:', process.version);
-  console.log('🏠 Directorio:', process.cwd());
-  console.log('🌍 URL:', `http://localhost:${PORT}`);
-  console.log('\n🔧 Variables de entorno:');
-  console.log(`   - NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
+  console.log(` Servidor escuchando en el puerto ${PORT}`);
+  console.log(` Entorno: ${NODE_ENV}`);
+  console.log(` Clave de Stripe configurada: ${!!process.env.STRIPE_SECRET_KEY}`);
+  console.log(' ', new Date().toLocaleString());
+  console.log(' Plataforma:', process.platform, process.arch);
+  console.log(' Node.js:', process.version);
+  console.log(' Directorio:', process.cwd());
+  console.log(' URL:', `http://localhost:${PORT}`);
+  console.log('\n Variables de entorno:');
+  console.log(`   - NODE_ENV: ${NODE_ENV}`);
   console.log(`   - PORT: ${PORT}`);
-  console.log(`   - STRIPE_SECRET_KEY: ${process.env.STRIPE_SECRET_KEY ? '✅ Configurada' : '❌ No configurada'}`);
-  console.log('\n📡 Endpoints disponibles:');
+  console.log(`   - STRIPE_SECRET_KEY: ${process.env.STRIPE_SECRET_KEY ? ' Configurada' : ' No configurada'}`);
+  console.log('\n Endpoints disponibles:');
   console.log(`   - GET    /`);
   console.log(`   - GET    /api/health`);
   console.log(`   - POST   /api/create-payment-intent`);
