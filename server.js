@@ -6,7 +6,7 @@ const Stripe = require('stripe');
 const app = express();
 const PORT = process.env.PORT || 10000;
 const NODE_ENV = process.env.NODE_ENV || 'production';
-const FORMACION_PRICE_EUR = parseFloat(process.env.FORMACION_PRICE_EUR || '0.5');
+const FORMACION_PRICE_EUR = parseFloat(process.env.FORMACION_PRICE_EUR || '10');
 
 // Inicializar Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
