@@ -257,33 +257,6 @@ app.post('/api/enviar-solicitud-asesoria', async (req, res) => {
   }
 });
 
-// Endpoint de prueba ULTIMO RECURSO - FORZAR REDEPLOY EN RENDER
-app.get('/ping', (req, res) => {
-  res.send('PONG - ' + new Date().toISOString());
-});
-
-// Endpoint de prueba simple para verificar funcionamiento
-app.get('/api/test-simple', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Backend funcionando correctamente',
-    timestamp: new Date().toISOString(),
-    method: req.method,
-    url: req.url
-  });
-});
-
-// Endpoint de prueba para verificar funcionamiento de email
-app.post('/api/test-email', (req, res) => {
-  res.json({
-    success: true,
-    message: 'Endpoint funcionando',
-    timestamp: new Date().toISOString(),
-    nodemailer: !!require('nodemailer'),
-    body: req.body
-  });
-});
-
 // Ruta de prueba
 app.get('/', (req, res) => {
   res.send('¡API de pagos de Academia de Inmigrantes funcionando!');
@@ -311,12 +284,9 @@ const server = app.listen(PORT, () => {
   console.log(`   - STRIPE_SECRET_KEY: ${process.env.STRIPE_SECRET_KEY ? ' Configurada' : ' No configurada'}`);
   console.log('\n Endpoints disponibles:');
   console.log(`   - GET    /`);
-  console.log(`   - GET    /ping`);
   console.log(`   - GET    /api/health`);
   console.log(`   - POST   /api/create-payment-intent`);
   console.log(`   - POST   /api/enviar-solicitud-asesoria`);
-  console.log(`   - GET    /api/test-simple`);
-  console.log(`   - POST   /api/test-email`);
   console.log('='.repeat(80) + '\n');
 });
 
