@@ -253,7 +253,7 @@ app.post('/api/enviar-solicitud-asesoria', async (req, res) => {
     // Configurar el email - Usando email verificado en SendGrid
     const mailOptions = {
       from: 'khalesito@yahoo.fr', // Email verificado en SendGrid
-      to: 'afaiacademiadeinmigrantes@gmail.com', // Email académico destinatario
+      to: 'mersaouikhaled0@gmail.com', // Email principal destinatario
       subject: `Nueva solicitud de asesoría - ${name}`,
       html: `
         <h2>Nueva Solicitud de Asesoría de Inmigración</h2>
