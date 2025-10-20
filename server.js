@@ -23,6 +23,24 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+// Verificar configuración de SendGrid
+console.log('🔧 Verificando configuración de SendGrid...');
+console.log(`   - API Key configurada: ${!!process.env.SENDGRID_API_KEY}`);
+if (process.env.SENDGRID_API_KEY) {
+  console.log(`   - API Key inicia con: ${process.env.SENDGRID_API_KEY.substring(0, 10)}...`);
+} else {
+  console.log('   ⚠️  API Key de SendGrid NO configurada');
+}
+
+// Probar conexión con SendGrid
+transporter.verify((error, success) => {
+  if (error) {
+    console.error('❌ Error de conexión con SendGrid:', error.message);
+  } else {
+    console.log('✅ Conexión con SendGrid exitosa');
+  }
+});
+
 // Inicializar Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: '2023-10-16',
@@ -210,13 +228,25 @@ app.post('/api/create-payment-intent', async (req, res) => {
 // Endpoint para envío de emails de asesoría
 app.post('/api/enviar-solicitud-asesoria', async (req, res) => {
   try {
+    console.log('📧 Iniciando envío de email de asesoría...');
     const { name, email, phone, appointmentType, date, time, notes } = req.body;
+    console.log('📝 Datos recibidos:', { name, email, phone, appointmentType, date, time });
 
     // Validar datos requeridos
     if (!name || !email || !phone || !appointmentType || !date || !time) {
+      console.log('❌ Validación fallida: faltan campos obligatorios');
       return res.status(400).json({
         error: 'Faltan campos obligatorios',
         required: ['name', 'email', 'phone', 'appointmentType', 'date', 'time']
+      });
+    }
+
+    // Verificar configuración de SendGrid
+    if (!process.env.SENDGRID_API_KEY) {
+      console.error('❌ SENDGRID_API_KEY no configurada');
+      return res.status(500).json({
+        error: 'Configuración de email incompleta',
+        details: 'API Key de SendGrid no configurada'
       });
     }
 
@@ -243,21 +273,44 @@ app.post('/api/enviar-solicitud-asesoria', async (req, res) => {
       replyTo: email
     };
 
-    // Enviar el email
-    await transporter.sendMail(mailOptions);
+    console.log('📤 Enviando email a:', mailOptions.to);
+    console.log('📤 Desde:', mailOptions.from);
+    console.log('📤 Asunto:', mailOptions.subject);
 
-    console.log(`✅ Email de asesoría enviado para: ${name} <${email}>`);
+    // Enviar el email
+    const info = await transporter.sendMail(mailOptions);
+    console.log('✅ Email enviado exitosamente:', info.messageId);
 
     res.json({
       success: true,
-      message: 'Solicitud de asesoría enviada correctamente'
+      message: 'Solicitud de asesoría enviada correctamente',
+      messageId: info.messageId
     });
 
   } catch (error) {
     console.error('❌ Error enviando email de asesoría:', error);
+    console.error('❌ Tipo de error:', error.code);
+    console.error('❌ Mensaje detallado:', error.message);
+
+    // Determinar el tipo de error para dar mejor feedback
+    let errorMessage = 'Error al enviar la solicitud';
+    let errorDetails = error.message;
+
+    if (error.code === 'ETIMEDOUT') {
+      errorMessage = 'Timeout de conexión con el servidor de email';
+      errorDetails = 'El servidor de SendGrid no responde. Verificar conexión a internet.';
+    } else if (error.code === 'EAUTH') {
+      errorMessage = 'Error de autenticación con SendGrid';
+      errorDetails = 'La API Key de SendGrid es incorrecta o ha expirado.';
+    } else if (error.code === 'ENOTFOUND') {
+      errorMessage = 'Servidor de SendGrid no encontrado';
+      errorDetails = 'No se puede conectar al servidor SMTP de SendGrid.';
+    }
+
     res.status(500).json({
-      error: 'Error al enviar la solicitud',
-      details: error.message
+      error: errorMessage,
+      details: errorDetails,
+      code: error.code
     });
   }
 });
@@ -287,6 +340,7 @@ const server = app.listen(PORT, () => {
   console.log(`   - NODE_ENV: ${NODE_ENV}`);
   console.log(`   - PORT: ${PORT}`);
   console.log(`   - STRIPE_SECRET_KEY: ${process.env.STRIPE_SECRET_KEY ? ' Configurada' : ' No configurada'}`);
+  console.log(`   - SENDGRID_API_KEY: ${process.env.SENDGRID_API_KEY ? ' Configurada' : ' No configurada'}`);
   console.log('\n Endpoints disponibles:');
   console.log(`   - GET    /`);
   console.log(`   - GET    /api/health`);
