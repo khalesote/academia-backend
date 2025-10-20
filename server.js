@@ -270,7 +270,7 @@ app.post('/api/enviar-solicitud-asesoria', async (req, res) => {
         </div>
         <p style="color: #666;">Este email fue enviado desde la app Academia de Inmigrantes.</p>
       `,
-      replyTo: email
+      replyTo: 'afaiacademiadeinmigrantes@gmail.com' // Email de la academia para respuestas
     };
 
     console.log('📤 Enviando email a:', mailOptions.to);
