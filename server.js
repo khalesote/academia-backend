@@ -2,44 +2,27 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const Stripe = require('stripe');
-const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
 
 const app = express();
 const PORT = process.env.PORT || 10000;
 const NODE_ENV = process.env.NODE_ENV || 'production';
 const FORMACION_PRICE_EUR = parseFloat(process.env.FORMACION_PRICE_EUR || '10');
 
-// Configurar Nodemailer con SendGrid (más confiable que Gmail)
-const transporter = nodemailer.createTransport({
-  host: 'smtp.sendgrid.net',
-  port: 587,
-  secure: false,
-  auth: {
-    user: 'apikey', // SendGrid usa 'apikey' como usuario
-    pass: process.env.SENDGRID_API_KEY || 'SG.TU_API_KEY_AQUI' // Usar variable de entorno
-  },
-  tls: {
-    rejectUnauthorized: false
-  }
-});
+// Configurar SendGrid
+if (process.env.SENDGRID_API_KEY) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+}
 
 // Verificar configuración de SendGrid
 console.log('🔧 Verificando configuración de SendGrid...');
 console.log(`   - API Key configurada: ${!!process.env.SENDGRID_API_KEY}`);
 if (process.env.SENDGRID_API_KEY) {
   console.log(`   - API Key inicia con: ${process.env.SENDGRID_API_KEY.substring(0, 10)}...`);
+  console.log('✅ SendGrid SDK configurado correctamente');
 } else {
   console.log('   ⚠️  API Key de SendGrid NO configurada');
 }
-
-// Probar conexión con SendGrid
-transporter.verify((error, success) => {
-  if (error) {
-    console.error('❌ Error de conexión con SendGrid:', error.message);
-  } else {
-    console.log('✅ Conexión con SendGrid exitosa');
-  }
-});
 
 // Inicializar Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
@@ -250,10 +233,11 @@ app.post('/api/enviar-solicitud-asesoria', async (req, res) => {
       });
     }
 
-    // Configurar el email - Usando email verificado en SendGrid
-    const mailOptions = {
+    // Configurar el email - Usando SDK oficial de SendGrid
+    const msg = {
       from: 'khalesito@yahoo.fr', // Email verificado en SendGrid
       to: 'mersaouikhaled0@gmail.com', // Email principal destinatario
+      replyTo: 'afaiacademiadeinmigrantes@gmail.com', // Email de la academia para respuestas
       subject: `Nueva solicitud de asesoría - ${name}`,
       html: `
         <h2>Nueva Solicitud de Asesoría de Inmigración</h2>
@@ -270,47 +254,73 @@ app.post('/api/enviar-solicitud-asesoria', async (req, res) => {
         </div>
         <p style="color: #666;">Este email fue enviado desde la app Academia de Inmigrantes.</p>
       `,
-      replyTo: 'afaiacademiadeinmigrantes@gmail.com' // Email de la academia para respuestas
     };
 
-    console.log('📤 Enviando email a:', mailOptions.to);
-    console.log('📤 Desde:', mailOptions.from);
-    console.log('📤 Asunto:', mailOptions.subject);
+    console.log('📤 Enviando email a:', msg.to);
+    console.log('📤 Desde:', msg.from);
+    console.log('📤 Asunto:', msg.subject);
 
-    // Enviar el email
-    const info = await transporter.sendMail(mailOptions);
-    console.log('✅ Email enviado exitosamente:', info.messageId);
+    // Enviar el email usando SendGrid SDK
+    const result = await sgMail.send(msg);
+    console.log('✅ Email enviado exitosamente:', result[0]?.headers?.['x-message-id'] || 'ID no disponible');
 
     res.json({
       success: true,
       message: 'Solicitud de asesoría enviada correctamente',
-      messageId: info.messageId
+      messageId: result[0]?.headers?.['x-message-id'] || 'Enviado'
     });
 
   } catch (error) {
     console.error('❌ Error enviando email de asesoría:', error);
-    console.error('❌ Tipo de error:', error.code);
-    console.error('❌ Mensaje detallado:', error.message);
 
-    // Determinar el tipo de error para dar mejor feedback
+    // Manejo de errores específico para SendGrid
     let errorMessage = 'Error al enviar la solicitud';
     let errorDetails = error.message;
+    let errorCode = error.code;
 
-    if (error.code === 'ETIMEDOUT') {
-      errorMessage = 'Timeout de conexión con el servidor de email';
-      errorDetails = 'El servidor de SendGrid no responde. Verificar conexión a internet.';
-    } else if (error.code === 'EAUTH') {
-      errorMessage = 'Error de autenticación con SendGrid';
-      errorDetails = 'La API Key de SendGrid es incorrecta o ha expirado.';
-    } else if (error.code === 'ENOTFOUND') {
-      errorMessage = 'Servidor de SendGrid no encontrado';
-      errorDetails = 'No se puede conectar al servidor SMTP de SendGrid.';
+    if (error.response) {
+      // Error de respuesta HTTP de SendGrid
+      const statusCode = error.response.statusCode;
+      const body = error.response.body;
+
+      console.error('❌ Status Code:', statusCode);
+      console.error('❌ Response Body:', body);
+
+      if (statusCode === 401) {
+        errorMessage = 'Error de autenticación con SendGrid';
+        errorDetails = 'La API Key de SendGrid es incorrecta o ha expirado.';
+        errorCode = 'EAUTH';
+      } else if (statusCode === 403) {
+        errorMessage = 'Acceso denegado a SendGrid';
+        errorDetails = 'Verifica que el email remitente esté autorizado en SendGrid.';
+        errorCode = 'EFORBIDDEN';
+      } else if (statusCode === 429) {
+        errorMessage = 'Límite de envío excedido';
+        errorDetails = 'Has excedido el límite de emails por hora/día en SendGrid.';
+        errorCode = 'ELIMIT';
+      } else if (body && body.errors && body.errors.length > 0) {
+        errorDetails = body.errors[0].message;
+      }
+    } else {
+      // Error de conexión o timeout
+      if (error.code === 'ETIMEDOUT' || error.code === 'ECONNRESET') {
+        errorMessage = 'Timeout de conexión con SendGrid';
+        errorDetails = 'El servidor de SendGrid no responde. Verificar conexión a internet.';
+        errorCode = 'ETIMEDOUT';
+      } else if (error.code === 'ENOTFOUND') {
+        errorMessage = 'Servidor de SendGrid no encontrado';
+        errorDetails = 'No se puede conectar al servidor de SendGrid.';
+        errorCode = 'ENOTFOUND';
+      }
     }
+
+    console.error('❌ Código de error:', errorCode);
+    console.error('❌ Mensaje detallado:', errorDetails);
 
     res.status(500).json({
       error: errorMessage,
       details: errorDetails,
-      code: error.code
+      code: errorCode
     });
   }
 });
