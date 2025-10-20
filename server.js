@@ -9,12 +9,17 @@ const PORT = process.env.PORT || 10000;
 const NODE_ENV = process.env.NODE_ENV || 'production';
 const FORMACION_PRICE_EUR = parseFloat(process.env.FORMACION_PRICE_EUR || '10');
 
-// Configurar Nodemailer
+// Configurar Nodemailer con SendGrid (más confiable que Gmail)
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.sendgrid.net',
+  port: 587,
+  secure: false,
   auth: {
-    user: 'mersaouikhaled0@gmail.com',
-    pass: 'ohtxeddzcxtwziw'
+    user: 'apikey', // SendGrid usa 'apikey' como usuario
+    pass: process.env.SENDGRID_API_KEY || 'SG.TU_API_KEY_AQUI' // Usar variable de entorno
+  },
+  tls: {
+    rejectUnauthorized: false
   }
 });
 
@@ -217,7 +222,7 @@ app.post('/api/enviar-solicitud-asesoria', async (req, res) => {
 
     // Configurar el email
     const mailOptions = {
-      from: 'mersaouikhaled0@gmail.com',
+      from: 'academia@inmigrantes.com', // Email verificado en SendGrid
       to: 'mersaouikhaled0@gmail.com',
       subject: `Nueva solicitud de asesoría - ${name}`,
       html: `
