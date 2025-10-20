@@ -257,9 +257,9 @@ app.post('/api/enviar-solicitud-asesoria', async (req, res) => {
   }
 });
 
-// Endpoint de prueba ULTIMO RECURSO
+// Endpoint de prueba ULTIMO RECURSO - FORZAR REDEPLOY EN RENDER
 app.get('/ping', (req, res) => {
-  res.send('PONG');
+  res.send('PONG - ' + new Date().toISOString());
 });
 
 // Endpoint de prueba simple para verificar funcionamiento
