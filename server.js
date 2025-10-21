@@ -218,7 +218,83 @@ app.post('/api/create-payment-intent', async (req, res) => {
   }
 });
 
-// Endpoint para envío de emails de asesoría
+// Endpoint de prueba para SMTP2GO
+app.post('/api/test-smtp2go', async (req, res) => {
+  try {
+    console.log('🧪 Probando conexión con SMTP2GO...');
+    
+    if (!transporter) {
+      return res.status(500).json({
+        error: 'Transporter no configurado',
+        details: 'Las credenciales de SMTP2GO no están configuradas'
+      });
+    }
+
+    // Verificar conexión
+    const verifyResult = await transporter.verify();
+    console.log('✅ Conexión SMTP2GO verificada:', verifyResult);
+
+    res.json({
+      success: true,
+      message: 'Conexión SMTP2GO exitosa',
+      verified: verifyResult
+    });
+
+  } catch (error) {
+    console.error('❌ Error verificando SMTP2GO:', error);
+    
+    res.status(500).json({
+      error: 'Error de conexión SMTP2GO',
+      details: error.message,
+      code: error.code
+    });
+  }
+});
+
+// Endpoint para enviar email de prueba
+app.post('/api/test-email', async (req, res) => {
+  try {
+    console.log('📧 Enviando email de prueba...');
+
+    if (!transporter) {
+      return res.status(500).json({
+        error: 'Transporter no configurado',
+        details: 'Las credenciales de SMTP2GO no están configuradas'
+      });
+    }
+
+    const mailOptions = {
+      from: 'admin@academiadeinmigrantes.es',
+      to: 'mersaouikhaled0@gmail.com',
+      subject: 'Email de prueba - SMTP2GO',
+      html: `
+        <h2>Prueba de conexión SMTP2GO</h2>
+        <p>Este es un email de prueba enviado desde Academia de Inmigrantes.</p>
+        <p>Si recibes este email, la configuración de SMTP2GO está funcionando correctamente.</p>
+        <p>Hora del envío: ${new Date().toLocaleString()}</p>
+      `,
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+    console.log('✅ Email de prueba enviado:', result.messageId);
+
+    res.json({
+      success: true,
+      message: 'Email de prueba enviado correctamente',
+      messageId: result.messageId
+    });
+
+  } catch (error) {
+    console.error('❌ Error enviando email de prueba:', error);
+
+    res.status(500).json({
+      error: 'Error enviando email de prueba',
+      details: error.message,
+      code: error.code
+    });
+  }
+});
+
 app.post('/api/enviar-solicitud-asesoria', async (req, res) => {
   try {
     console.log('📧 Iniciando envío de email de asesoría...');
@@ -362,6 +438,8 @@ const server = app.listen(PORT, () => {
   console.log(`   - GET    /`);
   console.log(`   - GET    /api/health`);
   console.log(`   - POST   /api/create-payment-intent`);
+  console.log(`   - POST   /api/test-smtp2go`);
+  console.log(`   - POST   /api/test-email`);
   console.log(`   - POST   /api/enviar-solicitud-asesoria`);
   console.log('='.repeat(80) + '\n');
 });
