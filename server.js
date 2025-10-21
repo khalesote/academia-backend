@@ -29,6 +29,12 @@ if (process.env.SMTP2GO_USERNAME && process.env.SMTP2GO_PASSWORD) {
 console.log('🔧 Verificando configuración de SMTP2GO...');
 console.log(`   - Usuario configurado: ${!!process.env.SMTP2GO_USERNAME}`);
 console.log(`   - Contraseña configurada: ${!!process.env.SMTP2GO_PASSWORD}`);
+if (process.env.SMTP2GO_USERNAME) {
+  console.log(`   - Usuario (primeros 3 chars): ${process.env.SMTP2GO_USERNAME.substring(0, 3)}...`);
+}
+if (process.env.SMTP2GO_PASSWORD) {
+  console.log(`   - Contraseña (longitud): ${process.env.SMTP2GO_PASSWORD.length} caracteres`);
+}
 if (process.env.SMTP2GO_USERNAME && process.env.SMTP2GO_PASSWORD) {
   console.log('✅ SMTP2GO configurado correctamente');
 } else {
@@ -216,6 +222,56 @@ app.post('/api/create-payment-intent', async (req, res) => {
     res.status(500).json({
       error: 'Error al crear el intento de pago',
       details: error.message
+    });
+  }
+});
+
+// Endpoint para probar credenciales personalizadas
+app.post('/api/test-smtp2go-custom', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+      return res.status(400).json({
+        error: 'Faltan credenciales',
+        details: 'Proporciona username y password en el body'
+      });
+    }
+
+    console.log('🧪 Probando credenciales personalizadas de SMTP2GO...');
+    console.log(`   - Usuario: ${username.substring(0, 3)}...`);
+
+    // Crear transporter temporal con credenciales personalizadas
+    const testTransporter = nodemailer.createTransport({
+      host: 'mail.smtp2go.com',
+      port: 2525,
+      secure: false,
+      requireTLS: true,
+      auth: {
+        user: username,
+        pass: password,
+      },
+    });
+
+    // Verificar conexión
+    const verifyResult = await testTransporter.verify();
+    console.log('✅ Conexión SMTP2GO verificada con credenciales personalizadas:', verifyResult);
+
+    res.json({
+      success: true,
+      message: 'Credenciales válidas - conexión exitosa',
+      verified: verifyResult
+    });
+
+  } catch (error) {
+    console.error('❌ Error verificando credenciales personalizadas:', error);
+    
+    res.status(500).json({
+      error: 'Error de credenciales SMTP2GO',
+      details: error.message,
+      code: error.code,
+      response: error.response,
+      responseCode: error.responseCode
     });
   }
 });
@@ -441,6 +497,7 @@ const server = app.listen(PORT, () => {
   console.log(`   - GET    /api/health`);
   console.log(`   - POST   /api/create-payment-intent`);
   console.log(`   - POST   /api/test-smtp2go`);
+  console.log(`   - POST   /api/test-smtp2go-custom`);
   console.log(`   - POST   /api/test-email`);
   console.log(`   - POST   /api/enviar-solicitud-asesoria`);
   console.log('='.repeat(80) + '\n');
