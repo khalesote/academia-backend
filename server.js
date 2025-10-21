@@ -2,26 +2,35 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const Stripe = require('stripe');
-const sgMail = require('@sendgrid/mail');
+const nodemailer = require('nodemailer');
 
 const app = express();
 const PORT = process.env.PORT || 10000;
 const NODE_ENV = process.env.NODE_ENV || 'production';
 const FORMACION_PRICE_EUR = parseFloat(process.env.FORMACION_PRICE_EUR || '10');
 
-// Configurar SendGrid
-if (process.env.SENDGRID_API_KEY) {
-  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+// Configurar SMTP2GO con nodemailer
+let transporter;
+if (process.env.SMTP2GO_USERNAME && process.env.SMTP2GO_PASSWORD) {
+  transporter = nodemailer.createTransporter({
+    host: 'mail.smtp2go.com',
+    port: 587,
+    secure: false, // true for 465, false for other ports
+    auth: {
+      user: process.env.SMTP2GO_USERNAME,
+      pass: process.env.SMTP2GO_PASSWORD,
+    },
+  });
 }
 
-// Verificar configuración de SendGrid
-console.log('🔧 Verificando configuración de SendGrid...');
-console.log(`   - API Key configurada: ${!!process.env.SENDGRID_API_KEY}`);
-if (process.env.SENDGRID_API_KEY) {
-  console.log(`   - API Key inicia con: ${process.env.SENDGRID_API_KEY.substring(0, 10)}...`);
-  console.log('✅ SendGrid SDK configurado correctamente');
+// Verificar configuración de SMTP2GO
+console.log('🔧 Verificando configuración de SMTP2GO...');
+console.log(`   - Usuario configurado: ${!!process.env.SMTP2GO_USERNAME}`);
+console.log(`   - Contraseña configurada: ${!!process.env.SMTP2GO_PASSWORD}`);
+if (process.env.SMTP2GO_USERNAME && process.env.SMTP2GO_PASSWORD) {
+  console.log('✅ SMTP2GO configurado correctamente');
 } else {
-  console.log('   ⚠️  API Key de SendGrid NO configurada');
+  console.log('   ⚠️  Credenciales de SMTP2GO NO configuradas');
 }
 
 // Inicializar Stripe
@@ -99,7 +108,8 @@ app.get('/api/health', (req, res) => {
     status: 'ok',
     timestamp: new Date().toISOString(),
     environment: NODE_ENV,
-    stripeConfigured: !!process.env.STRIPE_SECRET_KEY
+    stripeConfigured: !!process.env.STRIPE_SECRET_KEY,
+    smtp2goConfigured: !!(process.env.SMTP2GO_USERNAME && process.env.SMTP2GO_PASSWORD)
   });
 });
 
@@ -224,20 +234,20 @@ app.post('/api/enviar-solicitud-asesoria', async (req, res) => {
       });
     }
 
-    // Verificar configuración de SendGrid
-    if (!process.env.SENDGRID_API_KEY) {
-      console.error('❌ SENDGRID_API_KEY no configurada');
+    // Verificar configuración de SMTP2GO
+    if (!process.env.SMTP2GO_USERNAME || !process.env.SMTP2GO_PASSWORD) {
+      console.error('❌ Credenciales de SMTP2GO no configuradas');
       return res.status(500).json({
         error: 'Configuración de email incompleta',
-        details: 'API Key de SendGrid no configurada'
+        details: 'Credenciales de SMTP2GO no configuradas'
       });
     }
 
-    // Configurar el email - Usando SDK oficial de SendGrid
-    const msg = {
-      from: 'khalesito@yahoo.fr', // Email verificado en SendGrid (Yahoo soportado)
+    // Configurar el email
+    const mailOptions = {
+      from: 'admin@academiadeinmigrantes.es', // Email verificado
       to: 'mersaouikhaled0@gmail.com', // Email principal destinatario
-      replyTo: 'afaiacademiadeinmigrantes@gmail.com', // Email de la academia para respuestas
+      replyTo: email, // Responder al solicitante
       subject: `Nueva solicitud de asesoría - ${name}`,
       html: `
         <h2>Nueva Solicitud de Asesoría de Inmigración</h2>
@@ -256,60 +266,56 @@ app.post('/api/enviar-solicitud-asesoria', async (req, res) => {
       `,
     };
 
-    console.log('📤 Enviando email a:', msg.to);
-    console.log('📤 Desde:', msg.from);
-    console.log('📤 Asunto:', msg.subject);
+    console.log('📤 Enviando email a:', mailOptions.to);
+    console.log('📤 Desde:', mailOptions.from);
+    console.log('📤 Asunto:', mailOptions.subject);
 
-    // Enviar el email usando SendGrid SDK
-    const result = await sgMail.send(msg);
-    console.log('✅ Email enviado exitosamente:', result[0]?.headers?.['x-message-id'] || 'ID no disponible');
+    // Enviar el email usando SMTP2GO
+    const result = await transporter.sendMail(mailOptions);
+    console.log('✅ Email enviado exitosamente:', result.messageId);
 
     res.json({
       success: true,
       message: 'Solicitud de asesoría enviada correctamente',
-      messageId: result[0]?.headers?.['x-message-id'] || 'Enviado'
+      messageId: result.messageId
     });
 
   } catch (error) {
     console.error('❌ Error enviando email de asesoría:', error);
 
-    // Manejo de errores específico para SendGrid
+    // Manejo de errores específico para SMTP2GO
     let errorMessage = 'Error al enviar la solicitud';
     let errorDetails = error.message;
     let errorCode = error.code;
 
-    if (error.response) {
-      // Error de respuesta HTTP de SendGrid
-      const statusCode = error.response.statusCode;
-      const body = error.response.body;
+    if (error.responseCode) {
+      // Error de SMTP
+      const responseCode = error.responseCode;
 
-      console.error('❌ Status Code:', statusCode);
-      console.error('❌ Response Body:', body);
+      console.error('❌ Código de respuesta SMTP:', responseCode);
 
-      if (statusCode === 401) {
-        errorMessage = 'Error de autenticación con SendGrid';
-        errorDetails = 'La API Key de SendGrid es incorrecta o ha expirado.';
+      if (responseCode === 535) {
+        errorMessage = 'Error de autenticación con SMTP2GO';
+        errorDetails = 'Las credenciales de SMTP2GO son incorrectas.';
         errorCode = 'EAUTH';
-      } else if (statusCode === 403) {
-        errorMessage = 'Acceso denegado a SendGrid';
-        errorDetails = 'Verifica que el email remitente esté autorizado en SendGrid.';
-        errorCode = 'EFORBIDDEN';
-      } else if (statusCode === 429) {
-        errorMessage = 'Límite de envío excedido';
-        errorDetails = 'Has excedido el límite de emails por hora/día en SendGrid.';
-        errorCode = 'ELIMIT';
-      } else if (body && body.errors && body.errors.length > 0) {
-        errorDetails = body.errors[0].message;
+      } else if (responseCode === 550) {
+        errorMessage = 'Email rechazado';
+        errorDetails = 'El servidor SMTP rechazó el email. Verifica el dominio y email remitente.';
+        errorCode = 'EREJECTED';
+      } else if (responseCode === 421) {
+        errorMessage = 'Servicio temporalmente no disponible';
+        errorDetails = 'SMTP2GO no está disponible temporalmente. Inténtalo más tarde.';
+        errorCode = 'ETEMP';
       }
     } else {
       // Error de conexión o timeout
       if (error.code === 'ETIMEDOUT' || error.code === 'ECONNRESET') {
-        errorMessage = 'Timeout de conexión con SendGrid';
-        errorDetails = 'El servidor de SendGrid no responde. Verificar conexión a internet.';
+        errorMessage = 'Timeout de conexión con SMTP2GO';
+        errorDetails = 'El servidor de SMTP2GO no responde. Verificar conexión a internet.';
         errorCode = 'ETIMEDOUT';
       } else if (error.code === 'ENOTFOUND') {
-        errorMessage = 'Servidor de SendGrid no encontrado';
-        errorDetails = 'No se puede conectar al servidor de SendGrid.';
+        errorMessage = 'Servidor de SMTP2GO no encontrado';
+        errorDetails = 'No se puede conectar al servidor de SMTP2GO.';
         errorCode = 'ENOTFOUND';
       }
     }
@@ -341,7 +347,7 @@ const server = app.listen(PORT, () => {
   console.log(` Servidor escuchando en el puerto ${PORT}`);
   console.log(` Entorno: ${NODE_ENV}`);
   console.log(` Clave de Stripe configurada: ${!!process.env.STRIPE_SECRET_KEY}`);
-  console.log(' ', new Date().toLocaleString());
+  console.log(` Credenciales de SMTP2GO configuradas: ${!!(process.env.SMTP2GO_USERNAME && process.env.SMTP2GO_PASSWORD)}`);
   console.log(' Plataforma:', process.platform, process.arch);
   console.log(' Node.js:', process.version);
   console.log(' Directorio:', process.cwd());
@@ -350,7 +356,8 @@ const server = app.listen(PORT, () => {
   console.log(`   - NODE_ENV: ${NODE_ENV}`);
   console.log(`   - PORT: ${PORT}`);
   console.log(`   - STRIPE_SECRET_KEY: ${process.env.STRIPE_SECRET_KEY ? ' Configurada' : ' No configurada'}`);
-  console.log(`   - SENDGRID_API_KEY: ${process.env.SENDGRID_API_KEY ? ' Configurada' : ' No configurada'}`);
+  console.log(`   - SMTP2GO_USERNAME: ${process.env.SMTP2GO_USERNAME ? ' Configurada' : ' No configurada'}`);
+  console.log(`   - SMTP2GO_PASSWORD: ${process.env.SMTP2GO_PASSWORD ? ' Configurada' : ' No configurada'}`);
   console.log('\n Endpoints disponibles:');
   console.log(`   - GET    /`);
   console.log(`   - GET    /api/health`);
