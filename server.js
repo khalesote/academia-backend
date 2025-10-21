@@ -12,7 +12,7 @@ const FORMACION_PRICE_EUR = parseFloat(process.env.FORMACION_PRICE_EUR || '10');
 // Configurar SMTP2GO con nodemailer
 let transporter;
 if (process.env.SMTP2GO_USERNAME && process.env.SMTP2GO_PASSWORD) {
-  transporter = nodemailer.createTransporter({
+  transporter = nodemailer.createTransport({
     host: 'mail.smtp2go.com',
     port: 587,
     secure: false, // true for 465, false for other ports
