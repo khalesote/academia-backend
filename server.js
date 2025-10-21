@@ -265,7 +265,7 @@ app.post('/api/test-email', async (req, res) => {
 
     const mailOptions = {
       from: 'admin@academiadeinmigrantes.es',
-      to: 'mersaouikhaled0@gmail.com',
+      to: 'admin@academiadeinmigrantes.es',
       subject: 'Email de prueba - SMTP2GO',
       html: `
         <h2>Prueba de conexión SMTP2GO</h2>
@@ -322,7 +322,7 @@ app.post('/api/enviar-solicitud-asesoria', async (req, res) => {
     // Configurar el email
     const mailOptions = {
       from: 'admin@academiadeinmigrantes.es', // Email verificado
-      to: 'mersaouikhaled0@gmail.com', // Email principal destinatario
+      to: 'admin@academiadeinmigrantes.es', // Email administrativo de la academia
       replyTo: email, // Responder al solicitante
       subject: `Nueva solicitud de asesoría - ${name}`,
       html: `
