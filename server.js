@@ -10,12 +10,14 @@ const NODE_ENV = process.env.NODE_ENV || 'production';
 const FORMACION_PRICE_EUR = parseFloat(process.env.FORMACION_PRICE_EUR || '10');
 
 // Configurar SMTP2GO con nodemailer
+// Nota: Usamos puerto 2525 porque Render puede bloquear 587/465 en algunos planes
 let transporter;
 if (process.env.SMTP2GO_USERNAME && process.env.SMTP2GO_PASSWORD) {
   transporter = nodemailer.createTransport({
     host: 'mail.smtp2go.com',
-    port: 465,
-    secure: true, // true for 465, false for other ports
+    port: 2525, // Puerto alternativo que no suele estar bloqueado por Render
+    secure: false, // false para puertos no SSL
+    requireTLS: true, // Requiere STARTTLS
     auth: {
       user: process.env.SMTP2GO_USERNAME,
       pass: process.env.SMTP2GO_PASSWORD,
