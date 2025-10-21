@@ -14,8 +14,8 @@ let transporter;
 if (process.env.SMTP2GO_USERNAME && process.env.SMTP2GO_PASSWORD) {
   transporter = nodemailer.createTransport({
     host: 'mail.smtp2go.com',
-    port: 587,
-    secure: false, // true for 465, false for other ports
+    port: 465,
+    secure: true, // true for 465, false for other ports
     auth: {
       user: process.env.SMTP2GO_USERNAME,
       pass: process.env.SMTP2GO_PASSWORD,
