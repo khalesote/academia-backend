@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const Stripe = require('stripe');
 const nodemailer = require('nodemailer');
+const crypto = require('crypto');
 
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -466,6 +467,71 @@ app.post('/api/enviar-solicitud-asesoria', async (req, res) => {
 });
 
 // ============================================
+// FUNCIONES DE VALIDACIÓN CECABANK
+// ============================================
+
+/**
+ * Genera la firma esperada por Cecabank para validar los callbacks
+ */
+function generateCecabankSignature(numOperacion, importe, fecha, hora) {
+  const merchantId = process.env.CECABANK_MERCHANT_ID || '';
+  const acquirerBin = process.env.CECABANK_ACQUIRER_BIN || '';
+  const terminalId = process.env.CECABANK_TERMINAL_ID || '';
+  const clave = process.env.CECABANK_CLAVE || '';
+  const tipoMoneda = '978'; // EUR
+  const exponente = '2';
+  const cifrado = 'SHA256';
+
+  // Construir la cadena para la firma
+  const cadenaFirma = 
+    merchantId +
+    acquirerBin +
+    terminalId +
+    numOperacion +
+    importe +
+    tipoMoneda +
+    exponente +
+    cifrado +
+    fecha +
+    hora +
+    clave;
+
+  // Generar el hash SHA256
+  const firma = crypto.createHash('sha256').update(cadenaFirma).digest('hex').toUpperCase();
+  
+  return firma;
+}
+
+/**
+ * Valida la firma recibida de Cecabank
+ */
+function validateCecabankSignature(datos) {
+  try {
+    const firmaCalculada = generateCecabankSignature(
+      datos.Num_operacion,
+      datos.Importe,
+      datos.Fecha,
+      datos.Hora
+    );
+
+    const firmaRecibida = datos.Firma.toUpperCase();
+    const isValid = firmaCalculada === firmaRecibida;
+
+    if (!isValid) {
+      console.error('❌ Firma inválida:', {
+        calculada: firmaCalculada,
+        recibida: firmaRecibida
+      });
+    }
+
+    return isValid;
+  } catch (error) {
+    console.error('❌ Error validando firma de Cecabank:', error);
+    return false;
+  }
+}
+
+// ============================================
 // ENDPOINTS DE CECABANK
 // ============================================
 
@@ -486,28 +552,109 @@ app.post('/api/cecabank/ok', express.urlencoded({ extended: true }), async (req,
     } = req.body;
 
     // Validar que vengan los datos necesarios
-    if (!Num_operacion || !Importe || !Firma) {
+    if (!Num_operacion || !Importe || !Firma || !Fecha || !Hora) {
       console.error('❌ Faltan datos en el callback de Cecabank');
       return res.status(400).send('Faltan datos requeridos');
     }
 
-    // Aquí deberías validar la firma con tu clave de encriptación
-    // Por ahora solo registramos el pago exitoso
+    // Validar la firma
+    const isValidSignature = validateCecabankSignature({
+      Num_operacion,
+      Importe,
+      Fecha,
+      Hora,
+      Firma
+    });
+
+    if (!isValidSignature) {
+      console.error('❌ Firma inválida en callback de Cecabank');
+      return res.status(400).send('Firma inválida');
+    }
+
+    console.log('✅ Firma validada correctamente');
+    
+    // Convertir importe de céntimos a euros
+    const importeEuros = (parseInt(Importe) / 100).toFixed(2);
+    
+    // Determinar el tipo de operación basado en el importe o descripción
+    let operationType = 'unknown';
+    let levelUnlocked = null;
+    
+    if (parseInt(Importe) === 2000) { // 20.00 euros en céntimos
+      operationType = 'matricula-a1a2';
+      levelUnlocked = 'A1A2';
+    } else if (parseInt(Importe) === 3000) { // 30.00 euros en céntimos
+      operationType = 'matricula-b1b2';
+      levelUnlocked = 'B1B2';
+    } else if (parseInt(Importe) === 1000) { // 10.00 euros en céntimos
+      operationType = 'formacion-profesional';
+      levelUnlocked = 'FORMACION_PROFESIONAL';
+    }
     
     console.log('💰 Pago exitoso de Cecabank:', {
       numOperacion: Num_operacion,
       codigoCliente: Codigo_cliente,
       importe: Importe,
+      importeEuros: importeEuros,
       descripcion: Descripcion,
       fecha: Fecha,
-      hora: Hora
+      hora: Hora,
+      operationType,
+      levelUnlocked
     });
 
-    // TODO: Aquí deberías:
-    // 1. Validar la firma
-    // 2. Actualizar la base de datos
-    // 3. Enviar email de confirmación
-    // 4. Desbloquear el curso correspondiente
+    // Guardar información del pago (en producción, esto debería ir a una base de datos)
+    const paymentRecord = {
+      orderId: Num_operacion,
+      codigoCliente: Codigo_cliente,
+      importe: importeEuros,
+      importeCentimos: Importe,
+      descripcion: Descripcion,
+      fecha: Fecha,
+      hora: Hora,
+      operationType,
+      levelUnlocked,
+      paymentMethod: 'cecabank',
+      status: 'completed',
+      timestamp: new Date().toISOString()
+    };
+    
+    console.log('💾 Registro de pago:', paymentRecord);
+
+    // Enviar email de confirmación si está configurado
+    if (transporter && Codigo_cliente) {
+      try {
+        const mailOptions = {
+          from: 'admin@academiadeinmigrantes.es',
+          to: Codigo_cliente.includes('@') ? Codigo_cliente : 'admin@academiadeinmigrantes.es',
+          subject: `✅ Pago confirmado - Orden ${Num_operacion}`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #4CAF50;">✅ Pago Confirmado</h2>
+              <p>Tu pago ha sido procesado correctamente.</p>
+              <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3>Detalles del pago:</h3>
+                <p><strong>Número de operación:</strong> ${Num_operacion}</p>
+                <p><strong>Importe:</strong> ${importeEuros} €</p>
+                <p><strong>Descripción:</strong> ${Descripcion || 'Pago Academia de Inmigrantes'}</p>
+                <p><strong>Fecha:</strong> ${Fecha} ${Hora}</p>
+                ${levelUnlocked ? `<p><strong>Nivel desbloqueado:</strong> ${levelUnlocked}</p>` : ''}
+              </div>
+              <p>Gracias por tu compra. Ya puedes acceder a los contenidos correspondientes en la aplicación.</p>
+              <p style="color: #666; font-size: 12px; margin-top: 30px;">
+                Este es un email automático. Por favor, no respondas a este mensaje.
+              </p>
+            </div>
+          `,
+        };
+
+        await transporter.sendMail(mailOptions);
+        console.log('✅ Email de confirmación enviado');
+      } catch (emailError) {
+        console.error('❌ Error enviando email de confirmación:', emailError);
+        // No fallar el proceso si el email falla
+      }
+    }
 
     // Redirigir a la app con éxito
     res.send(`
@@ -517,16 +664,53 @@ app.post('/api/cecabank/ok', express.urlencoded({ extended: true }), async (req,
           <meta charset="UTF-8">
           <title>Pago Exitoso</title>
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              min-height: 100vh;
+              margin: 0;
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              color: white;
+              text-align: center;
+              padding: 20px;
+            }
+            .success-icon {
+              font-size: 64px;
+              margin-bottom: 20px;
+            }
+            h1 {
+              margin: 0 0 10px 0;
+            }
+            p {
+              margin: 5px 0;
+            }
+          </style>
         </head>
         <body>
-          <h1>✅ Pago realizado con éxito</h1>
+          <div class="success-icon">✅</div>
+          <h1>Pago realizado con éxito</h1>
           <p>Tu pago ha sido procesado correctamente.</p>
-          <p>Puedes cerrar esta ventana y volver a la aplicación.</p>
+          <p>Redirigiendo a la aplicación...</p>
           <script>
-            // Intentar redirigir a la app
+            // Enviar mensaje a React Native WebView si está disponible
+            if (window.ReactNativeWebView) {
+              window.ReactNativeWebView.postMessage(JSON.stringify({
+                type: 'payment-success',
+                orderId: '${Num_operacion}',
+                operationType: '${operationType}',
+                levelUnlocked: '${levelUnlocked}',
+                importe: '${importeEuros}'
+              }));
+            }
+            
+            // Intentar redirigir a la app con deep link
             setTimeout(() => {
-              window.location.href = 'academiadeinmigrantes://payment-success?orderId=${Num_operacion}';
-            }, 2000);
+              window.location.href = 'academiadeinmigrantes://payment-success?orderId=${Num_operacion}&operationType=${operationType}&levelUnlocked=${levelUnlocked}';
+            }, 1500);
           </script>
         </body>
       </html>
@@ -550,8 +734,26 @@ app.post('/api/cecabank/ko', express.urlencoded({ extended: true }), async (req,
       Importe,
       Descripcion,
       Fecha,
-      Hora
+      Hora,
+      Firma
     } = req.body;
+
+    // Si viene la firma, validarla (aunque el pago haya fallido)
+    if (Firma && Fecha && Hora && Num_operacion && Importe) {
+      const isValidSignature = validateCecabankSignature({
+        Num_operacion,
+        Importe,
+        Fecha,
+        Hora,
+        Firma
+      });
+      
+      if (!isValidSignature) {
+        console.warn('⚠️ Firma inválida en callback KO de Cecabank');
+      } else {
+        console.log('✅ Firma validada en callback KO');
+      }
+    }
 
     console.log('⚠️ Pago fallido de Cecabank:', {
       numOperacion: Num_operacion,
@@ -570,16 +772,51 @@ app.post('/api/cecabank/ko', express.urlencoded({ extended: true }), async (req,
           <meta charset="UTF-8">
           <title>Pago Fallido</title>
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              min-height: 100vh;
+              margin: 0;
+              background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+              color: white;
+              text-align: center;
+              padding: 20px;
+            }
+            .error-icon {
+              font-size: 64px;
+              margin-bottom: 20px;
+            }
+            h1 {
+              margin: 0 0 10px 0;
+            }
+            p {
+              margin: 5px 0;
+            }
+          </style>
         </head>
         <body>
-          <h1>❌ Pago no realizado</h1>
+          <div class="error-icon">❌</div>
+          <h1>Pago no realizado</h1>
           <p>El pago no pudo ser procesado. Por favor, intenta de nuevo.</p>
-          <p>Puedes cerrar esta ventana y volver a la aplicación.</p>
+          <p>Redirigiendo a la aplicación...</p>
           <script>
-            // Intentar redirigir a la app
+            // Enviar mensaje a React Native WebView si está disponible
+            if (window.ReactNativeWebView) {
+              window.ReactNativeWebView.postMessage(JSON.stringify({
+                type: 'payment-error',
+                message: 'El pago fue cancelado o falló',
+                orderId: '${Num_operacion || ''}'
+              }));
+            }
+            
+            // Intentar redirigir a la app con deep link
             setTimeout(() => {
               window.location.href = 'academiadeinmigrantes://payment-error?orderId=${Num_operacion || ''}';
-            }, 2000);
+            }, 1500);
           </script>
         </body>
       </html>
@@ -588,6 +825,31 @@ app.post('/api/cecabank/ko', express.urlencoded({ extended: true }), async (req,
   } catch (error) {
     console.error('❌ Error procesando callback KO de Cecabank:', error);
     res.status(500).send('Error procesando el pago');
+  }
+});
+
+// Endpoint para verificar el estado de un pago
+app.get('/api/cecabank/payment/:orderId', async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    console.log('🔍 Verificando estado de pago:', orderId);
+    
+    // En producción, esto debería consultar una base de datos
+    // Por ahora, retornamos un mensaje indicando que el pago fue procesado
+    // si viene de un callback válido
+    
+    res.json({
+      success: true,
+      message: 'Endpoint de verificación de pago',
+      orderId,
+      note: 'En producción, este endpoint debería consultar la base de datos para verificar el estado del pago'
+    });
+  } catch (error) {
+    console.error('❌ Error verificando pago:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error al verificar el pago'
+    });
   }
 });
 
