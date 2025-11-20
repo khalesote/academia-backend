@@ -44,7 +44,7 @@ if (process.env.SMTP2GO_USERNAME && process.env.SMTP2GO_PASSWORD) {
 
 // Inicializar Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16',
+  apiVersion: '2024-12-18.acacia',
 });
 
 // Webhook de Stripe - DEBE estar antes de cualquier otro middleware que procese el body
