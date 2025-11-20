@@ -44,7 +44,7 @@ if (process.env.SMTP2GO_USERNAME && process.env.SMTP2GO_PASSWORD) {
 
 // Inicializar Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2024-12-18.acacia',
+  apiVersion: '2023-10-16',
 });
 
 // Webhook de Stripe - DEBE estar antes de cualquier otro middleware que procese el body
@@ -825,6 +825,60 @@ app.post('/api/cecabank/ko', express.urlencoded({ extended: true }), async (req,
   } catch (error) {
     console.error('❌ Error procesando callback KO de Cecabank:', error);
     res.status(500).send('Error procesando el pago');
+  }
+});
+
+// Endpoint intermedio para enviar POST a Cecabank
+// Este endpoint recibe los datos, hace el POST a Cecabank y redirige
+app.post('/api/cecabank/redirect', express.json(), express.urlencoded({ extended: true }), async (req, res) => {
+  try {
+    console.log('🔄 Endpoint de redirección a Cecabank recibido');
+    console.log('📝 Datos recibidos:', req.body);
+    console.log('📋 Content-Type:', req.headers['content-type']);
+    
+    // Aceptar datos tanto de JSON como de form-urlencoded
+    const formData = req.body;
+    
+    if (!formData || Object.keys(formData).length === 0) {
+      return res.status(400).send('No se recibieron datos del formulario');
+    }
+    const urlCecabank = process.env.CECABANK_ENTORNO === 'produccion'
+      ? 'https://pgw.ceca.es/tpvweb/tpv/htm/entrada.htm'
+      : 'https://tpv.ceca.es/tpvweb/tpv/htm/entrada.htm';
+    
+    // Crear formulario HTML que se auto-envía
+    const formFields = Object.entries(formData)
+      .map(([key, value]) => {
+        const escapedKey = key.replace(/"/g, '&quot;');
+        const escapedValue = String(value || '').replace(/"/g, '&quot;');
+        return `<input type="hidden" name="${escapedKey}" value="${escapedValue}" />`;
+      })
+      .join('\n              ');
+    
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Redirigiendo a Cecabank...</title>
+        </head>
+        <body>
+          <form id="cecabankForm" method="POST" action="${urlCecabank}">
+            ${formFields}
+          </form>
+          <script>
+            console.log('🚀 Enviando formulario a Cecabank...');
+            document.getElementById('cecabankForm').submit();
+          </script>
+        </body>
+      </html>
+    `;
+    
+    res.send(html);
+  } catch (error) {
+    console.error('❌ Error en endpoint de redirección:', error);
+    res.status(500).send('Error al redirigir a Cecabank');
   }
 });
 
