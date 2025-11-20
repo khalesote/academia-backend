@@ -467,6 +467,69 @@ app.post('/api/enviar-solicitud-asesoria', async (req, res) => {
 });
 
 // ============================================
+// ENDPOINT INTERMEDIO DE REDIRECCIÓN CECABANK
+// ============================================
+// Este endpoint debe estar ANTES de los middlewares generales para procesar form-urlencoded
+
+// Endpoint intermedio para enviar POST a Cecabank
+// Este endpoint recibe los datos, hace el POST a Cecabank y redirige
+app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async (req, res) => {
+  try {
+    console.log('🔄 Endpoint de redirección a Cecabank recibido');
+    console.log('📝 Datos recibidos:', req.body);
+    console.log('📋 Content-Type:', req.headers['content-type']);
+    
+    // Aceptar datos de form-urlencoded
+    const formData = req.body;
+    
+    if (!formData || Object.keys(formData).length === 0) {
+      return res.status(400).send('No se recibieron datos del formulario');
+    }
+    
+    const urlCecabank = (process.env.CECABANK_ENTORNO || 'test') === 'produccion'
+      ? 'https://pgw.ceca.es/tpvweb/tpv/htm/entrada.htm'
+      : 'https://tpv.ceca.es/tpvweb/tpv/htm/entrada.htm';
+    
+    console.log('🔗 URL de Cecabank:', urlCecabank);
+    
+    // Crear formulario HTML que se auto-envía
+    const formFields = Object.entries(formData)
+      .map(([key, value]) => {
+        const escapedKey = String(key).replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        const escapedValue = String(value || '').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        return `<input type="hidden" name="${escapedKey}" value="${escapedValue}" />`;
+      })
+      .join('\n              ');
+    
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Redirigiendo a Cecabank...</title>
+        </head>
+        <body>
+          <form id="cecabankForm" method="POST" action="${urlCecabank}">
+            ${formFields}
+          </form>
+          <script>
+            console.log('🚀 Enviando formulario a Cecabank...');
+            console.log('📍 URL destino:', '${urlCecabank}');
+            document.getElementById('cecabankForm').submit();
+          </script>
+        </body>
+      </html>
+    `;
+    
+    res.send(html);
+  } catch (error) {
+    console.error('❌ Error en endpoint de redirección:', error);
+    res.status(500).send('Error al redirigir a Cecabank');
+  }
+});
+
+// ============================================
 // FUNCIONES DE VALIDACIÓN CECABANK
 // ============================================
 
@@ -830,7 +893,8 @@ app.post('/api/cecabank/ko', express.urlencoded({ extended: true }), async (req,
 
 // Endpoint intermedio para enviar POST a Cecabank
 // Este endpoint recibe los datos, hace el POST a Cecabank y redirige
-app.post('/api/cecabank/redirect', express.json(), express.urlencoded({ extended: true }), async (req, res) => {
+// IMPORTANTE: Este endpoint debe estar ANTES del middleware express.json() general
+app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async (req, res) => {
   try {
     console.log('🔄 Endpoint de redirección a Cecabank recibido');
     console.log('📝 Datos recibidos:', req.body);
