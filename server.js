@@ -465,6 +465,132 @@ app.post('/api/enviar-solicitud-asesoria', async (req, res) => {
   }
 });
 
+// ============================================
+// ENDPOINTS DE CECABANK
+// ============================================
+
+// Endpoint para recibir respuesta de pago exitoso de Cecabank
+app.post('/api/cecabank/ok', express.urlencoded({ extended: true }), async (req, res) => {
+  try {
+    console.log('✅ Callback de Cecabank OK recibido');
+    console.log('📝 Datos recibidos:', req.body);
+
+    const { 
+      Num_operacion, 
+      Codigo_cliente, 
+      Importe, 
+      Firma,
+      Descripcion,
+      Fecha,
+      Hora
+    } = req.body;
+
+    // Validar que vengan los datos necesarios
+    if (!Num_operacion || !Importe || !Firma) {
+      console.error('❌ Faltan datos en el callback de Cecabank');
+      return res.status(400).send('Faltan datos requeridos');
+    }
+
+    // Aquí deberías validar la firma con tu clave de encriptación
+    // Por ahora solo registramos el pago exitoso
+    
+    console.log('💰 Pago exitoso de Cecabank:', {
+      numOperacion: Num_operacion,
+      codigoCliente: Codigo_cliente,
+      importe: Importe,
+      descripcion: Descripcion,
+      fecha: Fecha,
+      hora: Hora
+    });
+
+    // TODO: Aquí deberías:
+    // 1. Validar la firma
+    // 2. Actualizar la base de datos
+    // 3. Enviar email de confirmación
+    // 4. Desbloquear el curso correspondiente
+
+    // Redirigir a la app con éxito
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <title>Pago Exitoso</title>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body>
+          <h1>✅ Pago realizado con éxito</h1>
+          <p>Tu pago ha sido procesado correctamente.</p>
+          <p>Puedes cerrar esta ventana y volver a la aplicación.</p>
+          <script>
+            // Intentar redirigir a la app
+            setTimeout(() => {
+              window.location.href = 'academiadeinmigrantes://payment-success?orderId=${Num_operacion}';
+            }, 2000);
+          </script>
+        </body>
+      </html>
+    `);
+
+  } catch (error) {
+    console.error('❌ Error procesando callback OK de Cecabank:', error);
+    res.status(500).send('Error procesando el pago');
+  }
+});
+
+// Endpoint para recibir respuesta de pago fallido de Cecabank
+app.post('/api/cecabank/ko', express.urlencoded({ extended: true }), async (req, res) => {
+  try {
+    console.log('❌ Callback de Cecabank KO recibido');
+    console.log('📝 Datos recibidos:', req.body);
+
+    const { 
+      Num_operacion, 
+      Codigo_cliente, 
+      Importe,
+      Descripcion,
+      Fecha,
+      Hora
+    } = req.body;
+
+    console.log('⚠️ Pago fallido de Cecabank:', {
+      numOperacion: Num_operacion,
+      codigoCliente: Codigo_cliente,
+      importe: Importe,
+      descripcion: Descripcion,
+      fecha: Fecha,
+      hora: Hora
+    });
+
+    // Redirigir a la app con error
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <title>Pago Fallido</title>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body>
+          <h1>❌ Pago no realizado</h1>
+          <p>El pago no pudo ser procesado. Por favor, intenta de nuevo.</p>
+          <p>Puedes cerrar esta ventana y volver a la aplicación.</p>
+          <script>
+            // Intentar redirigir a la app
+            setTimeout(() => {
+              window.location.href = 'academiadeinmigrantes://payment-error?orderId=${Num_operacion || ''}';
+            }, 2000);
+          </script>
+        </body>
+      </html>
+    `);
+
+  } catch (error) {
+    console.error('❌ Error procesando callback KO de Cecabank:', error);
+    res.status(500).send('Error procesando el pago');
+  }
+});
+
 // Ruta de prueba
 app.get('/', (req, res) => {
   res.send('¡API de pagos de Academia de Inmigrantes funcionando!');
@@ -500,6 +626,8 @@ const server = app.listen(PORT, () => {
   console.log(`   - POST   /api/test-smtp2go-custom`);
   console.log(`   - POST   /api/test-email`);
   console.log(`   - POST   /api/enviar-solicitud-asesoria`);
+  console.log(`   - POST   /api/cecabank/ok`);
+  console.log(`   - POST   /api/cecabank/ko`);
   console.log('='.repeat(80) + '\n');
 });
 
