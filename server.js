@@ -540,10 +540,14 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     console.log('🔐 Firma recalculada con fecha/hora del servidor');
     console.log('📋 Num_operacion:', formData.Num_operacion);
     console.log('📋 Importe:', formData.Importe);
+    console.log('📋 FechaOperacion:', fechaOperacion);
+    console.log('📋 HoraOperacion:', horaOperacion);
+    console.log('📋 Firma completa:', firma);
     console.log('📋 Firma (primeros 20 chars):', firma.substring(0, 20) + '...');
     console.log('📋 MerchantID:', formData.MerchantID);
     console.log('📋 AcquirerBIN:', formData.AcquirerBIN);
     console.log('📋 TerminalID:', formData.TerminalID);
+    console.log('📋 Clave configurada:', process.env.CECABANK_CLAVE ? 'Sí (' + process.env.CECABANK_CLAVE.length + ' caracteres)' : 'No');
     
     // URL correcta para Cecabank
     const urlCecabank = (process.env.CECABANK_ENTORNO || 'test') === 'produccion'
