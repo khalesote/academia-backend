@@ -574,11 +574,14 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     }
     
     // Recalcular la firma con la nueva fecha/hora del servidor
+    // IMPORTANTE: La firma debe incluir URL_OK y URL_KO
     const firma = generateCecabankSignature(
       formData.Num_operacion,
       formData.Importe,
       fechaOperacion,
-      horaOperacion
+      horaOperacion,
+      formData.URL_OK,
+      formData.URL_KO
     );
     formData.Firma = firma;
     
@@ -895,7 +898,7 @@ ${formFields}
 /**
  * Genera la firma esperada por Cecabank para validar los callbacks
  */
-function generateCecabankSignature(numOperacion, importe, fecha, hora) {
+function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, urlKo) {
   const merchantId = process.env.CECABANK_MERCHANT_ID || '';
   const acquirerBin = process.env.CECABANK_ACQUIRER_BIN || '';
   const terminalId = process.env.CECABANK_TERMINAL_ID || '';
@@ -903,8 +906,10 @@ function generateCecabankSignature(numOperacion, importe, fecha, hora) {
   const tipoMoneda = '978'; // EUR
   const exponente = '2';
   const cifrado = 'SHA256';
+  const idioma = '1';
 
-  // Construir la cadena para la firma
+  // Construir la cadena para la firma según documentación de Cecabank
+  // Orden: MerchantID + AcquirerBIN + TerminalID + Num_operacion + Importe + TipoMoneda + Exponente + Cifrado + URL_OK + URL_KO + Idioma + FechaOperacion + HoraOperacion + Clave
   const cadenaFirma = 
     merchantId +
     acquirerBin +
@@ -914,9 +919,16 @@ function generateCecabankSignature(numOperacion, importe, fecha, hora) {
     tipoMoneda +
     exponente +
     cifrado +
+    (urlOk || '') +
+    (urlKo || '') +
+    idioma +
     fecha +
     hora +
     clave;
+
+  console.log('🔐 Cadena para firma (sin clave):', 
+    merchantId + acquirerBin + terminalId + numOperacion + importe + tipoMoneda + exponente + cifrado + (urlOk || '') + (urlKo || '') + idioma + fecha + hora + '[CLAVE]'
+  );
 
   // Generar el hash SHA256
   const firma = crypto.createHash('sha256').update(cadenaFirma).digest('hex').toUpperCase();
@@ -929,11 +941,14 @@ function generateCecabankSignature(numOperacion, importe, fecha, hora) {
  */
 function validateCecabankSignature(datos) {
   try {
+    // La validación de firma también debe incluir URLs si están presentes
     const firmaCalculada = generateCecabankSignature(
       datos.Num_operacion,
       datos.Importe,
       datos.Fecha,
-      datos.Hora
+      datos.Hora,
+      datos.URL_OK || '',
+      datos.URL_KO || ''
     );
 
     const firmaRecibida = datos.Firma.toUpperCase();
