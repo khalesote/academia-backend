@@ -634,7 +634,8 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     }
     
     // Ordenar campos según el orden recomendado por Cecabank
-    // Orden: MerchantID, AcquirerBIN, TerminalID, Num_operacion, Importe, TipoMoneda, Exponente, Cifrado, URL_OK, URL_KO, Idioma, Descripcion, FechaOperacion, HoraOperacion, Firma, Email, Nombre
+    // IMPORTANTE: La Firma debe ir al final, después de todos los datos
+    // Orden estándar: MerchantID, AcquirerBIN, TerminalID, Num_operacion, Importe, TipoMoneda, Exponente, Cifrado, URL_OK, URL_KO, Idioma, Descripcion, FechaOperacion, HoraOperacion, Firma, Email, Nombre
     const ordenCampos = [
       'MerchantID',
       'AcquirerBIN',
@@ -650,7 +651,7 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       'Descripcion',
       'FechaOperacion',
       'HoraOperacion',
-      'Firma',
+      'Firma',  // La Firma SIEMPRE debe ir al final, después de todos los datos
       'Email',
       'Nombre'
     ];
@@ -689,10 +690,14 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
         if (key === 'URL_OK' || key === 'URL_KO') {
           // Las URLs deben estar limpias y correctamente formateadas
           escapedValue = escapedValue.trim();
-          console.log(`🔗 ${key} en formulario:`, escapedValue);
+          // Asegurar que la URL no tenga espacios ni caracteres especiales problemáticos
+          escapedValue = escapedValue.replace(/\s+/g, '');
+          console.log(`🔗 ${key} en formulario (limpia):`, escapedValue);
+          console.log(`🔗 ${key} longitud:`, escapedValue.length);
         }
         
-        // Escapar para HTML
+        // Escapar para HTML (pero NO codificar las URLs, solo escapar caracteres HTML)
+        // Las URLs deben enviarse tal cual, sin codificación URL adicional
         escapedValue = escapedValue
           .replace(/&/g, '&amp;')
           .replace(/</g, '&lt;')
