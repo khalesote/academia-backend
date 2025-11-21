@@ -480,11 +480,42 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     console.log('📋 Content-Type:', req.headers['content-type']);
     
     // Aceptar datos de form-urlencoded
-    const formData = req.body;
+    let formData = req.body;
     
     if (!formData || Object.keys(formData).length === 0) {
       return res.status(400).send('No se recibieron datos del formulario');
     }
+    
+    // CRÍTICO: Generar fecha y hora en el SERVIDOR (no usar las del frontend)
+    // Esto evita problemas de zona horaria y desincronización
+    const now = new Date();
+    const fechaOperacion = 
+      now.getFullYear().toString() +
+      (now.getMonth() + 1).toString().padStart(2, '0') +
+      now.getDate().toString().padStart(2, '0');
+    
+    const horaOperacion = 
+      now.getHours().toString().padStart(2, '0') +
+      now.getMinutes().toString().padStart(2, '0') +
+      now.getSeconds().toString().padStart(2, '0');
+    
+    console.log('📅 Fecha generada en servidor:', fechaOperacion);
+    console.log('🕐 Hora generada en servidor:', horaOperacion);
+    
+    // Actualizar fecha y hora en formData con las del servidor
+    formData.FechaOperacion = fechaOperacion;
+    formData.HoraOperacion = horaOperacion;
+    
+    // Recalcular la firma con la nueva fecha/hora del servidor
+    const firma = generateCecabankSignature(
+      formData.Num_operacion,
+      formData.Importe,
+      fechaOperacion,
+      horaOperacion
+    );
+    formData.Firma = firma;
+    
+    console.log('🔐 Firma recalculada con fecha/hora del servidor');
     
     // URL correcta para Cecabank
     const urlCecabank = (process.env.CECABANK_ENTORNO || 'test') === 'produccion'
