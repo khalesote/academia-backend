@@ -805,9 +805,33 @@ ${formFields}
               return false;
             }
             
+            // Verificar específicamente URL_OK y URL_KO
+            const urlOkField = fields.find(f => f.name === 'URL_OK');
+            const urlKoField = fields.find(f => f.name === 'URL_KO');
+            
+            if (urlOkField) {
+              console.log('✅ URL_OK encontrada:', urlOkField.value);
+              console.log('📋 URL_OK longitud:', urlOkField.value.length);
+            } else {
+              console.error('❌ URL_OK NO encontrada en el formulario!');
+            }
+            
+            if (urlKoField) {
+              console.log('✅ URL_KO encontrada:', urlKoField.value);
+              console.log('📋 URL_KO longitud:', urlKoField.value.length);
+            } else {
+              console.error('❌ URL_KO NO encontrada en el formulario!');
+            }
+            
             // Mostrar los primeros campos para verificación
             const primerosCampos = fields.slice(0, 3).map(f => f.name + '=' + (f.value ? f.value.substring(0, 20) : 'vacío'));
             console.log('📋 Primeros campos:', primerosCampos);
+            
+            // Verificar el orden de los campos
+            const fieldNames = fields.map(f => f.name);
+            const urlOkIndex = fieldNames.indexOf('URL_OK');
+            const urlKoIndex = fieldNames.indexOf('URL_KO');
+            console.log('📋 Orden de campos - URL_OK en posición:', urlOkIndex, 'URL_KO en posición:', urlKoIndex);
             
             // Asegurar atributos correctos
             form.method = 'POST';
