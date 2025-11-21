@@ -486,11 +486,17 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       return res.status(400).send('No se recibieron datos del formulario');
     }
     
-    const urlCecabank = (process.env.CECABANK_ENTORNO || 'test') === 'produccion'
-      ? 'https://pgw.ceca.es/tpvweb/tpv/htm/entrada.htm'
-      : 'https://tpv.ceca.es/tpvweb/tpv/htm/entrada.htm';
+    // URL correcta para Cecabank - algunas versiones requieren .jsp en lugar de .htm
+    // Intentar primero con .htm, si falla probar con .jsp
+    const baseUrl = (process.env.CECABANK_ENTORNO || 'test') === 'produccion'
+      ? 'https://pgw.ceca.es/tpvweb/tpv/htm'
+      : 'https://tpv.ceca.es/tpvweb/tpv/htm';
+    
+    // Probar con entrada.jsp primero (más común en TPVs)
+    const urlCecabank = `${baseUrl}/entrada.jsp`;
     
     console.log('🔗 URL de Cecabank:', urlCecabank);
+    console.log('📋 URL alternativa (.htm):', `${baseUrl}/entrada.htm`);
     
     // Crear formulario HTML que se auto-envía
     const formFields = Object.entries(formData)
