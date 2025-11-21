@@ -486,10 +486,10 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       return res.status(400).send('No se recibieron datos del formulario');
     }
     
-    // URL correcta para Cecabank - según documentación oficial
+    // URL correcta para Cecabank
     const urlCecabank = (process.env.CECABANK_ENTORNO || 'test') === 'produccion'
-      ? 'https://pgw.ceca.es/tpvweb/tpv/htm/entrada.htm'
-      : 'https://tpv.ceca.es/tpvweb/tpv/htm/entrada.htm';
+      ? 'https://pgw.ceca.es/tpvweb/tpv/compra.action'
+      : 'https://tpv.ceca.es/tpvweb/tpv/compra.action';
     
     console.log('🔗 URL de Cecabank:', urlCecabank);
     
@@ -557,7 +557,7 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       <div class="spinner"></div>
       <p>Por favor, espera mientras se procesa tu pago.</p>
     </div>
-    <form id="cecabankForm" method="POST" action="${urlCecabank}" enctype="application/x-www-form-urlencoded" style="display: none;">
+    <form id="cecabankForm" method="POST" action="${urlCecabank}" enctype="application/x-www-form-urlencoded" accept-charset="UTF-8" style="display: none;">
 ${formFields}
     </form>
     <script>
