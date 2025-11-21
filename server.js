@@ -490,24 +490,33 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     // Cecabank espera la hora en zona horaria de España, no UTC
     const now = new Date();
     
-    // Convertir a zona horaria de España (Europe/Madrid)
-    // España usa CET (UTC+1) en invierno y CEST (UTC+2) en verano
-    const spainTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Madrid' }));
+    // Obtener la fecha y hora en zona horaria de España usando Intl.DateTimeFormat
+    const spainFormatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Europe/Madrid',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
     
-    const fechaOperacion = 
-      spainTime.getFullYear().toString() +
-      (spainTime.getMonth() + 1).toString().padStart(2, '0') +
-      spainTime.getDate().toString().padStart(2, '0');
+    const parts = spainFormatter.formatToParts(now);
+    const year = parts.find(p => p.type === 'year')?.value || '';
+    const month = parts.find(p => p.type === 'month')?.value || '';
+    const day = parts.find(p => p.type === 'day')?.value || '';
+    const hour = parts.find(p => p.type === 'hour')?.value || '';
+    const minute = parts.find(p => p.type === 'minute')?.value || '';
+    const second = parts.find(p => p.type === 'second')?.value || '';
     
-    const horaOperacion = 
-      spainTime.getHours().toString().padStart(2, '0') +
-      spainTime.getMinutes().toString().padStart(2, '0') +
-      spainTime.getSeconds().toString().padStart(2, '0');
+    const fechaOperacion = year + month + day;
+    const horaOperacion = hour + minute + second;
     
     console.log('📅 Fecha generada en servidor (España):', fechaOperacion);
     console.log('🕐 Hora generada en servidor (España):', horaOperacion);
     console.log('🌍 UTC original:', now.toISOString());
-    console.log('🇪🇸 Hora España:', spainTime.toISOString());
+    console.log('📊 Partes de fecha:', { year, month, day, hour, minute, second });
     
     // Actualizar fecha y hora en formData con las del servidor
     formData.FechaOperacion = fechaOperacion;
