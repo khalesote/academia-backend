@@ -724,6 +724,7 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     console.log('🔗 URL de Cecabank:', urlCecabank);
     console.log('📋 Longitud de formFields:', formFields.length);
     
+    // Log del HTML completo para debugging
     const html = `<!DOCTYPE html>
 <html>
   <head>
@@ -940,6 +941,22 @@ ${formFields}
 </html>`;
     
     console.log('✅ HTML generado, longitud:', html.length);
+    
+    // Log del HTML completo para debugging (solo los primeros 2000 caracteres y los últimos 500)
+    console.log('📄 HTML completo (primeros 2000 caracteres):');
+    console.log(html.substring(0, 2000));
+    console.log('📄 HTML completo (últimos 500 caracteres):');
+    console.log(html.substring(html.length - 500));
+    
+    // Log específico del formulario
+    const formStart = html.indexOf('<form');
+    const formEnd = html.indexOf('</form>') + 7;
+    if (formStart !== -1 && formEnd !== -1) {
+      const formHtml = html.substring(formStart, formEnd);
+      console.log('📋 HTML del formulario completo:');
+      console.log(formHtml);
+    }
+    
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.send(html);
   } catch (error) {
