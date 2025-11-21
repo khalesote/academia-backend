@@ -486,21 +486,28 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       return res.status(400).send('No se recibieron datos del formulario');
     }
     
-    // CRÍTICO: Generar fecha y hora en el SERVIDOR (no usar las del frontend)
-    // Esto evita problemas de zona horaria y desincronización
+    // CRÍTICO: Generar fecha y hora en el SERVIDOR en zona horaria de España (CET/CEST)
+    // Cecabank espera la hora en zona horaria de España, no UTC
     const now = new Date();
+    
+    // Convertir a zona horaria de España (Europe/Madrid)
+    // España usa CET (UTC+1) en invierno y CEST (UTC+2) en verano
+    const spainTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Madrid' }));
+    
     const fechaOperacion = 
-      now.getFullYear().toString() +
-      (now.getMonth() + 1).toString().padStart(2, '0') +
-      now.getDate().toString().padStart(2, '0');
+      spainTime.getFullYear().toString() +
+      (spainTime.getMonth() + 1).toString().padStart(2, '0') +
+      spainTime.getDate().toString().padStart(2, '0');
     
     const horaOperacion = 
-      now.getHours().toString().padStart(2, '0') +
-      now.getMinutes().toString().padStart(2, '0') +
-      now.getSeconds().toString().padStart(2, '0');
+      spainTime.getHours().toString().padStart(2, '0') +
+      spainTime.getMinutes().toString().padStart(2, '0') +
+      spainTime.getSeconds().toString().padStart(2, '0');
     
-    console.log('📅 Fecha generada en servidor:', fechaOperacion);
-    console.log('🕐 Hora generada en servidor:', horaOperacion);
+    console.log('📅 Fecha generada en servidor (España):', fechaOperacion);
+    console.log('🕐 Hora generada en servidor (España):', horaOperacion);
+    console.log('🌍 UTC original:', now.toISOString());
+    console.log('🇪🇸 Hora España:', spainTime.toISOString());
     
     // Actualizar fecha y hora en formData con las del servidor
     formData.FechaOperacion = fechaOperacion;
