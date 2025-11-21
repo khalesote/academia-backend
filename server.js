@@ -595,27 +595,57 @@ ${formFields}
             console.log('📤 Enviando formulario POST...');
             console.log('🔗 URL de acción:', form.action);
             console.log('📋 Método:', form.method);
+            console.log('📋 Enctype:', form.enctype);
             
             // Verificar campos antes de enviar
             const fields = Array.from(form.elements);
             console.log('📋 Campos verificados:', fields.length);
-            const formData = new FormData(form);
+            
+            // Verificar que todos los campos tengan valores
+            let camposVacios = 0;
+            fields.forEach(function(field) {
+              if (field.name && !field.value) {
+                camposVacios++;
+                console.warn('⚠️ Campo vacío:', field.name);
+              }
+            });
+            console.log('📋 Campos vacíos:', camposVacios);
+            
+            // Crear un objeto con los datos para verificación
             const formDataObj = {};
-            for (let [key, value] of formData.entries()) {
-              formDataObj[key] = value;
-            }
-            console.log('📋 Datos del formulario:', Object.keys(formDataObj).length, 'campos');
-            console.log('📋 Primeros campos:', Object.keys(formDataObj).slice(0, 5));
+            fields.forEach(function(field) {
+              if (field.name) {
+                formDataObj[field.name] = field.value ? field.value.substring(0, 50) : '(vacío)';
+              }
+            });
+            console.log('📋 Datos del formulario (primeros 5):', Object.keys(formDataObj).slice(0, 5).map(k => k + '=' + formDataObj[k]));
             
             // Marcar como enviado ANTES de enviar
             window.cecabankFormSubmitted = true;
             
+            // Asegurar que el formulario tenga los atributos correctos
+            form.method = 'POST';
+            form.action = '${urlCecabank}';
+            form.enctype = 'application/x-www-form-urlencoded';
+            form.target = '_self';
+            
             // Enviar formulario
             try {
+              console.log('🚀 Llamando a form.submit()...');
               form.submit();
-              console.log('✅ Formulario enviado correctamente');
+              console.log('✅ form.submit() llamado, esperando navegación...');
+              
+              // Verificar después de un momento si se navegó
+              setTimeout(function() {
+                const currentUrl = window.location.href;
+                console.log('📍 URL después de submit:', currentUrl);
+                if (currentUrl === window.location.href && !currentUrl.includes('tpv.ceca.es') && !currentUrl.includes('pgw.ceca.es')) {
+                  console.warn('⚠️ No se detectó navegación después de submit');
+                }
+              }, 500);
             } catch (submitError) {
               console.error('❌ Error al enviar formulario:', submitError);
+              console.error('📋 Stack:', submitError.stack);
               window.cecabankFormSubmitted = false;
               throw submitError;
             }
