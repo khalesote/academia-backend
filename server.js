@@ -633,7 +633,48 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       formData.URL_KO = String(formData.URL_KO).trim();
     }
     
-    const formFields = Object.entries(formData)
+    // Ordenar campos según el orden recomendado por Cecabank
+    // Orden: MerchantID, AcquirerBIN, TerminalID, Num_operacion, Importe, TipoMoneda, Exponente, Cifrado, URL_OK, URL_KO, Idioma, Descripcion, FechaOperacion, HoraOperacion, Firma, Email, Nombre
+    const ordenCampos = [
+      'MerchantID',
+      'AcquirerBIN',
+      'TerminalID',
+      'Num_operacion',
+      'Importe',
+      'TipoMoneda',
+      'Exponente',
+      'Cifrado',
+      'URL_OK',
+      'URL_KO',
+      'Idioma',
+      'Descripcion',
+      'FechaOperacion',
+      'HoraOperacion',
+      'Firma',
+      'Email',
+      'Nombre'
+    ];
+    
+    // Crear un objeto ordenado
+    const formDataOrdenado = {};
+    ordenCampos.forEach(campo => {
+      if (formData[campo] !== undefined) {
+        formDataOrdenado[campo] = formData[campo];
+      }
+    });
+    
+    // Añadir cualquier campo adicional que no esté en la lista
+    Object.keys(formData).forEach(campo => {
+      if (!ordenCampos.includes(campo) && formData[campo] !== undefined) {
+        formDataOrdenado[campo] = formData[campo];
+      }
+    });
+    
+    console.log('📋 Campos ordenados:', Object.keys(formDataOrdenado));
+    console.log('🔗 URL_KO en posición:', Object.keys(formDataOrdenado).indexOf('URL_KO'));
+    console.log('🔗 URL_OK en posición:', Object.keys(formDataOrdenado).indexOf('URL_OK'));
+    
+    const formFields = Object.entries(formDataOrdenado)
       .map(([key, value]) => {
         // Escapar correctamente para HTML
         const escapedKey = String(key)
