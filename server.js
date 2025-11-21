@@ -887,7 +887,13 @@ ${formFields}
     res.send(html);
   } catch (error) {
     console.error('❌ Error en endpoint de redirección:', error);
-    res.status(500).send('Error al redirigir a Cecabank');
+    console.error('📋 Stack:', error.stack);
+    console.error('📋 Mensaje:', error.message);
+    res.status(500).json({
+      error: 'Error al redirigir a Cecabank',
+      message: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 
