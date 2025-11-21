@@ -486,6 +486,51 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       return res.status(400).send('No se recibieron datos del formulario');
     }
     
+    // Verificar que las URLs estén presentes y correctamente formateadas
+    if (!formData.URL_OK || !formData.URL_KO) {
+      console.error('❌ URLs faltantes:', { URL_OK: formData.URL_OK, URL_KO: formData.URL_KO });
+      return res.status(400).send('URLs de retorno (URL_OK o URL_KO) faltantes');
+    }
+    
+    // Validar formato de URLs
+    try {
+      new URL(formData.URL_OK);
+      new URL(formData.URL_KO);
+      console.log('✅ URLs validadas:', {
+        URL_OK: formData.URL_OK,
+        URL_KO: formData.URL_KO
+      });
+    } catch (urlError) {
+      console.error('❌ URLs inválidas:', urlError);
+      return res.status(400).send('URLs de retorno inválidas');
+    }
+    
+    // Verificar campos obligatorios según documentación de Cecabank
+    const camposObligatorios = [
+      'MerchantID',
+      'AcquirerBIN', 
+      'TerminalID',
+      'Num_operacion',
+      'Importe',
+      'TipoMoneda',
+      'Exponente',
+      'Cifrado',
+      'URL_OK',
+      'URL_KO',
+      'Idioma',
+      'FechaOperacion',
+      'HoraOperacion',
+      'Firma'
+    ];
+    
+    const camposFaltantes = camposObligatorios.filter(campo => !formData[campo]);
+    if (camposFaltantes.length > 0) {
+      console.error('❌ Campos obligatorios faltantes:', camposFaltantes);
+      return res.status(400).send(`Campos obligatorios faltantes: ${camposFaltantes.join(', ')}`);
+    }
+    
+    console.log('✅ Todos los campos obligatorios presentes');
+    
     // CRÍTICO: Generar fecha y hora en el SERVIDOR en zona horaria de España (CET/CEST)
     // Cecabank espera la hora en zona horaria de España, no UTC
     const now = new Date();
