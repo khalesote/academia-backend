@@ -486,17 +486,12 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       return res.status(400).send('No se recibieron datos del formulario');
     }
     
-    // URL correcta para Cecabank - algunas versiones requieren .jsp en lugar de .htm
-    // Intentar primero con .htm, si falla probar con .jsp
-    const baseUrl = (process.env.CECABANK_ENTORNO || 'test') === 'produccion'
-      ? 'https://pgw.ceca.es/tpvweb/tpv/htm'
-      : 'https://tpv.ceca.es/tpvweb/tpv/htm';
-    
-    // Probar con entrada.jsp primero (más común en TPVs)
-    const urlCecabank = `${baseUrl}/entrada.jsp`;
+    // URL correcta para Cecabank - según documentación oficial
+    const urlCecabank = (process.env.CECABANK_ENTORNO || 'test') === 'produccion'
+      ? 'https://pgw.ceca.es/tpvweb/tpv/htm/entrada.htm'
+      : 'https://tpv.ceca.es/tpvweb/tpv/htm/entrada.htm';
     
     console.log('🔗 URL de Cecabank:', urlCecabank);
-    console.log('📋 URL alternativa (.htm):', `${baseUrl}/entrada.htm`);
     
     // Crear formulario HTML que se auto-envía
     const formFields = Object.entries(formData)
@@ -633,7 +628,15 @@ ${formFields}
             form.method = 'POST';
             form.action = '${urlCecabank}';
             form.enctype = 'application/x-www-form-urlencoded';
+            form.setAttribute('accept-charset', 'UTF-8');
             form.target = '_self';
+            
+            // Verificar que la URL de acción sea correcta
+            console.log('🔗 URL de acción del formulario:', form.action);
+            if (!form.action || form.action === '') {
+              console.error('❌ La URL de acción está vacía');
+              form.action = '${urlCecabank}';
+            }
             
             // Enviar formulario
             try {
