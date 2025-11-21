@@ -561,11 +561,29 @@ ${formFields}
     </form>
     <script>
       (function() {
+        // Evitar múltiples ejecuciones
+        if (window.cecabankFormSubmitted) {
+          console.log('✅ Formulario ya enviado, no ejecutar de nuevo');
+          return;
+        }
+        
         console.log('🚀 Script de envío iniciado');
         console.log('📍 URL destino:', '${urlCecabank}');
         console.log('📋 Número de campos:', ${Object.keys(formData).length});
         
         function submitForm() {
+          // Verificar si ya se envió
+          if (window.cecabankFormSubmitted) {
+            console.log('✅ Formulario ya enviado, no intentar de nuevo');
+            return;
+          }
+          
+          // Verificar si ya estamos en Cecabank
+          if (window.location.href.includes('tpv.ceca.es') || window.location.href.includes('pgw.ceca.es')) {
+            console.log('✅ Ya estamos en Cecabank, no enviar formulario');
+            return;
+          }
+          
           try {
             const form = document.getElementById('cecabankForm');
             if (!form) {
@@ -576,23 +594,22 @@ ${formFields}
             console.log('✅ Formulario encontrado');
             console.log('📤 Enviando formulario POST...');
             
+            // Marcar como enviado ANTES de enviar
+            window.cecabankFormSubmitted = true;
+            
             // Verificar campos
             const fields = Array.from(form.elements);
             console.log('📋 Campos verificados:', fields.length);
-            fields.forEach(function(field) {
-              if (field.name) {
-                console.log('  - ' + field.name + ': ' + (field.value ? field.value.substring(0, 30) + '...' : '(vacío)'));
-              }
-            });
             
             form.submit();
             console.log('✅ Formulario enviado');
           } catch (error) {
             console.error('❌ Error enviando formulario:', error);
+            window.cecabankFormSubmitted = false; // Permitir reintento si hay error
           }
         }
         
-        // Intentar enviar inmediatamente
+        // Intentar enviar inmediatamente solo una vez
         if (document.readyState === 'complete' || document.readyState === 'interactive') {
           console.log('📄 DOM listo, enviando...');
           setTimeout(submitForm, 50);
@@ -603,17 +620,21 @@ ${formFields}
           });
         }
         
-        // Respaldo
-        setTimeout(submitForm, 200);
-        setTimeout(submitForm, 500);
+        // Solo un timeout como respaldo
+        setTimeout(function() {
+          if (!window.cecabankFormSubmitted) {
+            submitForm();
+          }
+        }, 200);
       })();
       
-      // Detectar callbacks
+      // Detectar callbacks (solo si no estamos en nuestra página de redirección)
       window.addEventListener('load', function() {
         setTimeout(function() {
           const currentUrl = window.location.href;
           console.log('🌐 URL actual:', currentUrl);
           
+          // Solo procesar callbacks si no estamos en nuestra página de redirección
           if (currentUrl.includes('/api/cecabank/ok')) {
             console.log('✅ Pago exitoso detectado');
             if (window.ReactNativeWebView) {
