@@ -891,61 +891,6 @@ app.post('/api/cecabank/ko', express.urlencoded({ extended: true }), async (req,
   }
 });
 
-// Endpoint intermedio para enviar POST a Cecabank
-// Este endpoint recibe los datos, hace el POST a Cecabank y redirige
-// IMPORTANTE: Este endpoint debe estar ANTES del middleware express.json() general
-app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async (req, res) => {
-  try {
-    console.log('🔄 Endpoint de redirección a Cecabank recibido');
-    console.log('📝 Datos recibidos:', req.body);
-    console.log('📋 Content-Type:', req.headers['content-type']);
-    
-    // Aceptar datos tanto de JSON como de form-urlencoded
-    const formData = req.body;
-    
-    if (!formData || Object.keys(formData).length === 0) {
-      return res.status(400).send('No se recibieron datos del formulario');
-    }
-    const urlCecabank = process.env.CECABANK_ENTORNO === 'produccion'
-      ? 'https://pgw.ceca.es/tpvweb/tpv/htm/entrada.htm'
-      : 'https://tpv.ceca.es/tpvweb/tpv/htm/entrada.htm';
-    
-    // Crear formulario HTML que se auto-envía
-    const formFields = Object.entries(formData)
-      .map(([key, value]) => {
-        const escapedKey = key.replace(/"/g, '&quot;');
-        const escapedValue = String(value || '').replace(/"/g, '&quot;');
-        return `<input type="hidden" name="${escapedKey}" value="${escapedValue}" />`;
-      })
-      .join('\n              ');
-    
-    const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Redirigiendo a Cecabank...</title>
-        </head>
-        <body>
-          <form id="cecabankForm" method="POST" action="${urlCecabank}">
-            ${formFields}
-          </form>
-          <script>
-            console.log('🚀 Enviando formulario a Cecabank...');
-            document.getElementById('cecabankForm').submit();
-          </script>
-        </body>
-      </html>
-    `;
-    
-    res.send(html);
-  } catch (error) {
-    console.error('❌ Error en endpoint de redirección:', error);
-    res.status(500).send('Error al redirigir a Cecabank');
-  }
-});
-
 // Endpoint para verificar el estado de un pago
 app.get('/api/cecabank/payment/:orderId', async (req, res) => {
   try {
