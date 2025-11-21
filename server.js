@@ -583,12 +583,27 @@ ${formFields}
           try {
             const form = document.getElementById('cecabankForm');
             if (!form) {
-              console.error('❌ Formulario no encontrado');
+              console.error('❌ Formulario no encontrado en el DOM');
+              console.error('📋 Contenido del body:', document.body.innerHTML.substring(0, 500));
               return;
             }
             
             console.log('✅ Formulario encontrado');
             console.log('🔗 URL de acción:', form.action);
+            
+            // Verificar que el formulario tenga campos
+            const fields = Array.from(form.elements);
+            console.log('📋 Campos encontrados en el formulario:', fields.length);
+            
+            if (fields.length === 0) {
+              console.error('❌ El formulario no tiene campos!');
+              console.error('📋 HTML del formulario:', form.outerHTML);
+              return;
+            }
+            
+            // Mostrar los primeros campos para verificación
+            const primerosCampos = fields.slice(0, 5).map(f => f.name + '=' + (f.value ? f.value.substring(0, 30) : 'vacío'));
+            console.log('📋 Primeros campos:', primerosCampos);
             
             // Asegurar atributos correctos
             form.method = 'POST';
@@ -596,16 +611,13 @@ ${formFields}
             form.enctype = 'application/x-www-form-urlencoded';
             form.target = '_self';
             
-            // Verificar campos
-            const fields = Array.from(form.elements);
-            console.log('📋 Campos encontrados:', fields.length);
-            
             // Enviar inmediatamente
-            console.log('📤 Enviando formulario...');
+            console.log('📤 Enviando formulario POST a:', form.action);
             form.submit();
-            console.log('✅ Formulario enviado');
+            console.log('✅ form.submit() llamado');
           } catch (error) {
             console.error('❌ Error:', error);
+            console.error('📋 Stack:', error.stack);
           }
         }
         
