@@ -556,7 +556,7 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       <div class="spinner"></div>
       <p>Por favor, espera mientras se procesa tu pago.</p>
     </div>
-    <form id="cecabankForm" method="POST" action="${urlCecabank}" style="display: none;">
+    <form id="cecabankForm" method="POST" action="${urlCecabank}" enctype="application/x-www-form-urlencoded" style="display: none;">
 ${formFields}
     </form>
     <script>
@@ -593,16 +593,32 @@ ${formFields}
             
             console.log('✅ Formulario encontrado');
             console.log('📤 Enviando formulario POST...');
+            console.log('🔗 URL de acción:', form.action);
+            console.log('📋 Método:', form.method);
+            
+            // Verificar campos antes de enviar
+            const fields = Array.from(form.elements);
+            console.log('📋 Campos verificados:', fields.length);
+            const formData = new FormData(form);
+            const formDataObj = {};
+            for (let [key, value] of formData.entries()) {
+              formDataObj[key] = value;
+            }
+            console.log('📋 Datos del formulario:', Object.keys(formDataObj).length, 'campos');
+            console.log('📋 Primeros campos:', Object.keys(formDataObj).slice(0, 5));
             
             // Marcar como enviado ANTES de enviar
             window.cecabankFormSubmitted = true;
             
-            // Verificar campos
-            const fields = Array.from(form.elements);
-            console.log('📋 Campos verificados:', fields.length);
-            
-            form.submit();
-            console.log('✅ Formulario enviado');
+            // Enviar formulario
+            try {
+              form.submit();
+              console.log('✅ Formulario enviado correctamente');
+            } catch (submitError) {
+              console.error('❌ Error al enviar formulario:', submitError);
+              window.cecabankFormSubmitted = false;
+              throw submitError;
+            }
           } catch (error) {
             console.error('❌ Error enviando formulario:', error);
             window.cecabankFormSubmitted = false; // Permitir reintento si hay error
