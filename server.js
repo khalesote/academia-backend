@@ -605,13 +605,14 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     console.log('📋 Datos recibidos para formulario:', Object.keys(formData));
     console.log('📋 Número de campos:', Object.keys(formData).length);
     
-    // Verificar que tenemos los campos esenciales
-    const camposRequeridos = ['MerchantID', 'AcquirerBIN', 'TerminalID', 'Num_operacion', 'Importe', 'Firma'];
-    const camposFaltantes = camposRequeridos.filter(campo => !formData[campo]);
-    if (camposFaltantes.length > 0) {
-      console.error('❌ Campos faltantes en formData:', camposFaltantes);
+    // Nota: La validación de campos obligatorios ya se hizo arriba
+    // Solo verificamos campos esenciales adicionales para logging
+    const camposEsenciales = ['MerchantID', 'AcquirerBIN', 'TerminalID', 'Num_operacion', 'Importe', 'Firma'];
+    const camposEsencialesFaltantes = camposEsenciales.filter(campo => !formData[campo]);
+    if (camposEsencialesFaltantes.length > 0) {
+      console.error('❌ Campos esenciales faltantes en formData:', camposEsencialesFaltantes);
     } else {
-      console.log('✅ Todos los campos requeridos están presentes');
+      console.log('✅ Todos los campos esenciales están presentes');
     }
     
     const formFields = Object.entries(formData)
