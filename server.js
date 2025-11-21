@@ -494,6 +494,18 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     console.log('🔗 URL de Cecabank:', urlCecabank);
     
     // Crear formulario HTML que se auto-envía
+    console.log('📋 Datos recibidos para formulario:', Object.keys(formData));
+    console.log('📋 Número de campos:', Object.keys(formData).length);
+    
+    // Verificar que tenemos los campos esenciales
+    const camposRequeridos = ['MerchantID', 'AcquirerBIN', 'TerminalID', 'Num_operacion', 'Importe', 'Firma'];
+    const camposFaltantes = camposRequeridos.filter(campo => !formData[campo]);
+    if (camposFaltantes.length > 0) {
+      console.error('❌ Campos faltantes en formData:', camposFaltantes);
+    } else {
+      console.log('✅ Todos los campos requeridos están presentes');
+    }
+    
     const formFields = Object.entries(formData)
       .map(([key, value]) => {
         // Escapar correctamente para HTML
@@ -514,7 +526,9 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       .join('\n');
     
     console.log('📋 Campos del formulario generados:', Object.keys(formData).length);
+    console.log('📋 Primeros 3 campos:', Object.keys(formData).slice(0, 3));
     console.log('🔗 URL de Cecabank:', urlCecabank);
+    console.log('📋 Longitud de formFields:', formFields.length);
     
     const html = `<!DOCTYPE html>
 <html>
