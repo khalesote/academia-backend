@@ -513,6 +513,12 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     formData.FechaOperacion = fechaOperacion;
     formData.HoraOperacion = horaOperacion;
     
+    // Verificar que tenemos la clave de encriptación
+    if (!process.env.CECABANK_CLAVE) {
+      console.error('❌ CECABANK_CLAVE no está configurada en las variables de entorno');
+      return res.status(500).send('Error de configuración: CECABANK_CLAVE no configurada');
+    }
+    
     // Recalcular la firma con la nueva fecha/hora del servidor
     const firma = generateCecabankSignature(
       formData.Num_operacion,
@@ -523,6 +529,12 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     formData.Firma = firma;
     
     console.log('🔐 Firma recalculada con fecha/hora del servidor');
+    console.log('📋 Num_operacion:', formData.Num_operacion);
+    console.log('📋 Importe:', formData.Importe);
+    console.log('📋 Firma (primeros 20 chars):', firma.substring(0, 20) + '...');
+    console.log('📋 MerchantID:', formData.MerchantID);
+    console.log('📋 AcquirerBIN:', formData.AcquirerBIN);
+    console.log('📋 TerminalID:', formData.TerminalID);
     
     // URL correcta para Cecabank
     const urlCecabank = (process.env.CECABANK_ENTORNO || 'test') === 'produccion'
