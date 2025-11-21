@@ -615,6 +615,24 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       console.log('✅ Todos los campos esenciales están presentes');
     }
     
+    // Log específico para URLs antes de generar el formulario
+    console.log('🔗 URLs antes de generar formulario:', {
+      URL_OK: formData.URL_OK,
+      URL_KO: formData.URL_KO,
+      URL_OK_length: formData.URL_OK?.length,
+      URL_KO_length: formData.URL_KO?.length,
+      URL_OK_type: typeof formData.URL_OK,
+      URL_KO_type: typeof formData.URL_KO
+    });
+    
+    // Asegurar que las URLs estén en el formato correcto (sin espacios, sin caracteres especiales problemáticos)
+    if (formData.URL_OK) {
+      formData.URL_OK = String(formData.URL_OK).trim();
+    }
+    if (formData.URL_KO) {
+      formData.URL_KO = String(formData.URL_KO).trim();
+    }
+    
     const formFields = Object.entries(formData)
       .map(([key, value]) => {
         // Escapar correctamente para HTML
@@ -624,15 +642,36 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
           .replace(/>/g, '&gt;')
           .replace(/"/g, '&quot;')
           .replace(/'/g, '&#039;');
-        const escapedValue = String(value || '')
+        
+        // Para URLs, asegurar que no haya espacios ni caracteres problemáticos
+        let escapedValue = String(value || '');
+        if (key === 'URL_OK' || key === 'URL_KO') {
+          // Las URLs deben estar limpias y correctamente formateadas
+          escapedValue = escapedValue.trim();
+          console.log(`🔗 ${key} en formulario:`, escapedValue);
+        }
+        
+        // Escapar para HTML
+        escapedValue = escapedValue
           .replace(/&/g, '&amp;')
           .replace(/</g, '&lt;')
           .replace(/>/g, '&gt;')
           .replace(/"/g, '&quot;')
           .replace(/'/g, '&#039;');
+        
         return `            <input type="hidden" name="${escapedKey}" value="${escapedValue}" />`;
       })
       .join('\n');
+    
+    // Verificar que las URLs estén en el HTML generado
+    if (formFields.includes('URL_KO')) {
+      const urlKoMatch = formFields.match(/name="URL_KO"[^>]*value="([^"]*)"/);
+      if (urlKoMatch) {
+        console.log('✅ URL_KO encontrada en formFields:', urlKoMatch[1]);
+      } else {
+        console.error('❌ URL_KO no encontrada en formFields');
+      }
+    }
     
     console.log('📋 Campos del formulario generados:', Object.keys(formData).length);
     console.log('📋 Primeros 3 campos:', Object.keys(formData).slice(0, 3));
