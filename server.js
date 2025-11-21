@@ -495,33 +495,152 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     // Crear formulario HTML que se auto-envía
     const formFields = Object.entries(formData)
       .map(([key, value]) => {
-        const escapedKey = String(key).replace(/"/g, '&quot;').replace(/'/g, '&#039;');
-        const escapedValue = String(value || '').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
-        return `<input type="hidden" name="${escapedKey}" value="${escapedValue}" />`;
+        // Escapar correctamente para HTML
+        const escapedKey = String(key)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+        const escapedValue = String(value || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+        return `            <input type="hidden" name="${escapedKey}" value="${escapedValue}" />`;
       })
-      .join('\n              ');
+      .join('\n');
     
-    const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Redirigiendo a Cecabank...</title>
-        </head>
-        <body>
-          <form id="cecabankForm" method="POST" action="${urlCecabank}">
-            ${formFields}
-          </form>
-          <script>
-            console.log('🚀 Enviando formulario a Cecabank...');
-            console.log('📍 URL destino:', '${urlCecabank}');
-            document.getElementById('cecabankForm').submit();
-          </script>
-        </body>
-      </html>
-    `;
+    console.log('📋 Campos del formulario generados:', Object.keys(formData).length);
+    console.log('🔗 URL de Cecabank:', urlCecabank);
     
+    const html = `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirigiendo a Cecabank...</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        background: #f5f5f5;
+      }
+      .container {
+        text-align: center;
+        padding: 20px;
+      }
+      .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #4CAF50;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 20px auto;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Redirigiendo al TPV de Cecabank...</h2>
+      <div class="spinner"></div>
+      <p>Por favor, espera mientras se procesa tu pago.</p>
+    </div>
+    <form id="cecabankForm" method="POST" action="${urlCecabank}" style="display: none;">
+${formFields}
+    </form>
+    <script>
+      (function() {
+        console.log('🚀 Script de envío iniciado');
+        console.log('📍 URL destino:', '${urlCecabank}');
+        console.log('📋 Número de campos:', ${Object.keys(formData).length});
+        
+        function submitForm() {
+          try {
+            const form = document.getElementById('cecabankForm');
+            if (!form) {
+              console.error('❌ Formulario no encontrado');
+              return;
+            }
+            
+            console.log('✅ Formulario encontrado');
+            console.log('📤 Enviando formulario POST...');
+            
+            // Verificar campos
+            const fields = Array.from(form.elements);
+            console.log('📋 Campos verificados:', fields.length);
+            fields.forEach(function(field) {
+              if (field.name) {
+                console.log('  - ' + field.name + ': ' + (field.value ? field.value.substring(0, 30) + '...' : '(vacío)'));
+              }
+            });
+            
+            form.submit();
+            console.log('✅ Formulario enviado');
+          } catch (error) {
+            console.error('❌ Error enviando formulario:', error);
+          }
+        }
+        
+        // Intentar enviar inmediatamente
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+          console.log('📄 DOM listo, enviando...');
+          setTimeout(submitForm, 50);
+        } else {
+          document.addEventListener('DOMContentLoaded', function() {
+            console.log('📄 DOMContentLoaded, enviando...');
+            setTimeout(submitForm, 50);
+          });
+        }
+        
+        // Respaldo
+        setTimeout(submitForm, 200);
+        setTimeout(submitForm, 500);
+      })();
+      
+      // Detectar callbacks
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          const currentUrl = window.location.href;
+          console.log('🌐 URL actual:', currentUrl);
+          
+          if (currentUrl.includes('/api/cecabank/ok')) {
+            console.log('✅ Pago exitoso detectado');
+            if (window.ReactNativeWebView) {
+              const urlParams = new URLSearchParams(window.location.search);
+              const orderId = urlParams.get('orderId') || 'cecabank-success';
+              window.ReactNativeWebView.postMessage(JSON.stringify({
+                type: 'payment-success',
+                orderId: orderId
+              }));
+            }
+          } else if (currentUrl.includes('/api/cecabank/ko')) {
+            console.log('❌ Pago fallido detectado');
+            if (window.ReactNativeWebView) {
+              window.ReactNativeWebView.postMessage(JSON.stringify({
+                type: 'payment-error',
+                message: 'El pago fue cancelado o falló'
+              }));
+            }
+          }
+        }, 1000);
+      });
+    </script>
+  </body>
+</html>`;
+    
+    console.log('✅ HTML generado, longitud:', html.length);
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.send(html);
   } catch (error) {
     console.error('❌ Error en endpoint de redirección:', error);
