@@ -773,66 +773,32 @@ ${formFields}
       (function() {
         console.log('🚀 Script de envío iniciado');
         console.log('📍 URL destino:', '${urlCecabank}');
-        console.log('📋 Estado del documento:', document.readyState);
-        console.log('📋 URL actual:', window.location.href);
         
         var formSubmitted = false;
         
         function submitForm() {
           if (formSubmitted) {
-            console.log('⚠️ Formulario ya enviado, no intentar de nuevo');
             return false;
           }
           
           try {
-            console.log('🔍 Buscando formulario cecabankForm...');
             const form = document.getElementById('cecabankForm');
             if (!form) {
-              console.error('❌ Formulario no encontrado en el DOM');
-              console.error('📋 Contenido del body:', document.body.innerHTML.substring(0, 500));
+              console.error('❌ Formulario no encontrado');
               return false;
             }
             
-            console.log('✅ Formulario encontrado');
-            console.log('🔗 URL de acción:', form.action);
+            // Verificar URL_OK y URL_KO
+            const urlOkField = form.querySelector('input[name="URL_OK"]');
+            const urlKoField = form.querySelector('input[name="URL_KO"]');
             
-            // Verificar que el formulario tenga campos
-            const fields = Array.from(form.elements);
-            console.log('📋 Campos encontrados en el formulario:', fields.length);
-            
-            if (fields.length === 0) {
-              console.error('❌ El formulario no tiene campos!');
-              console.error('📋 HTML del formulario:', form.outerHTML);
+            if (!urlOkField || !urlKoField) {
+              console.error('❌ URLs faltantes en el formulario');
               return false;
             }
             
-            // Verificar específicamente URL_OK y URL_KO
-            const urlOkField = fields.find(f => f.name === 'URL_OK');
-            const urlKoField = fields.find(f => f.name === 'URL_KO');
-            
-            if (urlOkField) {
-              console.log('✅ URL_OK encontrada:', urlOkField.value);
-              console.log('📋 URL_OK longitud:', urlOkField.value.length);
-            } else {
-              console.error('❌ URL_OK NO encontrada en el formulario!');
-            }
-            
-            if (urlKoField) {
-              console.log('✅ URL_KO encontrada:', urlKoField.value);
-              console.log('📋 URL_KO longitud:', urlKoField.value.length);
-            } else {
-              console.error('❌ URL_KO NO encontrada en el formulario!');
-            }
-            
-            // Mostrar los primeros campos para verificación
-            const primerosCampos = fields.slice(0, 3).map(f => f.name + '=' + (f.value ? f.value.substring(0, 20) : 'vacío'));
-            console.log('📋 Primeros campos:', primerosCampos);
-            
-            // Verificar el orden de los campos
-            const fieldNames = fields.map(f => f.name);
-            const urlOkIndex = fieldNames.indexOf('URL_OK');
-            const urlKoIndex = fieldNames.indexOf('URL_KO');
-            console.log('📋 Orden de campos - URL_OK en posición:', urlOkIndex, 'URL_KO en posición:', urlKoIndex);
+            console.log('✅ URL_OK:', urlOkField.value);
+            console.log('✅ URL_KO:', urlKoField.value);
             
             // Asegurar atributos correctos
             form.method = 'POST';
@@ -840,72 +806,29 @@ ${formFields}
             form.enctype = 'application/x-www-form-urlencoded';
             form.target = '_self';
             
-            // Marcar como enviado ANTES de enviar
             formSubmitted = true;
             
-            // Enviar inmediatamente
             console.log('📤 Enviando formulario POST a:', form.action);
-            console.log('📤 Método:', form.method);
-            console.log('📤 Enctype:', form.enctype);
             form.submit();
-            console.log('✅ form.submit() llamado - navegando a Cecabank');
             return true;
           } catch (error) {
             console.error('❌ Error:', error);
-            console.error('📋 Stack:', error.stack);
-            formSubmitted = false; // Permitir reintento si hay error
+            formSubmitted = false;
             return false;
           }
         }
         
         // Intentar enviar cuando el DOM esté listo
         if (document.readyState === 'complete' || document.readyState === 'interactive') {
-          console.log('📄 DOM listo, enviando inmediatamente...');
           submitForm();
         } else {
-          console.log('📄 Esperando DOMContentLoaded...');
-          document.addEventListener('DOMContentLoaded', function() {
-            console.log('📄 DOMContentLoaded, enviando...');
-            submitForm();
-          });
+          document.addEventListener('DOMContentLoaded', submitForm);
         }
         
-        // Respaldo con múltiples intentos
-        setTimeout(function() {
-          if (!formSubmitted) {
-            console.log('⏰ Timeout 50ms, intentando envío...');
-            submitForm();
-          }
-        }, 50);
-        
-        setTimeout(function() {
-          if (!formSubmitted) {
-            console.log('⏰ Timeout 100ms, intentando envío...');
-            submitForm();
-          }
-        }, 100);
-        
-        setTimeout(function() {
-          if (!formSubmitted) {
-            console.log('⏰ Timeout 200ms, intentando envío...');
-            submitForm();
-          }
-        }, 200);
-        
-        setTimeout(function() {
-          if (!formSubmitted) {
-            console.log('⏰ Timeout 500ms, intentando envío...');
-            submitForm();
-          }
-        }, 500);
-        
-        setTimeout(function() {
-          if (!formSubmitted) {
-            console.error('❌ Timeout 1000ms - El formulario NO se pudo enviar después de múltiples intentos');
-            console.error('📋 Estado del documento:', document.readyState);
-            console.error('📋 Formulario existe?', !!document.getElementById('cecabankForm'));
-          }
-        }, 1000);
+        // Respaldo con timeouts
+        setTimeout(submitForm, 50);
+        setTimeout(submitForm, 100);
+        setTimeout(submitForm, 200);
       })();
       
       // Detectar callbacks (solo si no estamos en nuestra página de redirección)
