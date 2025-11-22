@@ -979,6 +979,24 @@ function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, ur
   const cifrado = 'SHA256';
   const idioma = '1';
 
+  // IMPORTANTE: Algunas implementaciones de Cecabank requieren las URLs sin el protocolo https://
+  // Variable de entorno para controlar esto (por defecto: incluir https://)
+  const incluirProtocoloEnFirma = process.env.CECABANK_URLS_CON_PROTOCOLO !== 'false';
+  
+  // Preparar URLs para la firma
+  let urlOkParaFirma = urlOk || '';
+  let urlKoParaFirma = urlKo || '';
+  
+  // Si no se debe incluir el protocolo, removerlo
+  if (!incluirProtocoloEnFirma) {
+    urlOkParaFirma = urlOkParaFirma.replace(/^https?:\/\//, '');
+    urlKoParaFirma = urlKoParaFirma.replace(/^https?:\/\//, '');
+    console.log('🔐 URLs para firma (sin protocolo):', {
+      URL_OK: urlOkParaFirma,
+      URL_KO: urlKoParaFirma
+    });
+  }
+
   // Construir la cadena para la firma según documentación de Cecabank
   // Orden: MerchantID + AcquirerBIN + TerminalID + Num_operacion + Importe + TipoMoneda + Exponente + Cifrado + URL_OK + URL_KO + Idioma + FechaOperacion + HoraOperacion + Clave
   const cadenaFirma = 
@@ -990,15 +1008,15 @@ function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, ur
     tipoMoneda +
     exponente +
     cifrado +
-    (urlOk || '') +
-    (urlKo || '') +
+    urlOkParaFirma +
+    urlKoParaFirma +
     idioma +
     fecha +
     hora +
     clave;
 
   // Log detallado de la cadena de firma
-  const cadenaSinClave = merchantId + acquirerBin + terminalId + numOperacion + importe + tipoMoneda + exponente + cifrado + (urlOk || '') + (urlKo || '') + idioma + fecha + hora;
+  const cadenaSinClave = merchantId + acquirerBin + terminalId + numOperacion + importe + tipoMoneda + exponente + cifrado + urlOkParaFirma + urlKoParaFirma + idioma + fecha + hora;
   console.log('🔐 Cadena para firma (sin clave):', cadenaSinClave);
   console.log('🔐 Componentes de la firma:');
   console.log('   - MerchantID:', merchantId);
@@ -1009,14 +1027,19 @@ function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, ur
   console.log('   - TipoMoneda:', tipoMoneda);
   console.log('   - Exponente:', exponente);
   console.log('   - Cifrado:', cifrado);
-  console.log('   - URL_OK:', urlOk || '(vacío)');
-  console.log('   - URL_KO:', urlKo || '(vacío)');
+  console.log('   - URL_OK (original):', urlOk || '(vacío)');
+  console.log('   - URL_KO (original):', urlKo || '(vacío)');
+  console.log('   - URL_OK (para firma):', urlOkParaFirma);
+  console.log('   - URL_KO (para firma):', urlKoParaFirma);
+  console.log('   - Protocolo en firma:', incluirProtocoloEnFirma ? 'Sí (https://)' : 'No');
   console.log('   - Idioma:', idioma);
   console.log('   - Fecha:', fecha);
   console.log('   - Hora:', hora);
   console.log('   - Clave:', '[OCULTA]');
-  console.log('🔐 Longitud de URL_OK:', (urlOk || '').length);
-  console.log('🔐 Longitud de URL_KO:', (urlKo || '').length);
+  console.log('🔐 Longitud de URL_OK (original):', (urlOk || '').length);
+  console.log('🔐 Longitud de URL_KO (original):', (urlKo || '').length);
+  console.log('🔐 Longitud de URL_OK (para firma):', urlOkParaFirma.length);
+  console.log('🔐 Longitud de URL_KO (para firma):', urlKoParaFirma.length);
   console.log('🔐 Longitud total de cadena (sin clave):', cadenaSinClave.length);
 
   // Generar el hash SHA256
