@@ -47,6 +47,27 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: '2023-10-16',
 });
 
+// Configuración de Odoo
+const ODOO_URL = process.env.ODOO_URL || '';
+const ODOO_DATABASE = process.env.ODOO_DATABASE || '';
+const ODOO_USERNAME = process.env.ODOO_USERNAME || '';
+const ODOO_PASSWORD = process.env.ODOO_PASSWORD || '';
+const ODOO_API_KEY = process.env.ODOO_API_KEY || '';
+
+// Verificar configuración de Odoo
+console.log('🔧 Verificando configuración de Odoo...');
+console.log(`   - URL configurada: ${!!ODOO_URL}`);
+console.log(`   - Base de datos configurada: ${!!ODOO_DATABASE}`);
+console.log(`   - Usuario configurado: ${!!ODOO_USERNAME}`);
+if (ODOO_URL) {
+  console.log(`   - URL: ${ODOO_URL}`);
+}
+if (ODOO_URL && ODOO_DATABASE && (ODOO_USERNAME || ODOO_API_KEY)) {
+  console.log('✅ Odoo configurado correctamente');
+} else {
+  console.log('   ⚠️  Configuración de Odoo incompleta - la sincronización no funcionará');
+}
+
 // Webhook de Stripe - DEBE estar antes de cualquier otro middleware que procese el body
 app.post('/api/webhook', 
   express.raw({ type: 'application/json' }),
@@ -118,7 +139,8 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString(),
     environment: NODE_ENV,
     stripeConfigured: !!process.env.STRIPE_SECRET_KEY,
-    smtp2goConfigured: !!(process.env.SMTP2GO_USERNAME && process.env.SMTP2GO_PASSWORD)
+    smtp2goConfigured: !!(process.env.SMTP2GO_USERNAME && process.env.SMTP2GO_PASSWORD),
+    odooConfigured: !!(ODOO_URL && ODOO_DATABASE && (ODOO_USERNAME || ODOO_API_KEY))
   });
 });
 
@@ -492,17 +514,45 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       return res.status(400).send('URLs de retorno (URL_OK o URL_KO) faltantes');
     }
     
+    // Limpiar URLs inmediatamente (sin espacios, sin caracteres especiales)
+    formData.URL_OK = String(formData.URL_OK).trim().replace(/\s+/g, '');
+    formData.URL_KO = String(formData.URL_KO).trim().replace(/\s+/g, '');
+    
     // Validar formato de URLs
     try {
-      new URL(formData.URL_OK);
-      new URL(formData.URL_KO);
+      const urlOkObj = new URL(formData.URL_OK);
+      const urlKoObj = new URL(formData.URL_KO);
       console.log('✅ URLs validadas:', {
         URL_OK: formData.URL_OK,
-        URL_KO: formData.URL_KO
+        URL_KO: formData.URL_KO,
+        URL_OK_protocol: urlOkObj.protocol,
+        URL_KO_protocol: urlKoObj.protocol,
+        URL_OK_host: urlOkObj.host,
+        URL_KO_host: urlKoObj.host
       });
+      
+      // Advertencia si las URLs no son HTTPS
+      if (urlOkObj.protocol !== 'https:' || urlKoObj.protocol !== 'https:') {
+        console.warn('⚠️  ADVERTENCIA: Las URLs deben ser HTTPS para producción');
+      }
     } catch (urlError) {
       console.error('❌ URLs inválidas:', urlError);
       return res.status(400).send('URLs de retorno inválidas');
+    }
+    
+    // IMPORTANTE: Verificar que las URLs coincidan con las configuradas
+    const urlOkEsperada = 'https://academia-backend-s9np.onrender.com/api/cecabank/ok';
+    const urlKoEsperada = 'https://academia-backend-s9np.onrender.com/api/cecabank/ko';
+    
+    if (formData.URL_OK !== urlOkEsperada || formData.URL_KO !== urlKoEsperada) {
+      console.warn('⚠️  ADVERTENCIA: Las URLs no coinciden con las esperadas');
+      console.warn('   URL_OK recibida:', formData.URL_OK);
+      console.warn('   URL_OK esperada:', urlOkEsperada);
+      console.warn('   URL_KO recibida:', formData.URL_KO);
+      console.warn('   URL_KO esperada:', urlKoEsperada);
+      console.warn('⚠️  IMPORTANTE: Estas URLs DEBEN estar registradas EXACTAMENTE igual en el panel de Cecabank');
+    } else {
+      console.log('✅ URLs coinciden con las configuradas');
     }
     
     // Verificar campos obligatorios según documentación de Cecabank
@@ -573,6 +623,20 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       return res.status(500).send('Error de configuración: CECABANK_CLAVE no configurada');
     }
     
+    // Asegurar que las URLs estén limpias ANTES de calcular la firma
+    const urlOkLimpia = String(formData.URL_OK || '').trim();
+    const urlKoLimpia = String(formData.URL_KO || '').trim();
+    
+    // Actualizar formData con URLs limpias
+    formData.URL_OK = urlOkLimpia;
+    formData.URL_KO = urlKoLimpia;
+    
+    console.log('🔗 URLs limpias para firma:');
+    console.log('   - URL_OK:', urlOkLimpia);
+    console.log('   - URL_KO:', urlKoLimpia);
+    console.log('   - URL_OK longitud:', urlOkLimpia.length);
+    console.log('   - URL_KO longitud:', urlKoLimpia.length);
+    
     // Recalcular la firma con la nueva fecha/hora del servidor
     // IMPORTANTE: La firma debe incluir URL_OK y URL_KO
     const firma = generateCecabankSignature(
@@ -580,8 +644,8 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       formData.Importe,
       fechaOperacion,
       horaOperacion,
-      formData.URL_OK,
-      formData.URL_KO
+      urlOkLimpia,
+      urlKoLimpia
     );
     formData.Firma = firma;
     
@@ -628,7 +692,8 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       URL_KO_type: typeof formData.URL_KO
     });
     
-    // Asegurar que las URLs estén en el formato correcto (sin espacios, sin caracteres especiales problemáticos)
+    // Las URLs ya están limpias desde antes (se limpiaron antes de calcular la firma)
+    // Solo verificamos que sigan estando limpias
     if (formData.URL_OK) {
       formData.URL_OK = String(formData.URL_OK).trim();
     }
@@ -932,12 +997,32 @@ function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, ur
     hora +
     clave;
 
-  console.log('🔐 Cadena para firma (sin clave):', 
-    merchantId + acquirerBin + terminalId + numOperacion + importe + tipoMoneda + exponente + cifrado + (urlOk || '') + (urlKo || '') + idioma + fecha + hora + '[CLAVE]'
-  );
+  // Log detallado de la cadena de firma
+  const cadenaSinClave = merchantId + acquirerBin + terminalId + numOperacion + importe + tipoMoneda + exponente + cifrado + (urlOk || '') + (urlKo || '') + idioma + fecha + hora;
+  console.log('🔐 Cadena para firma (sin clave):', cadenaSinClave);
+  console.log('🔐 Componentes de la firma:');
+  console.log('   - MerchantID:', merchantId);
+  console.log('   - AcquirerBIN:', acquirerBin);
+  console.log('   - TerminalID:', terminalId);
+  console.log('   - Num_operacion:', numOperacion);
+  console.log('   - Importe:', importe);
+  console.log('   - TipoMoneda:', tipoMoneda);
+  console.log('   - Exponente:', exponente);
+  console.log('   - Cifrado:', cifrado);
+  console.log('   - URL_OK:', urlOk || '(vacío)');
+  console.log('   - URL_KO:', urlKo || '(vacío)');
+  console.log('   - Idioma:', idioma);
+  console.log('   - Fecha:', fecha);
+  console.log('   - Hora:', hora);
+  console.log('   - Clave:', '[OCULTA]');
+  console.log('🔐 Longitud de URL_OK:', (urlOk || '').length);
+  console.log('🔐 Longitud de URL_KO:', (urlKo || '').length);
+  console.log('🔐 Longitud total de cadena (sin clave):', cadenaSinClave.length);
 
   // Generar el hash SHA256
   const firma = crypto.createHash('sha256').update(cadenaFirma).digest('hex').toUpperCase();
+  
+  console.log('🔐 Firma generada:', firma);
   
   return firma;
 }
@@ -1297,6 +1382,157 @@ app.get('/api/cecabank/payment/:orderId', async (req, res) => {
 });
 
 // Ruta de prueba
+// ============================================
+// ENDPOINT PARA SINCRONIZAR USUARIOS CON ODOO
+// ============================================
+app.post('/api/odoo/sync-user', async (req, res) => {
+  try {
+    console.log('🔄 Sincronizando usuario con Odoo...');
+    console.log('📋 Datos recibidos:', JSON.stringify(req.body, null, 2));
+
+    const {
+      uid,
+      email,
+      firstName,
+      lastName,
+      phone,
+      country,
+      city,
+      userReference,
+      createdAt
+    } = req.body;
+
+    // Validar campos requeridos
+    if (!email || !firstName || !lastName) {
+      return res.status(400).json({
+        success: false,
+        error: 'Faltan campos requeridos: email, firstName, lastName'
+      });
+    }
+
+    // Verificar configuración de Odoo
+    if (!ODOO_URL || !ODOO_DATABASE || (!ODOO_USERNAME && !ODOO_API_KEY)) {
+      console.warn('⚠️  Odoo no está configurado, saltando sincronización');
+      return res.json({
+        success: false,
+        error: 'Odoo no está configurado',
+        skipped: true
+      });
+    }
+
+    // Preparar datos para Odoo
+    const odooData = {
+      name: `${firstName} ${lastName}`,
+      email: email,
+      phone: phone || '',
+      mobile: phone || '',
+      street: city || '',
+      city: city || '',
+      country_id: country || false, // Odoo espera un ID de país, no el nombre
+      comment: `Usuario sincronizado desde Firebase App\nUID: ${uid || 'N/A'}\nReferencia: ${userReference || 'N/A'}\nFecha creación: ${createdAt || new Date().toISOString()}`,
+      // Campos adicionales que Odoo puede necesitar
+      is_company: false,
+      customer_rank: 1,
+      // Si tienes campos personalizados en Odoo, agrégalos aquí
+      // x_firebase_uid: uid,
+      // x_user_reference: userReference,
+    };
+
+    // Intentar sincronizar con Odoo
+    let odooResponse;
+    try {
+      // Opción 1: Usar autenticación por usuario/contraseña
+      if (ODOO_USERNAME && ODOO_PASSWORD) {
+        // Primero autenticarse
+        const authResponse = await fetch(`${ODOO_URL}/web/session/authenticate`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            method: 'call',
+            params: {
+              db: ODOO_DATABASE,
+              login: ODOO_USERNAME,
+              password: ODOO_PASSWORD,
+            },
+          }),
+        });
+
+        const authData = await authResponse.json();
+        if (!authData.result || !authData.result.uid) {
+          throw new Error('Error de autenticación con Odoo');
+        }
+
+        const sessionId = authResponse.headers.get('set-cookie');
+        
+        // Crear o actualizar contacto en Odoo
+        odooResponse = await fetch(`${ODOO_URL}/web/dataset/call_kw`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Cookie': sessionId || '',
+          },
+          body: JSON.stringify({
+            jsonrpc: '2.0',
+            method: 'call',
+            params: {
+              model: 'res.partner',
+              method: 'create',
+              args: [odooData],
+              kwargs: {},
+            },
+          }),
+        });
+      } 
+      // Opción 2: Usar API Key (si Odoo lo soporta)
+      else if (ODOO_API_KEY) {
+        odooResponse = await fetch(`${ODOO_URL}/api/res.partner`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${ODOO_API_KEY}`,
+          },
+          body: JSON.stringify(odooData),
+        });
+      } else {
+        throw new Error('No hay método de autenticación configurado para Odoo');
+      }
+
+      const odooResult = await odooResponse.json();
+      
+      if (odooResponse.ok && odooResult.result) {
+        console.log('✅ Usuario sincronizado exitosamente con Odoo');
+        console.log('📋 ID en Odoo:', odooResult.result);
+        
+        return res.json({
+          success: true,
+          message: 'Usuario sincronizado con Odoo',
+          odooId: odooResult.result,
+          data: odooData
+        });
+      } else {
+        throw new Error(odooResult.error?.message || 'Error desconocido de Odoo');
+      }
+    } catch (odooError) {
+      console.error('❌ Error sincronizando con Odoo:', odooError);
+      // No fallar el registro si Odoo falla, solo loguear el error
+      return res.json({
+        success: false,
+        error: `Error sincronizando con Odoo: ${odooError.message}`,
+        warning: 'El usuario se registró en Firebase pero no se pudo sincronizar con Odoo'
+      });
+    }
+  } catch (error) {
+    console.error('❌ Error en endpoint de sincronización Odoo:', error);
+    return res.status(500).json({
+      success: false,
+      error: error.message || 'Error desconocido'
+    });
+  }
+});
+
 app.get('/', (req, res) => {
   res.send('¡API de pagos de Academia de Inmigrantes funcionando!');
 });
