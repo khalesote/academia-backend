@@ -144,6 +144,31 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Endpoint de verificación para URLs de Cecabank
+app.get('/api/cecabank/verify', (req, res) => {
+  res.json({
+    status: 'ok',
+    message: 'Endpoints de Cecabank están accesibles',
+    urls: {
+      urlOk: 'https://academia-backend-s9np.onrender.com/api/cecabank/ok',
+      urlKo: 'https://academia-backend-s9np.onrender.com/api/cecabank/ko'
+    },
+    endpoints: {
+      ok: {
+        method: 'POST',
+        path: '/api/cecabank/ok',
+        accessible: true
+      },
+      ko: {
+        method: 'POST',
+        path: '/api/cecabank/ko',
+        accessible: true
+      }
+    },
+    instrucciones: 'Configura estas URLs EXACTAMENTE como se muestran en la extranet de Cecabank'
+  });
+});
+
 // Ruta para crear un Payment Intent
 app.post('/api/create-payment-intent', async (req, res) => {
   try {
@@ -508,15 +533,22 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       return res.status(400).send('No se recibieron datos del formulario');
     }
     
-    // Verificar que las URLs estén presentes y correctamente formateadas
-    if (!formData.URL_OK || !formData.URL_KO) {
-      console.error('❌ URLs faltantes:', { URL_OK: formData.URL_OK, URL_KO: formData.URL_KO });
-      return res.status(400).send('URLs de retorno (URL_OK o URL_KO) faltantes');
+    // Verificar que al menos URL_OK esté presente
+    if (!formData.URL_OK) {
+      console.error('❌ URL_OK faltante');
+      return res.status(400).send('URL_OK es obligatoria');
     }
     
     // Limpiar URLs inmediatamente (sin espacios, sin caracteres especiales)
     formData.URL_OK = String(formData.URL_OK).trim().replace(/\s+/g, '');
-    formData.URL_KO = String(formData.URL_KO).trim().replace(/\s+/g, '');
+    
+    // Si no viene URL_KO, usar la misma URL_OK (comportamiento para TPV que solo permiten URL_OK)
+    if (!formData.URL_KO) {
+      console.warn('⚠️  URL_KO no proporcionada, usando URL_OK para ambos casos');
+      formData.URL_KO = formData.URL_OK;
+    } else {
+      formData.URL_KO = String(formData.URL_KO).trim().replace(/\s+/g, '');
+    }
     
     // Validar formato de URLs
     try {
@@ -544,15 +576,31 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     const urlOkEsperada = 'https://academia-backend-s9np.onrender.com/api/cecabank/ok';
     const urlKoEsperada = 'https://academia-backend-s9np.onrender.com/api/cecabank/ko';
     
-    if (formData.URL_OK !== urlOkEsperada || formData.URL_KO !== urlKoEsperada) {
-      console.warn('⚠️  ADVERTENCIA: Las URLs no coinciden con las esperadas');
+    // Si URL_KO es igual a URL_OK, significa que el TPV solo permite una URL
+    const usaUrlUnica = formData.URL_OK === formData.URL_KO;
+    
+    if (usaUrlUnica) {
+      console.log('ℹ️  TPV configurado con URL única (solo URL_OK disponible)');
+      console.log('   URL configurada:', formData.URL_OK);
+      console.log('   El endpoint /api/cecabank/ok manejará tanto éxitos como fallos');
+    }
+    
+    if (formData.URL_OK !== urlOkEsperada) {
+      console.warn('⚠️  ADVERTENCIA: URL_OK no coincide con la esperada');
       console.warn('   URL_OK recibida:', formData.URL_OK);
       console.warn('   URL_OK esperada:', urlOkEsperada);
+    }
+    
+    if (!usaUrlUnica && formData.URL_KO !== urlKoEsperada) {
+      console.warn('⚠️  ADVERTENCIA: URL_KO no coincide con la esperada');
       console.warn('   URL_KO recibida:', formData.URL_KO);
       console.warn('   URL_KO esperada:', urlKoEsperada);
-      console.warn('⚠️  IMPORTANTE: Estas URLs DEBEN estar registradas EXACTAMENTE igual en el panel de Cecabank');
+    }
+    
+    if (formData.URL_OK === urlOkEsperada && (usaUrlUnica || formData.URL_KO === urlKoEsperada)) {
+      console.log('✅ URLs configuradas correctamente');
     } else {
-      console.log('✅ URLs coinciden con las configuradas');
+      console.warn('⚠️  IMPORTANTE: Estas URLs DEBEN estar registradas EXACTAMENTE igual en el panel de Cecabank');
     }
     
     // Verificar campos obligatorios según documentación de Cecabank
@@ -1086,10 +1134,11 @@ function validateCecabankSignature(datos) {
 // ENDPOINTS DE CECABANK
 // ============================================
 
-// Endpoint para recibir respuesta de pago exitoso de Cecabank
+// Endpoint para recibir respuesta de pago de Cecabank (maneja tanto OK como KO)
+// Si el TPV solo permite configurar URL_OK, este endpoint manejará ambos casos
 app.post('/api/cecabank/ok', express.urlencoded({ extended: true }), async (req, res) => {
   try {
-    console.log('✅ Callback de Cecabank OK recibido');
+    console.log('📥 Callback de Cecabank recibido');
     console.log('📝 Datos recibidos:', req.body);
 
     const { 
@@ -1099,8 +1148,28 @@ app.post('/api/cecabank/ok', express.urlencoded({ extended: true }), async (req,
       Firma,
       Descripcion,
       Fecha,
-      Hora
+      Hora,
+      Ds_Response,
+      Codigo_respuesta,
+      Respuesta
     } = req.body;
+    
+    // Detectar si el pago fue exitoso o fallido
+    // Cecabank puede enviar diferentes parámetros según la versión del TPV
+    let pagoExitoso = false;
+    let codigoRespuesta = Ds_Response || Codigo_respuesta || Respuesta;
+    
+    // Si viene un código de respuesta, verificar si es éxito (00 o similar)
+    if (codigoRespuesta !== undefined && codigoRespuesta !== null) {
+      const codigo = String(codigoRespuesta).trim();
+      // Código 00 generalmente significa éxito en pasarelas de pago
+      pagoExitoso = codigo === '00' || codigo === '0' || codigo.toLowerCase() === 'ok';
+      console.log('🔍 Código de respuesta detectado:', codigo, '→ Pago exitoso:', pagoExitoso);
+    } else {
+      // Si no viene código de respuesta, asumir que es éxito (comportamiento por defecto del endpoint /ok)
+      pagoExitoso = true;
+      console.log('⚠️  No se detectó código de respuesta, asumiendo pago exitoso');
+    }
 
     // Validar que vengan los datos necesarios
     if (!Num_operacion || !Importe || !Firma || !Fecha || !Hora) {
@@ -1123,6 +1192,82 @@ app.post('/api/cecabank/ok', express.urlencoded({ extended: true }), async (req,
     }
 
     console.log('✅ Firma validada correctamente');
+    
+    // Si el pago NO fue exitoso, manejar como error
+    if (!pagoExitoso) {
+      console.log('❌ Pago fallido detectado en callback (código de respuesta:', codigoRespuesta, ')');
+      console.log('⚠️ Pago fallido de Cecabank:', {
+        numOperacion: Num_operacion,
+        codigoCliente: Codigo_cliente,
+        importe: Importe,
+        descripcion: Descripcion,
+        fecha: Fecha,
+        hora: Hora,
+        codigoRespuesta: codigoRespuesta
+      });
+
+      // Redirigir a la app con error (mismo comportamiento que /api/cecabank/ko)
+      return res.send(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="UTF-8">
+            <title>Pago Fallido</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+              body {
+                font-family: Arial, sans-serif;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                min-height: 100vh;
+                margin: 0;
+                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                color: white;
+                text-align: center;
+                padding: 20px;
+              }
+              .error-icon {
+                font-size: 64px;
+                margin-bottom: 20px;
+              }
+              h1 {
+                margin: 0 0 10px 0;
+              }
+              p {
+                margin: 5px 0;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="error-icon">❌</div>
+            <h1>Pago no realizado</h1>
+            <p>El pago no pudo ser procesado. Por favor, intenta de nuevo.</p>
+            <p>Redirigiendo a la aplicación...</p>
+            <script>
+              // Enviar mensaje a React Native WebView si está disponible
+              if (window.ReactNativeWebView) {
+                window.ReactNativeWebView.postMessage(JSON.stringify({
+                  type: 'payment-error',
+                  message: 'El pago fue rechazado',
+                  orderId: '${Num_operacion || ''}',
+                  codigoRespuesta: '${codigoRespuesta || ''}'
+                }));
+              }
+              
+              // Intentar redirigir a la app con deep link
+              setTimeout(() => {
+                window.location.href = 'academiadeinmigrantes://payment-error?orderId=${Num_operacion || ''}';
+              }, 1500);
+            </script>
+          </body>
+        </html>
+      `);
+    }
+    
+    // Si llegamos aquí, el pago fue exitoso
+    console.log('✅ Pago exitoso confirmado');
     
     // Convertir importe de céntimos a euros
     const importeEuros = (parseInt(Importe) / 100).toFixed(2);
