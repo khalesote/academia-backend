@@ -1419,10 +1419,15 @@ app.post('/api/cecabank/ok', express.urlencoded({ extended: true }), async (req,
 });
 
 // Endpoint para recibir respuesta de pago fallido de Cecabank
+// Endpoint para recibir respuesta de pago fallido de Cecabank
+// IMPORTANTE: Este endpoint DEBE devolver HTTP 200 para que Cecabank considere que la URL funciona
+// La URL debe ser exactamente: https://academia-backend-s9np.onrender.com/api/cecabank/ko
 app.post('/api/cecabank/ko', express.urlencoded({ extended: true }), async (req, res) => {
   try {
     console.log('❌ Callback de Cecabank KO recibido');
     console.log('📝 Datos recibidos:', req.body);
+    console.log('🌐 IP del cliente:', req.ip || req.connection.remoteAddress);
+    console.log('🌐 User-Agent:', req.headers['user-agent']);
 
     const { 
       Num_operacion, 
@@ -1527,8 +1532,23 @@ app.post('/api/cecabank/ko', express.urlencoded({ extended: true }), async (req,
   } catch (error) {
     console.error('❌ Error procesando callback KO de Cecabank:', error);
     // IMPORTANTE: Devolver 200 incluso en caso de error para que Cecabank considere que la URL funciona
-    res.status(200).send('Pago fallido recibido correctamente');
+    res.status(200).send('KO recibido');
   }
+});
+
+// Endpoint de prueba para verificar accesibilidad de /api/cecabank/ko
+// Permite probar que el endpoint es accesible desde Internet
+app.post('/api/cecabank/ko/test', express.urlencoded({ extended: true }), (req, res) => {
+  console.log('🧪 Test de accesibilidad para /api/cecabank/ko');
+  console.log('📝 Datos recibidos:', req.body);
+  res.status(200).json({
+    status: 'ok',
+    message: 'Endpoint /api/cecabank/ko es accesible',
+    endpoint: '/api/cecabank/ko',
+    method: 'POST',
+    accessible: true,
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Endpoint para verificar el estado de un pago
