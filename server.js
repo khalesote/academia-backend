@@ -1431,7 +1431,10 @@ app.post('/api/cecabank/ko', express.urlencoded({ extended: true }), async (req,
       Descripcion,
       Fecha,
       Hora,
-      Firma
+      Firma,
+      Ds_Response,
+      Codigo_respuesta,
+      Respuesta
     } = req.body;
 
     // Si viene la firma, validarla (aunque el pago haya fallido)
@@ -1451,17 +1454,20 @@ app.post('/api/cecabank/ko', express.urlencoded({ extended: true }), async (req,
       }
     }
 
+    const codigoRespuesta = Ds_Response || Codigo_respuesta || Respuesta;
     console.log('⚠️ Pago fallido de Cecabank:', {
       numOperacion: Num_operacion,
       codigoCliente: Codigo_cliente,
       importe: Importe,
       descripcion: Descripcion,
       fecha: Fecha,
-      hora: Hora
+      hora: Hora,
+      codigoRespuesta: codigoRespuesta
     });
 
+    // IMPORTANTE: Siempre devolver HTTP 200 para que Cecabank considere que la URL funciona
     // Redirigir a la app con error
-    res.send(`
+    res.status(200).send(`
       <!DOCTYPE html>
       <html>
         <head>
@@ -1520,7 +1526,8 @@ app.post('/api/cecabank/ko', express.urlencoded({ extended: true }), async (req,
 
   } catch (error) {
     console.error('❌ Error procesando callback KO de Cecabank:', error);
-    res.status(500).send('Error procesando el pago');
+    // IMPORTANTE: Devolver 200 incluso en caso de error para que Cecabank considere que la URL funciona
+    res.status(200).send('Pago fallido recibido correctamente');
   }
 });
 
