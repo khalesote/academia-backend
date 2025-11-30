@@ -571,8 +571,87 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
         : 'https://sis-t.redsys.es:25443/sis/realizarPago';
       
       console.log('🔗 URL de Cecabank SIS:', cecabankUrl);
-      console.log('📋 OrderId:', orderId);
+      console.log('📋 OrderId del frontend:', orderId);
       console.log('📋 OperationType:', operationType);
+      console.log('📋 Amount recibido del frontend:', amount);
+      
+      // Decodificar Ds_MerchantParameters para verificar el importe ANTES de enviarlo a Cecabank
+      try {
+        const decodedParams = Buffer.from(Ds_MerchantParameters, 'base64').toString('utf-8');
+        console.log('📋 JSON decodificado (primeros 500 chars):', decodedParams.substring(0, 500));
+        const merchantParams = JSON.parse(decodedParams);
+        console.log('🔍 Ds_MerchantParameters decodificado:', {
+          DS_MERCHANT_AMOUNT: merchantParams.DS_MERCHANT_AMOUNT,
+          DS_MERCHANT_AMOUNT_type: typeof merchantParams.DS_MERCHANT_AMOUNT,
+          DS_MERCHANT_ORDER: merchantParams.DS_MERCHANT_ORDER,
+          DS_MERCHANT_ORDER_length: merchantParams.DS_MERCHANT_ORDER?.length,
+          DS_MERCHANT_ORDER_es_solo_numeros: /^\d+$/.test(merchantParams.DS_MERCHANT_ORDER || ''),
+          DS_MERCHANT_ORDER_tiene_12_digitos: merchantParams.DS_MERCHANT_ORDER?.length === 12,
+          DS_MERCHANT_MERCHANTCODE: merchantParams.DS_MERCHANT_MERCHANTCODE,
+          DS_MERCHANT_TERMINAL: merchantParams.DS_MERCHANT_TERMINAL,
+          DS_MERCHANT_TERMINAL_esperado_test: '1',
+          DS_MERCHANT_TERMINAL_coincide: merchantParams.DS_MERCHANT_TERMINAL === '1',
+          DS_MERCHANT_URLOK: merchantParams.DS_MERCHANT_URLOK,
+          DS_MERCHANT_URLKO: merchantParams.DS_MERCHANT_URLKO,
+          DS_MERCHANT_CURRENCY: merchantParams.DS_MERCHANT_CURRENCY,
+          DS_MERCHANT_TRANSACTIONTYPE: merchantParams.DS_MERCHANT_TRANSACTIONTYPE,
+          todos_los_campos: Object.keys(merchantParams),
+          json_completo: JSON.stringify(merchantParams, null, 2),
+        });
+        
+        // Verificar específicamente el formato del orderId
+        if (!/^\d{12}$/.test(merchantParams.DS_MERCHANT_ORDER || '')) {
+          console.error('❌ ERROR CRÍTICO: DS_MERCHANT_ORDER no tiene el formato correcto (debe ser 12 dígitos numéricos)');
+          console.error('📋 OrderId recibido:', merchantParams.DS_MERCHANT_ORDER);
+          console.error('📋 Longitud:', merchantParams.DS_MERCHANT_ORDER?.length);
+          console.error('📋 Es solo números:', /^\d+$/.test(merchantParams.DS_MERCHANT_ORDER || ''));
+          return res.status(400).send(`Error: DS_MERCHANT_ORDER debe ser exactamente 12 dígitos numéricos. Valor recibido: ${merchantParams.DS_MERCHANT_ORDER}`);
+        }
+        
+        // Verificar que el terminal sea '1' para pruebas
+        if (process.env.CECABANK_ENTORNO !== 'produccion' && merchantParams.DS_MERCHANT_TERMINAL !== '1') {
+          console.warn('⚠️ ADVERTENCIA: TerminalId no es "1" para pruebas. Valor:', merchantParams.DS_MERCHANT_TERMINAL);
+          console.warn('⚠️ Esto puede causar el error SIS00026 si el terminal no está configurado correctamente');
+        }
+        
+        // Verificar que el importe no sea 0
+        if (merchantParams.DS_MERCHANT_AMOUNT === '0' || merchantParams.DS_MERCHANT_AMOUNT === '' || !merchantParams.DS_MERCHANT_AMOUNT) {
+          console.error('❌ ERROR CRÍTICO: El importe en Ds_MerchantParameters es 0 o inválido:', merchantParams.DS_MERCHANT_AMOUNT);
+          console.error('📋 Todos los parámetros:', JSON.stringify(merchantParams, null, 2));
+          return res.status(400).send(`Error: El importe es 0 o inválido (${merchantParams.DS_MERCHANT_AMOUNT}). Verifica la configuración de precios.`);
+        }
+        
+        // Verificar que todos los campos obligatorios estén presentes
+        const camposObligatorios = ['DS_MERCHANT_AMOUNT', 'DS_MERCHANT_ORDER', 'DS_MERCHANT_MERCHANTCODE', 'DS_MERCHANT_TERMINAL', 'DS_MERCHANT_URLOK', 'DS_MERCHANT_URLKO'];
+        const camposFaltantes = camposObligatorios.filter(campo => !merchantParams[campo]);
+        if (camposFaltantes.length > 0) {
+          console.error('❌ ERROR: Faltan campos obligatorios:', camposFaltantes);
+          return res.status(400).send(`Error: Faltan campos obligatorios: ${camposFaltantes.join(', ')}`);
+        }
+        
+        console.log('✅ Importe verificado correctamente:', merchantParams.DS_MERCHANT_AMOUNT, 'céntimos');
+        console.log('✅ Todos los campos obligatorios presentes');
+        console.log('✅ OrderId verificado:', {
+          valor: merchantParams.DS_MERCHANT_ORDER,
+          longitud: merchantParams.DS_MERCHANT_ORDER?.length,
+          es_12_digitos: merchantParams.DS_MERCHANT_ORDER?.length === 12,
+          es_solo_numeros: /^\d{12}$/.test(merchantParams.DS_MERCHANT_ORDER || ''),
+        });
+        console.log('✅ Terminal verificado:', {
+          valor: merchantParams.DS_MERCHANT_TERMINAL,
+          esperado_test: '1',
+          coincide: merchantParams.DS_MERCHANT_TERMINAL === '1',
+        });
+        console.log('✅ MerchantCode verificado:', {
+          valor: merchantParams.DS_MERCHANT_MERCHANTCODE,
+          esperado_test: '999008881',
+          coincide: merchantParams.DS_MERCHANT_MERCHANTCODE === '999008881',
+        });
+      } catch (decodeError) {
+        console.error('⚠️ Error decodificando Ds_MerchantParameters (continuando de todas formas):', decodeError.message);
+        console.error('📋 Stack:', decodeError.stack);
+        // No bloquear el flujo, pero registrar el error
+      }
       
       // Hacer POST directo a Cecabank SIS
       try {
@@ -580,6 +659,25 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
         postData.append('Ds_SignatureVersion', String(Ds_SignatureVersion));
         postData.append('Ds_MerchantParameters', String(Ds_MerchantParameters));
         postData.append('Ds_Signature', String(Ds_Signature));
+        
+        // Decodificar una vez más para mostrar exactamente qué se enviará
+        try {
+          const finalCheck = Buffer.from(Ds_MerchantParameters, 'base64').toString('utf-8');
+          const finalParams = JSON.parse(finalCheck);
+          console.log('📤 VERIFICACIÓN FINAL antes de enviar a Cecabank:', {
+            DS_MERCHANT_AMOUNT: finalParams.DS_MERCHANT_AMOUNT,
+            DS_MERCHANT_ORDER: finalParams.DS_MERCHANT_ORDER,
+            DS_MERCHANT_ORDER_length: finalParams.DS_MERCHANT_ORDER?.length,
+            DS_MERCHANT_ORDER_es_12_digitos: finalParams.DS_MERCHANT_ORDER?.length === 12,
+            DS_MERCHANT_ORDER_es_solo_numeros: /^\d{12}$/.test(finalParams.DS_MERCHANT_ORDER || ''),
+            DS_MERCHANT_MERCHANTCODE: finalParams.DS_MERCHANT_MERCHANTCODE,
+            DS_MERCHANT_TERMINAL: finalParams.DS_MERCHANT_TERMINAL,
+            DS_MERCHANT_TRANSACTIONTYPE: finalParams.DS_MERCHANT_TRANSACTIONTYPE,
+            DS_MERCHANT_CURRENCY: finalParams.DS_MERCHANT_CURRENCY,
+          });
+        } catch (e) {
+          console.error('⚠️ Error en verificación final:', e.message);
+        }
         
         console.log('📤 Datos a enviar a Cecabank SIS:', {
           Ds_SignatureVersion: String(Ds_SignatureVersion),
