@@ -528,16 +528,22 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     console.log('📋 Claves en req.body:', Object.keys(req.body));
     
     // Verificar si viene el formato SIS moderno (Ds_MerchantParameters, Ds_Signature)
-    const hasDsMerchantParameters = !!req.body.Ds_MerchantParameters;
-    const hasDsSignature = !!req.body.Ds_Signature;
-    const hasDsSignatureVersion = !!req.body.Ds_SignatureVersion;
+    // IMPORTANTE: Extraer los valores de req.body primero
+    const Ds_MerchantParameters = req.body.Ds_MerchantParameters;
+    const Ds_Signature = req.body.Ds_Signature;
+    const Ds_SignatureVersion = req.body.Ds_SignatureVersion || 'HMAC_SHA256_V1';
+    
+    const hasDsMerchantParameters = !!Ds_MerchantParameters;
+    const hasDsSignature = !!Ds_Signature;
+    const hasDsSignatureVersion = !!Ds_SignatureVersion;
     
     console.log('🔍 Verificación formato SIS:', {
       hasDsMerchantParameters,
       hasDsSignature,
       hasDsSignatureVersion,
-      Ds_MerchantParameters_length: req.body.Ds_MerchantParameters ? req.body.Ds_MerchantParameters.length : 0,
-      Ds_Signature_length: req.body.Ds_Signature ? req.body.Ds_Signature.length : 0,
+      Ds_MerchantParameters_length: Ds_MerchantParameters ? Ds_MerchantParameters.length : 0,
+      Ds_Signature_length: Ds_Signature ? Ds_Signature.length : 0,
+      todasLasClaves: Object.keys(req.body),
     });
     
     const isSISFormat = hasDsMerchantParameters && hasDsSignature;
@@ -550,7 +556,12 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       const operationType = req.body.operationType;
       const amount = req.body.amount;
       
+      // Validar que los campos estén presentes
       if (!Ds_MerchantParameters || !Ds_Signature) {
+        console.error('❌ Faltan campos obligatorios SIS:', {
+          tieneDs_MerchantParameters: !!Ds_MerchantParameters,
+          tieneDs_Signature: !!Ds_Signature,
+        });
         return res.status(400).send('Faltan campos obligatorios: Ds_MerchantParameters o Ds_Signature');
       }
       
@@ -566,9 +577,15 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       // Hacer POST directo a Cecabank SIS
       try {
         const postData = new URLSearchParams();
-        postData.append('Ds_SignatureVersion', Ds_SignatureVersion || 'HMAC_SHA256_V1');
-        postData.append('Ds_MerchantParameters', Ds_MerchantParameters);
-        postData.append('Ds_Signature', Ds_Signature);
+        postData.append('Ds_SignatureVersion', String(Ds_SignatureVersion));
+        postData.append('Ds_MerchantParameters', String(Ds_MerchantParameters));
+        postData.append('Ds_Signature', String(Ds_Signature));
+        
+        console.log('📤 Datos a enviar a Cecabank SIS:', {
+          Ds_SignatureVersion: String(Ds_SignatureVersion),
+          Ds_MerchantParameters_length: String(Ds_MerchantParameters).length,
+          Ds_Signature_length: String(Ds_Signature).length,
+        });
         
         console.log('📤 Haciendo POST a Cecabank SIS...');
         
@@ -640,9 +657,9 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
                 <p>Por favor, espera mientras se procesa tu pago.</p>
               </div>
               <form id="cecabankForm" method="POST" action="${cecabankUrl}" style="display: none;">
-                <input type="hidden" name="Ds_SignatureVersion" value="${Ds_SignatureVersion || 'HMAC_SHA256_V1'}" />
-                <input type="hidden" name="Ds_MerchantParameters" value="${Ds_MerchantParameters}" />
-                <input type="hidden" name="Ds_Signature" value="${Ds_Signature}" />
+                <input type="hidden" name="Ds_SignatureVersion" value="${String(Ds_SignatureVersion)}" />
+                <input type="hidden" name="Ds_MerchantParameters" value="${String(Ds_MerchantParameters)}" />
+                <input type="hidden" name="Ds_Signature" value="${String(Ds_Signature)}" />
               </form>
               <script>
                 (function() {
