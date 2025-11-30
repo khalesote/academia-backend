@@ -608,13 +608,31 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
           return res.status(400).send(`Error: DS_MERCHANT_ORDER debe ser exactamente 12 dígitos numéricos. Valor recibido: ${merchantParams.DS_MERCHANT_ORDER}`);
         }
         
-        // Verificar que el terminal sea '1' para pruebas
-        if (process.env.CECABANK_ENTORNO !== 'produccion' && merchantParams.DS_MERCHANT_TERMINAL !== '1') {
-          console.warn('⚠️ ADVERTENCIA: TerminalId no es "1" para pruebas. Valor:', merchantParams.DS_MERCHANT_TERMINAL);
-          console.warn('⚠️ Esto puede causar el error SIS00026 si el terminal no está configurado correctamente');
+        // Verificar que el terminal esté presente y sea válido
+        // NOTA: Para pruebas de Redsys es '1', pero para Cecabank puede ser '3' o '00000003'
+        if (!merchantParams.DS_MERCHANT_TERMINAL || merchantParams.DS_MERCHANT_TERMINAL === '') {
+          console.error('❌ ERROR CRÍTICO: DS_MERCHANT_TERMINAL está vacío o no está presente');
+          return res.status(400).send('Error: DS_MERCHANT_TERMINAL es obligatorio');
         }
         
+        console.log('✅ Terminal verificado:', {
+          valor: merchantParams.DS_MERCHANT_TERMINAL,
+          longitud: merchantParams.DS_MERCHANT_TERMINAL?.length,
+          es_valido: !!merchantParams.DS_MERCHANT_TERMINAL && merchantParams.DS_MERCHANT_TERMINAL !== '',
+        });
+        
         // Verificar que el importe no sea 0
+        console.log('🔍 Verificación detallada del importe:', {
+          DS_MERCHANT_AMOUNT: merchantParams.DS_MERCHANT_AMOUNT,
+          DS_MERCHANT_AMOUNT_type: typeof merchantParams.DS_MERCHANT_AMOUNT,
+          DS_MERCHANT_AMOUNT_length: merchantParams.DS_MERCHANT_AMOUNT?.length,
+          es_0: merchantParams.DS_MERCHANT_AMOUNT === '0',
+          es_vacio: merchantParams.DS_MERCHANT_AMOUNT === '',
+          es_null: merchantParams.DS_MERCHANT_AMOUNT === null,
+          es_undefined: merchantParams.DS_MERCHANT_AMOUNT === undefined,
+          es_falsy: !merchantParams.DS_MERCHANT_AMOUNT,
+        });
+        
         if (merchantParams.DS_MERCHANT_AMOUNT === '0' || merchantParams.DS_MERCHANT_AMOUNT === '' || !merchantParams.DS_MERCHANT_AMOUNT) {
           console.error('❌ ERROR CRÍTICO: El importe en Ds_MerchantParameters es 0 o inválido:', merchantParams.DS_MERCHANT_AMOUNT);
           console.error('📋 Todos los parámetros:', JSON.stringify(merchantParams, null, 2));
