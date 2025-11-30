@@ -752,7 +752,23 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       }
     });
     
+    // Asegurar que URL_OK y URL_KO estén presentes (son obligatorios)
+    if (!formDataOrdenado.URL_OK) {
+      console.error('❌ ERROR: URL_OK no está en formDataOrdenado');
+      throw new Error('URL_OK es obligatorio');
+    }
+    
+    if (!formDataOrdenado.URL_KO) {
+      console.error('❌ ERROR: URL_KO no está en formDataOrdenado');
+      console.error('📋 formData.URL_KO original:', formData.URL_KO);
+      // Si no está, usar URL_OK como fallback (algunos TPV solo permiten URL_OK)
+      formDataOrdenado.URL_KO = formDataOrdenado.URL_OK;
+      console.warn('⚠️ Usando URL_OK como URL_KO (fallback)');
+    }
+    
     console.log('📋 Campos ordenados:', Object.keys(formDataOrdenado));
+    console.log('🔗 URL_OK en formDataOrdenado:', formDataOrdenado.URL_OK ? 'Sí' : 'No');
+    console.log('🔗 URL_KO en formDataOrdenado:', formDataOrdenado.URL_KO ? 'Sí' : 'No');
     
     // Intentar hacer POST directamente a Cecabank y devolver la respuesta
     try {
@@ -761,18 +777,44 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       // Crear URLSearchParams para el POST
       const postData = new URLSearchParams();
       Object.entries(formDataOrdenado).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          postData.append(key, String(value));
+        if (value !== undefined && value !== null && value !== '') {
+          const stringValue = String(value).trim();
+          if (stringValue) {
+            postData.append(key, stringValue);
+          }
         }
       });
+      
+      // Verificar que URL_OK y URL_KO estén presentes
+      const tieneUrlOk = postData.has('URL_OK');
+      const tieneUrlKo = postData.has('URL_KO');
+      const urlOkValue = postData.get('URL_OK');
+      const urlKoValue = postData.get('URL_KO');
       
       console.log('📋 Datos a enviar a Cecabank:', {
         numCampos: postData.toString().split('&').length,
         tieneMerchantID: postData.has('MerchantID'),
         tieneImporte: postData.has('Importe'),
         importe: postData.get('Importe'),
-        tieneFirma: postData.has('Firma')
+        tieneFirma: postData.has('Firma'),
+        tieneURL_OK: tieneUrlOk,
+        tieneURL_KO: tieneUrlKo,
+        URL_OK_value: urlOkValue ? urlOkValue.substring(0, 50) + '...' : 'NO PRESENTE',
+        URL_KO_value: urlKoValue ? urlKoValue.substring(0, 50) + '...' : 'NO PRESENTE'
       });
+      
+      // Verificar que URL_KO esté presente antes de enviar
+      if (!tieneUrlKo || !urlKoValue) {
+        console.error('❌ ERROR: URL_KO no está presente en los datos a enviar');
+        console.error('📋 formDataOrdenado contiene URL_KO?', 'URL_KO' in formDataOrdenado);
+        console.error('📋 Valor de formDataOrdenado.URL_KO:', formDataOrdenado.URL_KO);
+        throw new Error('URL_KO es obligatorio pero no está presente en los datos');
+      }
+      
+      if (!tieneUrlOk || !urlOkValue) {
+        console.error('❌ ERROR: URL_OK no está presente en los datos a enviar');
+        throw new Error('URL_OK es obligatorio pero no está presente en los datos');
+      }
       
       // Hacer POST a Cecabank
       const cecabankResponse = await fetch(urlCecabank, {
