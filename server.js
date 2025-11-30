@@ -716,42 +716,7 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     
     console.log('🔗 URL de Cecabank:', urlCecabank);
     
-    // Crear formulario HTML que se auto-envía
-    console.log('📋 Datos recibidos para formulario:', Object.keys(formData));
-    console.log('📋 Número de campos:', Object.keys(formData).length);
-    
-    // Nota: La validación de campos obligatorios ya se hizo arriba
-    // Solo verificamos campos esenciales adicionales para logging
-    const camposEsenciales = ['MerchantID', 'AcquirerBIN', 'TerminalID', 'Num_operacion', 'Importe', 'Firma'];
-    const camposEsencialesFaltantes = camposEsenciales.filter(campo => !formData[campo]);
-    if (camposEsencialesFaltantes.length > 0) {
-      console.error('❌ Campos esenciales faltantes en formData:', camposEsencialesFaltantes);
-    } else {
-      console.log('✅ Todos los campos esenciales están presentes');
-    }
-    
-    // Log específico para URLs antes de generar el formulario
-    console.log('🔗 URLs antes de generar formulario:', {
-      URL_OK: formData.URL_OK,
-      URL_KO: formData.URL_KO,
-      URL_OK_length: formData.URL_OK?.length,
-      URL_KO_length: formData.URL_KO?.length,
-      URL_OK_type: typeof formData.URL_OK,
-      URL_KO_type: typeof formData.URL_KO
-    });
-    
-    // Las URLs ya están limpias desde antes (se limpiaron antes de calcular la firma)
-    // Solo verificamos que sigan estando limpias
-    if (formData.URL_OK) {
-      formData.URL_OK = String(formData.URL_OK).trim();
-    }
-    if (formData.URL_KO) {
-      formData.URL_KO = String(formData.URL_KO).trim();
-    }
-    
-    // Ordenar campos según el orden recomendado por Cecabank
-    // IMPORTANTE: La Firma debe ir al final, después de todos los datos
-    // Orden estándar: MerchantID, AcquirerBIN, TerminalID, Num_operacion, Importe, TipoMoneda, Exponente, Cifrado, URL_OK, URL_KO, Idioma, Descripcion, FechaOperacion, HoraOperacion, Firma, Email, Nombre
+    // Ordenar campos según el orden recomendado por Cecabank (mover antes del POST)
     const ordenCampos = [
       'MerchantID',
       'AcquirerBIN',
@@ -788,6 +753,97 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     });
     
     console.log('📋 Campos ordenados:', Object.keys(formDataOrdenado));
+    
+    // Intentar hacer POST directamente a Cecabank y devolver la respuesta
+    try {
+      console.log('📤 Haciendo POST directo a Cecabank...');
+      
+      // Crear URLSearchParams para el POST
+      const postData = new URLSearchParams();
+      Object.entries(formDataOrdenado).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          postData.append(key, String(value));
+        }
+      });
+      
+      console.log('📋 Datos a enviar a Cecabank:', {
+        numCampos: postData.toString().split('&').length,
+        tieneMerchantID: postData.has('MerchantID'),
+        tieneImporte: postData.has('Importe'),
+        importe: postData.get('Importe'),
+        tieneFirma: postData.has('Firma')
+      });
+      
+      // Hacer POST a Cecabank
+      const cecabankResponse = await fetch(urlCecabank, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'User-Agent': 'Mozilla/5.0 (compatible; AcademiaBackend/1.0)',
+        },
+        body: postData.toString(),
+        redirect: 'follow' // Seguir redirecciones
+      });
+      
+      console.log('📥 Respuesta de Cecabank:', {
+        status: cecabankResponse.status,
+        statusText: cecabankResponse.statusText,
+        headers: Object.fromEntries(cecabankResponse.headers.entries()),
+        url: cecabankResponse.url
+      });
+      
+      if (cecabankResponse.ok || cecabankResponse.status < 400) {
+        const htmlContent = await cecabankResponse.text();
+        console.log('✅ HTML recibido de Cecabank, longitud:', htmlContent.length);
+        console.log('📄 Primeros 500 caracteres:', htmlContent.substring(0, 500));
+        
+        // Devolver el HTML directamente al cliente
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        return res.send(htmlContent);
+      } else {
+        console.error('❌ Error en respuesta de Cecabank:', cecabankResponse.status);
+        throw new Error(`Cecabank respondió con status ${cecabankResponse.status}`);
+      }
+    } catch (fetchError) {
+      console.error('❌ Error haciendo POST directo a Cecabank:', fetchError);
+      console.log('⚠️  Fallando a método de formulario HTML...');
+      // Continuar con el método de formulario HTML como fallback
+    }
+    
+    // Crear formulario HTML que se auto-envía (FALLBACK)
+    console.log('📋 Datos recibidos para formulario:', Object.keys(formData));
+    console.log('📋 Número de campos:', Object.keys(formData).length);
+    
+    // Nota: La validación de campos obligatorios ya se hizo arriba
+    // Solo verificamos campos esenciales adicionales para logging
+    const camposEsenciales = ['MerchantID', 'AcquirerBIN', 'TerminalID', 'Num_operacion', 'Importe', 'Firma'];
+    const camposEsencialesFaltantes = camposEsenciales.filter(campo => !formData[campo]);
+    if (camposEsencialesFaltantes.length > 0) {
+      console.error('❌ Campos esenciales faltantes en formData:', camposEsencialesFaltantes);
+    } else {
+      console.log('✅ Todos los campos esenciales están presentes');
+    }
+    
+    // Log específico para URLs antes de generar el formulario
+    console.log('🔗 URLs antes de generar formulario:', {
+      URL_OK: formData.URL_OK,
+      URL_KO: formData.URL_KO,
+      URL_OK_length: formData.URL_OK?.length,
+      URL_KO_length: formData.URL_KO?.length,
+      URL_OK_type: typeof formData.URL_OK,
+      URL_KO_type: typeof formData.URL_KO
+    });
+    
+    // Las URLs ya están limpias desde antes (se limpiaron antes de calcular la firma)
+    // Solo verificamos que sigan estando limpias
+    if (formData.URL_OK) {
+      formData.URL_OK = String(formData.URL_OK).trim();
+    }
+    if (formData.URL_KO) {
+      formData.URL_KO = String(formData.URL_KO).trim();
+    }
+    
     console.log('🔗 URL_KO en posición:', Object.keys(formDataOrdenado).indexOf('URL_KO'));
     console.log('🔗 URL_OK en posición:', Object.keys(formDataOrdenado).indexOf('URL_OK'));
     
@@ -891,16 +947,24 @@ ${formFields}
         console.log('📍 URL destino:', '${urlCecabank}');
         
         var formSubmitted = false;
+        var submitAttempts = 0;
+        var maxAttempts = 10;
         
         function submitForm() {
-          if (formSubmitted) {
+          submitAttempts++;
+          
+          if (formSubmitted && submitAttempts > 1) {
+            console.log('⚠️ Formulario ya enviado, intento', submitAttempts);
             return false;
           }
           
           try {
             const form = document.getElementById('cecabankForm');
             if (!form) {
-              console.error('❌ Formulario no encontrado');
+              console.error('❌ Formulario no encontrado, intento', submitAttempts);
+              if (submitAttempts < maxAttempts) {
+                return false; // Reintentar
+              }
               return false;
             }
             
@@ -910,6 +974,9 @@ ${formFields}
             
             if (!urlOkField || !urlKoField) {
               console.error('❌ URLs faltantes en el formulario');
+              if (submitAttempts < maxAttempts) {
+                return false; // Reintentar
+              }
               return false;
             }
             
@@ -922,29 +989,98 @@ ${formFields}
             form.enctype = 'application/x-www-form-urlencoded';
             form.target = '_self';
             
+            // Verificar que el importe no sea 0
+            const importeField = form.querySelector('input[name="Importe"]');
+            if (importeField) {
+              console.log('💰 Importe:', importeField.value);
+              if (!importeField.value || importeField.value === '000000000000') {
+                console.error('❌ ERROR: Importe es 0 o vacío!');
+                alert('Error: El importe no puede ser 0. Por favor, contacta con soporte.');
+                return false;
+              }
+            }
+            
             formSubmitted = true;
             
-            console.log('📤 Enviando formulario POST a:', form.action);
-            form.submit();
+            console.log('📤 Enviando formulario POST a:', form.action, '(intento', submitAttempts, ')');
+            
+            // Forzar el envío de múltiples formas
+            try {
+              form.submit();
+            } catch (e1) {
+              console.error('Error en form.submit():', e1);
+              try {
+                form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+              } catch (e2) {
+                console.error('Error en dispatchEvent:', e2);
+                // Último recurso: crear un nuevo formulario y enviarlo
+                const newForm = document.createElement('form');
+                newForm.method = 'POST';
+                newForm.action = form.action;
+                newForm.enctype = 'application/x-www-form-urlencoded';
+                newForm.target = '_self';
+                
+                // Copiar todos los campos
+                Array.from(form.elements).forEach(function(element) {
+                  if (element.tagName === 'INPUT') {
+                    const newInput = element.cloneNode(true);
+                    newForm.appendChild(newInput);
+                  }
+                });
+                
+                document.body.appendChild(newForm);
+                newForm.submit();
+              }
+            }
+            
             return true;
           } catch (error) {
-            console.error('❌ Error:', error);
+            console.error('❌ Error en submitForm:', error);
             formSubmitted = false;
+            if (submitAttempts < maxAttempts) {
+              return false; // Reintentar
+            }
             return false;
+          }
+        }
+        
+        // Función para forzar envío inmediato
+        function forceSubmit() {
+          if (!formSubmitted) {
+            submitForm();
           }
         }
         
         // Intentar enviar cuando el DOM esté listo
         if (document.readyState === 'complete' || document.readyState === 'interactive') {
-          submitForm();
+          console.log('📋 DOM ya está listo, enviando inmediatamente');
+          forceSubmit();
         } else {
-          document.addEventListener('DOMContentLoaded', submitForm);
+          console.log('⏳ Esperando DOMContentLoaded...');
+          document.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ DOMContentLoaded disparado');
+            forceSubmit();
+          });
         }
         
-        // Respaldo con timeouts
-        setTimeout(submitForm, 50);
-        setTimeout(submitForm, 100);
-        setTimeout(submitForm, 200);
+        // Respaldo con timeouts múltiples para asegurar el envío
+        setTimeout(forceSubmit, 10);
+        setTimeout(forceSubmit, 50);
+        setTimeout(forceSubmit, 100);
+        setTimeout(forceSubmit, 200);
+        setTimeout(forceSubmit, 300);
+        setTimeout(forceSubmit, 500);
+        setTimeout(forceSubmit, 800);
+        setTimeout(forceSubmit, 1000);
+        setTimeout(forceSubmit, 1500);
+        setTimeout(forceSubmit, 2000);
+        
+        // También intentar cuando la ventana esté completamente cargada
+        window.addEventListener('load', function() {
+          console.log('✅ Window load event');
+          setTimeout(forceSubmit, 100);
+          setTimeout(forceSubmit, 500);
+        });
       })();
       
       // Detectar callbacks (solo si no estamos en nuestra página de redirección)
@@ -1276,10 +1412,33 @@ app.post('/api/cecabank/ok', express.urlencoded({ extended: true }), async (req,
     let operationType = 'unknown';
     let levelUnlocked = null;
     
-    if (parseInt(Importe) === 2000) { // 20.00 euros en céntimos
+    // Intentar extraer el nivel de la descripción si está disponible
+    const descripcionLower = (Descripcion || '').toLowerCase();
+    
+    // Detectar niveles individuales (15€ = 1500 céntimos)
+    if (parseInt(Importe) === 1500) { // 15.00 euros en céntimos
+      // Intentar detectar el nivel desde la descripción
+      if (descripcionLower.includes('a1') || descripcionLower.includes('nivel a1')) {
+        operationType = 'matricula-a1';
+        levelUnlocked = 'A1';
+      } else if (descripcionLower.includes('a2') || descripcionLower.includes('nivel a2')) {
+        operationType = 'matricula-a2';
+        levelUnlocked = 'A2';
+      } else if (descripcionLower.includes('b1') || descripcionLower.includes('nivel b1')) {
+        operationType = 'matricula-b1';
+        levelUnlocked = 'B1';
+      } else if (descripcionLower.includes('b2') || descripcionLower.includes('nivel b2')) {
+        operationType = 'matricula-b2';
+        levelUnlocked = 'B2';
+      } else {
+        // Por defecto, si no se puede determinar, usar genérico
+        operationType = 'matricula';
+        levelUnlocked = 'UNKNOWN';
+      }
+    } else if (parseInt(Importe) === 2000) { // 20.00 euros en céntimos (compatibilidad con sistema anterior)
       operationType = 'matricula-a1a2';
       levelUnlocked = 'A1A2';
-    } else if (parseInt(Importe) === 3000) { // 30.00 euros en céntimos
+    } else if (parseInt(Importe) === 3000) { // 30.00 euros en céntimos (compatibilidad con sistema anterior)
       operationType = 'matricula-b1b2';
       levelUnlocked = 'B1B2';
     } else if (parseInt(Importe) === 1000) { // 10.00 euros en céntimos
