@@ -614,9 +614,33 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
         console.error('❌ Error haciendo POST a Cecabank SIS:', fetchError);
         
         // Fallback: crear formulario HTML que se auto-envía
+        // Escapar valores para atributos HTML (solo caracteres problemáticos, no Base64 completo)
+        const escapeHtmlAttr = (str) => {
+          if (!str) return '';
+          const strValue = String(str);
+          // Solo escapar caracteres que pueden romper atributos HTML
+          // NO escapar +, /, = que son válidos en Base64
+          return strValue
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+        };
+        
+        const escapedDsMerchantParameters = escapeHtmlAttr(String(Ds_MerchantParameters));
+        const escapedDsSignature = escapeHtmlAttr(String(Ds_Signature));
+        const escapedDsSignatureVersion = escapeHtmlAttr(String(Ds_SignatureVersion));
+        
+        console.log('📋 Valores escapados para HTML:', {
+          Ds_MerchantParameters_length: escapedDsMerchantParameters.length,
+          Ds_Signature_length: escapedDsSignature.length,
+          Ds_SignatureVersion: escapedDsSignatureVersion,
+        });
+        
         const formHtml = `
           <!DOCTYPE html>
-          <html>
+          <html lang="es">
             <head>
               <meta charset="UTF-8">
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -656,10 +680,10 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
                 <p>Redirigiendo al TPV de Cecabank...</p>
                 <p>Por favor, espera mientras se procesa tu pago.</p>
               </div>
-              <form id="cecabankForm" method="POST" action="${cecabankUrl}" style="display: none;">
-                <input type="hidden" name="Ds_SignatureVersion" value="${String(Ds_SignatureVersion)}" />
-                <input type="hidden" name="Ds_MerchantParameters" value="${String(Ds_MerchantParameters)}" />
-                <input type="hidden" name="Ds_Signature" value="${String(Ds_Signature)}" />
+              <form id="cecabankForm" method="POST" action="${cecabankUrl}" enctype="application/x-www-form-urlencoded" accept-charset="UTF-8" style="display: none;">
+                <input type="hidden" name="Ds_SignatureVersion" value="${escapedDsSignatureVersion}" />
+                <input type="hidden" name="Ds_MerchantParameters" value="${escapedDsMerchantParameters}" />
+                <input type="hidden" name="Ds_Signature" value="${escapedDsSignature}" />
               </form>
               <script>
                 (function() {
