@@ -525,18 +525,188 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     console.log('🔄 Endpoint de redirección a Cecabank recibido');
     console.log('📝 Datos recibidos:', req.body);
     console.log('📋 Content-Type:', req.headers['content-type']);
+    console.log('📋 Claves en req.body:', Object.keys(req.body));
+    
+    // Verificar si viene el formato SIS moderno (Ds_MerchantParameters, Ds_Signature)
+    const hasDsMerchantParameters = !!req.body.Ds_MerchantParameters;
+    const hasDsSignature = !!req.body.Ds_Signature;
+    const hasDsSignatureVersion = !!req.body.Ds_SignatureVersion;
+    
+    console.log('🔍 Verificación formato SIS:', {
+      hasDsMerchantParameters,
+      hasDsSignature,
+      hasDsSignatureVersion,
+      Ds_MerchantParameters_length: req.body.Ds_MerchantParameters ? req.body.Ds_MerchantParameters.length : 0,
+      Ds_Signature_length: req.body.Ds_Signature ? req.body.Ds_Signature.length : 0,
+    });
+    
+    const isSISFormat = hasDsMerchantParameters && hasDsSignature;
+    
+    if (isSISFormat) {
+      console.log('✅ Formato SIS moderno detectado - procesando...');
+      
+      // Método SIS moderno - usar directamente los campos recibidos
+      const orderId = req.body.orderId;
+      const operationType = req.body.operationType;
+      const amount = req.body.amount;
+      
+      if (!Ds_MerchantParameters || !Ds_Signature) {
+        return res.status(400).send('Faltan campos obligatorios: Ds_MerchantParameters o Ds_Signature');
+      }
+      
+      // Determinar URL de Cecabank SIS (usa la misma plataforma que Redsys)
+      const cecabankUrl = process.env.CECABANK_ENTORNO === 'produccion'
+        ? 'https://sis.redsys.es/sis/realizarPago'
+        : 'https://sis-t.redsys.es:25443/sis/realizarPago';
+      
+      console.log('🔗 URL de Cecabank SIS:', cecabankUrl);
+      console.log('📋 OrderId:', orderId);
+      console.log('📋 OperationType:', operationType);
+      
+      // Hacer POST directo a Cecabank SIS
+      try {
+        const postData = new URLSearchParams();
+        postData.append('Ds_SignatureVersion', Ds_SignatureVersion || 'HMAC_SHA256_V1');
+        postData.append('Ds_MerchantParameters', Ds_MerchantParameters);
+        postData.append('Ds_Signature', Ds_Signature);
+        
+        console.log('📤 Haciendo POST a Cecabank SIS...');
+        
+        const cecabankResponse = await fetch(cecabankUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: postData.toString(),
+        });
+        
+        if (!cecabankResponse.ok) {
+          console.error('❌ Error en respuesta de Cecabank SIS:', cecabankResponse.status, cecabankResponse.statusText);
+          throw new Error(`Error de Cecabank SIS: ${cecabankResponse.status}`);
+        }
+        
+        const htmlContent = await cecabankResponse.text();
+        console.log('✅ HTML recibido de Cecabank SIS, longitud:', htmlContent.length);
+        console.log('📄 Primeros 500 caracteres:', htmlContent.substring(0, 500));
+        
+        // Devolver el HTML directamente al cliente
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        return res.send(htmlContent);
+        
+      } catch (fetchError) {
+        console.error('❌ Error haciendo POST a Cecabank SIS:', fetchError);
+        
+        // Fallback: crear formulario HTML que se auto-envía
+        const formHtml = `
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Redirigiendo a Cecabank...</title>
+              <style>
+                body {
+                  font-family: Arial, sans-serif;
+                  display: flex;
+                  justify-content: center;
+                  align-items: center;
+                  height: 100vh;
+                  margin: 0;
+                  background: #f5f5f5;
+                }
+                .container {
+                  text-align: center;
+                  padding: 20px;
+                }
+                .spinner {
+                  border: 4px solid #f3f3f3;
+                  border-top: 4px solid #4CAF50;
+                  border-radius: 50%;
+                  width: 40px;
+                  height: 40px;
+                  animation: spin 1s linear infinite;
+                  margin: 0 auto 20px;
+                }
+                @keyframes spin {
+                  0% { transform: rotate(0deg); }
+                  100% { transform: rotate(360deg); }
+                }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="spinner"></div>
+                <p>Redirigiendo al TPV de Cecabank...</p>
+                <p>Por favor, espera mientras se procesa tu pago.</p>
+              </div>
+              <form id="cecabankForm" method="POST" action="${cecabankUrl}" style="display: none;">
+                <input type="hidden" name="Ds_SignatureVersion" value="${Ds_SignatureVersion || 'HMAC_SHA256_V1'}" />
+                <input type="hidden" name="Ds_MerchantParameters" value="${Ds_MerchantParameters}" />
+                <input type="hidden" name="Ds_Signature" value="${Ds_Signature}" />
+              </form>
+              <script>
+                (function() {
+                  console.log('🚀 Script de envío iniciado (SIS)');
+                  var formSubmitted = false;
+                  
+                  function submitForm() {
+                    if (formSubmitted) return false;
+                    
+                    try {
+                      const form = document.getElementById('cecabankForm');
+                      if (!form) {
+                        console.error('❌ Formulario no encontrado');
+                        return false;
+                      }
+                      
+                      formSubmitted = true;
+                      console.log('📤 Enviando formulario POST a:', form.action);
+                      form.submit();
+                      return true;
+                    } catch (error) {
+                      console.error('❌ Error:', error);
+                      formSubmitted = false;
+                      return false;
+                    }
+                  }
+                  
+                  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+                    submitForm();
+                  } else {
+                    document.addEventListener('DOMContentLoaded', submitForm);
+                  }
+                  
+                  setTimeout(submitForm, 50);
+                  setTimeout(submitForm, 100);
+                  setTimeout(submitForm, 200);
+                })();
+              </script>
+            </body>
+          </html>
+        `;
+        
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        return res.send(formHtml);
+      }
+    }
+    
+    // Método antiguo (compatibilidad hacia atrás)
+    console.log('⚠️ Formato antiguo detectado, usando método legacy');
+    console.log('📋 Campos recibidos:', Object.keys(req.body));
     
     // Aceptar datos de form-urlencoded
     let formData = req.body;
     
     if (!formData || Object.keys(formData).length === 0) {
+      console.error('❌ No se recibieron datos del formulario');
       return res.status(400).send('No se recibieron datos del formulario');
     }
     
-    // Verificar que al menos URL_OK esté presente
+    // Verificar que al menos URL_OK esté presente (solo para método antiguo)
     if (!formData.URL_OK) {
-      console.error('❌ URL_OK faltante');
-      return res.status(400).send('URL_OK es obligatoria');
+      console.error('❌ URL_OK faltante en método antiguo');
+      console.error('📋 Si estás usando el método SIS moderno, asegúrate de enviar Ds_MerchantParameters y Ds_Signature');
+      return res.status(400).send('URL_OK es obligatoria para el método antiguo. Si usas SIS moderno, envía Ds_MerchantParameters y Ds_Signature');
     }
     
     // Limpiar URLs inmediatamente (sin espacios, sin caracteres especiales)
@@ -1777,7 +1947,6 @@ app.get('/api/cecabank/payment/:orderId', async (req, res) => {
   }
 });
 
-// Ruta de prueba
 // ============================================
 // ENDPOINT PARA SINCRONIZAR USUARIOS CON ODOO
 // ============================================
