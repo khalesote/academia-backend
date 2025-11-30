@@ -602,13 +602,46 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
           throw new Error(`Error de Cecabank SIS: ${cecabankResponse.status}`);
         }
         
+        // Obtener el HTML preservando la codificación UTF-8
         const htmlContent = await cecabankResponse.text();
         console.log('✅ HTML recibido de Cecabank SIS, longitud:', htmlContent.length);
         console.log('📄 Primeros 500 caracteres:', htmlContent.substring(0, 500));
         
-        // Devolver el HTML directamente al cliente
+        // Verificar y corregir el charset en el HTML si es necesario
+        let finalHtml = htmlContent;
+        
+        // Asegurar que el HTML tenga charset UTF-8 en el meta tag
+        if (!finalHtml.match(/<meta[^>]*charset[^>]*>/i)) {
+          // Si no hay meta charset, añadirlo al head
+          finalHtml = finalHtml.replace(
+            /<head[^>]*>/i,
+            '<head><meta charset="UTF-8">'
+          );
+        } else {
+          // Reemplazar cualquier charset existente por UTF-8
+          finalHtml = finalHtml.replace(
+            /<meta[^>]*charset=["'][^"']*["'][^>]*>/i,
+            '<meta charset="UTF-8">'
+          );
+        }
+        
+        // Asegurar que el HTML tenga lang="es" para español
+        if (!finalHtml.match(/<html[^>]*lang[^>]*>/i)) {
+          finalHtml = finalHtml.replace(
+            /<html[^>]*>/i,
+            '<html lang="es">'
+          );
+        }
+        
+        console.log('📋 HTML procesado, longitud final:', finalHtml.length);
+        console.log('📋 Tiene charset UTF-8:', finalHtml.includes('charset="UTF-8"') || finalHtml.includes("charset='UTF-8'"));
+        
+        // Devolver el HTML con headers correctos para UTF-8
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
-        return res.send(htmlContent);
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+        return res.send(Buffer.from(finalHtml, 'utf-8'));
         
       } catch (fetchError) {
         console.error('❌ Error haciendo POST a Cecabank SIS:', fetchError);
