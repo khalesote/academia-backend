@@ -682,15 +682,32 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
         console.log('📤 Datos a enviar a Cecabank SIS:', {
           Ds_SignatureVersion: String(Ds_SignatureVersion),
           Ds_MerchantParameters_length: String(Ds_MerchantParameters).length,
+          Ds_MerchantParameters_preview: String(Ds_MerchantParameters).substring(0, 50) + '...',
           Ds_Signature_length: String(Ds_Signature).length,
+          Ds_Signature_preview: String(Ds_Signature).substring(0, 30) + '...',
+          Ds_Signature_completa: String(Ds_Signature),
+        });
+        
+        // Verificar que la firma no se haya modificado
+        const firmaOriginal = String(Ds_Signature);
+        const firmaEnPostData = postData.get('Ds_Signature');
+        console.log('🔍 Verificación de firma antes de enviar:', {
+          firma_original: firmaOriginal,
+          firma_en_postData: firmaEnPostData,
+          firmas_coinciden: firmaOriginal === firmaEnPostData,
         });
         
         console.log('📤 Haciendo POST a Cecabank SIS...');
+        console.log('📤 URL:', cecabankUrl);
+        console.log('📤 Body preview (primeros 200 chars):', postData.toString().substring(0, 200));
         
         const cecabankResponse = await fetch(cecabankUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'es-ES,es;q=0.9',
+            'User-Agent': 'Mozilla/5.0 (compatible; CecabankPayment/1.0)',
           },
           body: postData.toString(),
         });
