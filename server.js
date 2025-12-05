@@ -565,10 +565,48 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
         return res.status(400).send('Faltan campos obligatorios: Ds_MerchantParameters o Ds_Signature');
       }
       
-      // Determinar URL de Cecabank SIS (usa la misma plataforma que Redsys)
-      const cecabankUrl = process.env.CECABANK_ENTORNO === 'produccion'
+      // Determinar URL de Cecabank SIS
+      // CRÍTICO: Si estamos usando credenciales de Cecabank (no las de prueba de Redsys),
+      // SIEMPRE usar la URL de producción porque Cecabank no tiene entorno de prueba separado
+      // El error SIS0026 indica que el comercio/terminal no es válido para la URL de prueba
+      const merchantCode = req.body.Ds_MerchantParameters ? 
+        (() => {
+          try {
+            const decoded = Buffer.from(req.body.Ds_MerchantParameters, 'base64').toString('utf-8');
+            const params = JSON.parse(decoded);
+            return params.DS_MERCHANT_MERCHANTCODE;
+          } catch (e) {
+            return null;
+          }
+        })() : null;
+      
+      const esCredencialesPruebaRedsys = merchantCode === '999008881';
+      const esCredencialesCecabank = merchantCode && merchantCode !== '999008881';
+      const usarUrlProduccion = process.env.CECABANK_ENTORNO === 'produccion' || esCredencialesCecabank;
+      
+      let cecabankUrl = usarUrlProduccion
         ? 'https://sis.redsys.es/sis/realizarPago'
         : 'https://sis-t.redsys.es:25443/sis/realizarPago';
+      
+      // ADVERTENCIA: Si detectamos credenciales de Cecabank pero se está usando URL de prueba, forzar producción
+      if (esCredencialesCecabank && cecabankUrl.includes('sis-t.redsys.es')) {
+        console.error('❌ ERROR CRÍTICO: Se detectaron credenciales de producción de Cecabank pero se está intentando usar la URL de prueba. Esto causará el error SIS0026. Forzando uso de URL de producción.');
+        cecabankUrl = 'https://sis.redsys.es/sis/realizarPago';
+      }
+      
+      console.log('🔗 URL de Cecabank SIS seleccionada:', {
+        entorno: process.env.CECABANK_ENTORNO,
+        merchantCode,
+        esCredencialesPruebaRedsys,
+        esCredencialesCecabank,
+        usarUrlProduccion,
+        url: cecabankUrl,
+        razon: esCredencialesCecabank 
+          ? 'Credenciales de Cecabank - FORZAR producción (Cecabank no tiene entorno de prueba)' 
+          : esCredencialesPruebaRedsys 
+            ? 'Credenciales de prueba Redsys - usar URL de prueba' 
+            : 'Entorno configurado como producción',
+      });
       
       console.log('🔗 URL de Cecabank SIS:', cecabankUrl);
       console.log('📋 OrderId del frontend:', orderId);
