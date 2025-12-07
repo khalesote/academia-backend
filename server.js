@@ -632,7 +632,7 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
         esCredencialesPruebaRedsys,
         esCredencialesCecabank,
         tieneCredencialesProduccionBackend,
-        usarUrlProduccion,
+        debeUsarProduccion,
         url: cecabankUrl,
         url_contiene_sis_t: cecabankUrl.includes('sis-t.redsys.es'),
         url_contiene_sis_produccion: cecabankUrl.includes('sis.redsys.es') && !cecabankUrl.includes('sis-t'),
