@@ -588,31 +588,46 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
                                                      process.env.CECABANK_MERCHANT_ID !== '' &&
                                                      process.env.CECABANK_MERCHANT_ID !== '999008881');
       
-      // CRÍTICO: Si detectamos credenciales de Cecabank (producción), SIEMPRE usar URL de producción
-      // Cecabank no tiene entorno de prueba separado, así que las credenciales de producción
-      // DEBEN usar la URL de producción, no la de prueba
-      const debeUsarProduccion = esCredencialesCecabank || 
-                                tieneCredencialesProduccionBackend ||
-                                process.env.CECABANK_ENTORNO === 'produccion';
+      // Determinar si estamos en modo prueba o producción
+      // IMPORTANTE: Si el entorno está configurado como 'test', usar URL de prueba
+      // incluso si el merchant code no es el estándar de Redsys
+      const entornoConfigurado = process.env.CECABANK_ENTORNO || process.env.EXPO_PUBLIC_CECABANK_ENTORNO || 'test';
+      const esModoPrueba = entornoConfigurado === 'test' || entornoConfigurado === 'prueba';
+      const esModoProduccion = entornoConfigurado === 'produccion' || entornoConfigurado === 'production';
       
-      // SIEMPRE usar URL de producción si detectamos credenciales de Cecabank
-      let cecabankUrl = debeUsarProduccion
-        ? 'https://sis.redsys.es/sis/realizarPago'
-        : 'https://sis-t.redsys.es:25443/sis/realizarPago';
+      // CRÍTICO: Si estamos en modo prueba, SIEMPRE usar URL de prueba
+      // Si estamos en modo producción, usar URL de producción
+      const debeUsarProduccion = esModoProduccion && 
+                                (esCredencialesCecabank || tieneCredencialesProduccionBackend);
       
-      // FORZAR URL de producción si detectamos credenciales de Cecabank (producción)
-      // Esto es CRÍTICO para evitar el error SIS0026
-      if (esCredencialesCecabank || tieneCredencialesProduccionBackend) {
-        cecabankUrl = 'https://sis.redsys.es/sis/realizarPago';
-        console.warn('⚠️ FORZANDO URL de producción porque se detectaron credenciales de Cecabank');
-        console.warn('📋 merchantCode detectado:', merchantCode);
-        console.warn('📋 esCredencialesCecabank:', esCredencialesCecabank);
-        console.warn('📋 tieneCredencialesProduccionBackend:', tieneCredencialesProduccionBackend);
+      // Si estamos en modo prueba, usar URL de prueba
+      // Si estamos en modo producción, usar URL de producción
+      let cecabankUrl = (esModoPrueba || !debeUsarProduccion)
+        ? 'https://sis-t.redsys.es:25443/sis/realizarPago'
+        : 'https://sis.redsys.es/sis/realizarPago';
+      
+      // Logs para debugging
+      console.log('🔍 Determinando URL de Cecabank:', {
+        entornoConfigurado,
+        esModoPrueba,
+        esModoProduccion,
+        merchantCode,
+        esCredencialesPruebaRedsys,
+        esCredencialesCecabank,
+        tieneCredencialesProduccionBackend,
+        debeUsarProduccion,
+        url_seleccionada: cecabankUrl,
+      });
+      
+      // Si estamos en modo prueba, asegurar que usamos URL de prueba
+      if (esModoPrueba && cecabankUrl.includes('sis.redsys.es') && !cecabankUrl.includes('sis-t')) {
+        console.warn('⚠️ CORRIGIENDO: Modo prueba detectado, usando URL de prueba');
+        cecabankUrl = 'https://sis-t.redsys.es:25443/sis/realizarPago';
       }
       
-      // ADVERTENCIA: Si detectamos credenciales de Cecabank pero se está usando URL de prueba, forzar producción
-      if ((esCredencialesCecabank || tieneCredencialesProduccionBackend) && cecabankUrl.includes('sis-t.redsys.es')) {
-        console.error('❌ ERROR CRÍTICO: Se detectaron credenciales de producción de Cecabank pero se está intentando usar la URL de prueba. Esto causará el error SIS0026. Forzando uso de URL de producción.');
+      // Si estamos en modo producción, asegurar que usamos URL de producción
+      if (esModoProduccion && cecabankUrl.includes('sis-t.redsys.es')) {
+        console.warn('⚠️ CORRIGIENDO: Modo producción detectado, usando URL de producción');
         cecabankUrl = 'https://sis.redsys.es/sis/realizarPago';
       }
       
