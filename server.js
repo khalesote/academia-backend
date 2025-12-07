@@ -940,12 +940,20 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
         // Verificar y corregir el charset en el HTML si es necesario
         let finalHtml = htmlContent;
         
+        // Normalizar etiquetas HTML (algunos servidores devuelven <HTML> en mayúsculas)
+        finalHtml = finalHtml.replace(/<HTML>/gi, '<html>');
+        finalHtml = finalHtml.replace(/<\/HTML>/gi, '</html>');
+        finalHtml = finalHtml.replace(/<HEAD>/gi, '<head>');
+        finalHtml = finalHtml.replace(/<\/HEAD>/gi, '</head>');
+        finalHtml = finalHtml.replace(/<BODY>/gi, '<body>');
+        finalHtml = finalHtml.replace(/<\/BODY>/gi, '</body>');
+        
         // Asegurar que el HTML tenga charset UTF-8 en el meta tag
         if (!finalHtml.match(/<meta[^>]*charset[^>]*>/i)) {
           // Si no hay meta charset, añadirlo al head
           finalHtml = finalHtml.replace(
             /<head[^>]*>/i,
-            '<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">'
+            '<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">'
           );
         } else {
           // Reemplazar cualquier charset existente por UTF-8
@@ -959,7 +967,7 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
         if (!finalHtml.match(/<meta[^>]*viewport[^>]*>/i)) {
           finalHtml = finalHtml.replace(
             /<head[^>]*>/i,
-            (match) => match + '<meta name="viewport" content="width=device-width, initial-scale=1.0">'
+            (match) => match + '<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">'
           );
         }
         
@@ -968,6 +976,20 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
           finalHtml = finalHtml.replace(
             /<html[^>]*>/i,
             '<html lang="es">'
+          );
+        }
+        
+        // Asegurar que el body tenga estilos básicos para que sea visible
+        if (finalHtml.match(/<body[^>]*>/i)) {
+          finalHtml = finalHtml.replace(
+            /<body([^>]*)>/i,
+            (match, attrs) => {
+              // Si no tiene style, añadirlo
+              if (!attrs || !attrs.includes('style')) {
+                return `<body${attrs} style="margin: 0; padding: 0; min-height: 100vh; display: block;">`;
+              }
+              return match;
+            }
           );
         }
         
