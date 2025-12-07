@@ -980,6 +980,7 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
         }
         
         // Asegurar que el body tenga estilos básicos para que sea visible
+        // IMPORTANTE: Solo añadir estilos si no los tiene, sin modificar el contenido
         if (finalHtml.match(/<body[^>]*>/i)) {
           finalHtml = finalHtml.replace(
             /<body([^>]*)>/i,
@@ -988,6 +989,16 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
               if (!attrs || !attrs.includes('style')) {
                 return `<body${attrs} style="margin: 0; padding: 0; min-height: 100vh; display: block;">`;
               }
+              // Si ya tiene style, añadir nuestros estilos al final si no están
+              if (attrs && attrs.includes('style') && !attrs.includes('min-height')) {
+                // Extraer el style existente y añadir nuestros estilos
+                const styleMatch = attrs.match(/style=["']([^"']*)["']/i);
+                if (styleMatch) {
+                  const existingStyle = styleMatch[1];
+                  const newStyle = existingStyle + '; margin: 0; padding: 0; min-height: 100vh; display: block;';
+                  return attrs.replace(/style=["'][^"']*["']/i, `style="${newStyle}"`);
+                }
+              }
               return match;
             }
           );
@@ -995,14 +1006,26 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
         
         // Verificar que el HTML tenga un body visible
         const hasBody = finalHtml.match(/<body[^>]*>/i);
-        const hasBodyContent = finalHtml.match(/<body[^>]*>[\s\S]{10,}/i);
+        const bodyStartIndex = finalHtml.indexOf('<body');
+        const bodyEndIndex = finalHtml.indexOf('</body>');
+        const hasBodyContent = bodyStartIndex !== -1 && bodyEndIndex !== -1 && (bodyEndIndex - bodyStartIndex) > 20;
+        
+        // Extraer contenido del body para verificación
+        let bodyContentPreview = 'NO HAY BODY';
+        if (bodyStartIndex !== -1 && bodyEndIndex !== -1) {
+          const bodyContent = finalHtml.substring(bodyStartIndex, bodyEndIndex + 7);
+          bodyContentPreview = bodyContent.substring(0, Math.min(1000, bodyContent.length));
+        }
         
         console.log('📋 HTML procesado, longitud final:', finalHtml.length);
         console.log('📋 Tiene charset UTF-8:', finalHtml.includes('charset="UTF-8"') || finalHtml.includes("charset='UTF-8'"));
         console.log('📋 Tiene viewport:', finalHtml.includes('viewport'));
         console.log('📋 Tiene body:', !!hasBody);
-        console.log('📋 Body tiene contenido:', !!hasBodyContent);
-        console.log('📋 Primeros 1000 caracteres del body:', hasBody ? finalHtml.substring(finalHtml.indexOf('<body'), finalHtml.indexOf('<body') + 1000) : 'NO HAY BODY');
+        console.log('📋 Body tiene contenido:', hasBodyContent);
+        console.log('📋 Body start index:', bodyStartIndex);
+        console.log('📋 Body end index:', bodyEndIndex);
+        console.log('📋 Body length:', bodyEndIndex !== -1 && bodyStartIndex !== -1 ? bodyEndIndex - bodyStartIndex : 'N/A');
+        console.log('📋 Primeros 1000 caracteres del body:', bodyContentPreview);
         
         // Devolver el HTML con headers correctos para UTF-8
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
