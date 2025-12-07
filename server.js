@@ -169,6 +169,121 @@ app.get('/api/cecabank/verify', (req, res) => {
   });
 });
 
+// Almacenamiento temporal de formularios HTML (en memoria, se limpia después de 1 hora)
+const tempForms = new Map();
+
+// Endpoint para crear un formulario HTML temporal y obtener su URL
+app.post('/api/cecabank/temp-form', express.json(), (req, res) => {
+  try {
+    const { html, orderId, operationType } = req.body;
+    
+    if (!html) {
+      return res.status(400).json({ error: 'Se requiere el campo html' });
+    }
+    
+    // Generar un ID único para el formulario temporal
+    const formId = `form_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+    
+    // Guardar el HTML en memoria con timestamp
+    tempForms.set(formId, {
+      html: html,
+      orderId: orderId || null,
+      operationType: operationType || null,
+      createdAt: Date.now(),
+    });
+    
+    // Limpiar formularios antiguos (más de 1 hora)
+    const oneHourAgo = Date.now() - (60 * 60 * 1000);
+    for (const [id, form] of tempForms.entries()) {
+      if (form.createdAt < oneHourAgo) {
+        tempForms.delete(id);
+      }
+    }
+    
+    // Devolver la URL temporal
+    const tempUrl = `https://academia-backend-s9np.onrender.com/api/cecabank/temp-form/${formId}`;
+    
+    console.log(`✅ Formulario temporal creado: ${formId}`);
+    console.log(`📋 URL temporal: ${tempUrl}`);
+    
+    res.json({ tempUrl, formId });
+  } catch (error) {
+    console.error('❌ Error creando formulario temporal:', error);
+    res.status(500).json({ error: 'Error al crear formulario temporal' });
+  }
+});
+
+// Endpoint para servir el formulario HTML temporal
+app.get('/api/cecabank/temp-form/:formId', (req, res) => {
+  try {
+    const { formId } = req.params;
+    const form = tempForms.get(formId);
+    
+    if (!form) {
+      return res.status(404).send(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="UTF-8">
+            <title>Formulario no encontrado</title>
+          </head>
+          <body>
+            <h1>Formulario no encontrado</h1>
+            <p>Este formulario ha expirado o no existe.</p>
+          </body>
+        </html>
+      `);
+    }
+    
+    // Verificar que no haya expirado (1 hora)
+    const oneHourAgo = Date.now() - (60 * 60 * 1000);
+    if (form.createdAt < oneHourAgo) {
+      tempForms.delete(formId);
+      return res.status(410).send(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="UTF-8">
+            <title>Formulario expirado</title>
+          </head>
+          <body>
+            <h1>Formulario expirado</h1>
+            <p>Este formulario ha expirado. Por favor, intenta de nuevo.</p>
+          </body>
+        </html>
+      `);
+    }
+    
+    // Devolver el HTML con headers correctos
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    
+    console.log(`✅ Sirviendo formulario temporal: ${formId}`);
+    
+    res.send(form.html);
+    
+    // Eliminar el formulario después de servirlo (solo se usa una vez)
+    tempForms.delete(formId);
+  } catch (error) {
+    console.error('❌ Error sirviendo formulario temporal:', error);
+    res.status(500).send(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <title>Error</title>
+        </head>
+        <body>
+          <h1>Error</h1>
+          <p>Ocurrió un error al cargar el formulario.</p>
+        </body>
+      </html>
+    `);
+  }
+});
+
 // Ruta para crear un Payment Intent
 app.post('/api/create-payment-intent', async (req, res) => {
   try {
@@ -981,6 +1096,21 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
         // Verificar si el HTML tiene estructura completa o es solo fragmentos
         const hasCompleteStructure = hasHtmlTag && (hasHeadTag || hasBodyTag);
         
+        // CRÍTICO: Si el body está vacío, es normal porque el contenido se genera con JavaScript
+        // Asegurarnos de que el body exista y tenga un contenedor donde el JavaScript pueda inyectar contenido
+        if (hasBodyTag && bodyStartIndex !== -1 && bodyEndIndex !== -1) {
+          // Verificar si el body está vacío o casi vacío (solo espacios/whitespace)
+          const bodyContent = finalHtml.substring(bodyStartIndex, bodyEndIndex);
+          const bodyTextOnly = bodyContent.replace(/<[^>]+>/g, '').replace(/\s+/g, '').trim();
+          
+          if (bodyTextOnly.length === 0) {
+            console.log('📋 Body está vacío (normal para HTML generado con JavaScript)');
+            // El body vacío es normal, el JavaScript lo llenará
+            // Solo asegurarnos de que el body tenga un id o clase para que el JavaScript pueda encontrarlo
+            // Pero NO modificar el HTML porque podría romper el JavaScript de Cecabank
+          }
+        }
+        
         // Si no tiene estructura completa, envolver el contenido
         if (!hasCompleteStructure) {
           console.warn('⚠️ HTML no tiene estructura completa, envolviendo contenido...');
@@ -988,17 +1118,21 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
           if (!hasHtmlTag) {
             finalHtml = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"></head><body>${finalHtml}</body></html>`;
           } else if (!hasBodyTag) {
-            // Si tiene <html> pero no <body>, añadir body
-            finalHtml = finalHtml.replace(/<\/html>/i, '<body></body></html>');
-            // Mover el contenido al body
-            const htmlEndIndex = finalHtml.indexOf('</html>');
-            if (htmlEndIndex !== -1) {
-              const headEndIndex = finalHtml.indexOf('</head>');
-              if (headEndIndex !== -1) {
-                const contentAfterHead = finalHtml.substring(headEndIndex + 7, htmlEndIndex - 7);
-                finalHtml = finalHtml.substring(0, headEndIndex + 7) + 
-                           '<body>' + contentAfterHead + '</body>' + 
-                           finalHtml.substring(htmlEndIndex - 7);
+            // Si tiene <html> pero no <body>, añadir body ANTES del cierre de </html>
+            // Buscar el último </html> y añadir body antes
+            const lastHtmlClose = finalHtml.lastIndexOf('</html>');
+            if (lastHtmlClose !== -1) {
+              // Buscar el cierre de </head> o el inicio del contenido después de </head>
+              const headCloseIndex = finalHtml.lastIndexOf('</head>');
+              if (headCloseIndex !== -1) {
+                // Contenido entre </head> y </html>
+                const contentBetween = finalHtml.substring(headCloseIndex + 7, lastHtmlClose);
+                finalHtml = finalHtml.substring(0, headCloseIndex + 7) + 
+                           '<body>' + contentBetween + '</body>' + 
+                           finalHtml.substring(lastHtmlClose);
+              } else {
+                // Si no hay </head>, añadir body antes de </html>
+                finalHtml = finalHtml.substring(0, lastHtmlClose) + '<body></body></html>';
               }
             }
           }
