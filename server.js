@@ -581,27 +581,64 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
         })() : null;
       
       const esCredencialesPruebaRedsys = merchantCode === '999008881';
-      const esCredencialesCecabank = merchantCode && merchantCode !== '999008881';
-      const usarUrlProduccion = process.env.CECABANK_ENTORNO === 'produccion' || esCredencialesCecabank;
+      const esCredencialesCecabank = merchantCode && merchantCode !== '999008881' && merchantCode !== '';
       
-      let cecabankUrl = usarUrlProduccion
+      // Verificar también variables de entorno del backend
+      const tieneCredencialesProduccionBackend = !!(process.env.CECABANK_MERCHANT_ID && 
+                                                     process.env.CECABANK_MERCHANT_ID !== '' &&
+                                                     process.env.CECABANK_MERCHANT_ID !== '999008881');
+      
+      // CRÍTICO: Si detectamos credenciales de Cecabank (producción), SIEMPRE usar URL de producción
+      // Cecabank no tiene entorno de prueba separado, así que las credenciales de producción
+      // DEBEN usar la URL de producción, no la de prueba
+      const debeUsarProduccion = esCredencialesCecabank || 
+                                tieneCredencialesProduccionBackend ||
+                                process.env.CECABANK_ENTORNO === 'produccion';
+      
+      // SIEMPRE usar URL de producción si detectamos credenciales de Cecabank
+      let cecabankUrl = debeUsarProduccion
         ? 'https://sis.redsys.es/sis/realizarPago'
         : 'https://sis-t.redsys.es:25443/sis/realizarPago';
       
+      // FORZAR URL de producción si detectamos credenciales de Cecabank (producción)
+      // Esto es CRÍTICO para evitar el error SIS0026
+      if (esCredencialesCecabank || tieneCredencialesProduccionBackend) {
+        cecabankUrl = 'https://sis.redsys.es/sis/realizarPago';
+        console.warn('⚠️ FORZANDO URL de producción porque se detectaron credenciales de Cecabank');
+        console.warn('📋 merchantCode detectado:', merchantCode);
+        console.warn('📋 esCredencialesCecabank:', esCredencialesCecabank);
+        console.warn('📋 tieneCredencialesProduccionBackend:', tieneCredencialesProduccionBackend);
+      }
+      
       // ADVERTENCIA: Si detectamos credenciales de Cecabank pero se está usando URL de prueba, forzar producción
-      if (esCredencialesCecabank && cecabankUrl.includes('sis-t.redsys.es')) {
+      if ((esCredencialesCecabank || tieneCredencialesProduccionBackend) && cecabankUrl.includes('sis-t.redsys.es')) {
         console.error('❌ ERROR CRÍTICO: Se detectaron credenciales de producción de Cecabank pero se está intentando usar la URL de prueba. Esto causará el error SIS0026. Forzando uso de URL de producción.');
         cecabankUrl = 'https://sis.redsys.es/sis/realizarPago';
       }
       
-      console.log('🔗 URL de Cecabank SIS seleccionada:', {
+      // Logs detallados para debug del error SIS0026
+      console.log('🔗 URL de Cecabank SIS seleccionada (DEBUG SIS0026):', {
         entorno: process.env.CECABANK_ENTORNO,
         merchantCode,
+        terminalCode: merchantCode ? (() => {
+          try {
+            const decoded = Buffer.from(req.body.Ds_MerchantParameters, 'base64').toString('utf-8');
+            const params = JSON.parse(decoded);
+            return params.DS_MERCHANT_TERMINAL;
+          } catch (e) {
+            return 'no disponible';
+          }
+        })() : 'no disponible',
         esCredencialesPruebaRedsys,
         esCredencialesCecabank,
+        tieneCredencialesProduccionBackend,
         usarUrlProduccion,
         url: cecabankUrl,
-        razon: esCredencialesCecabank 
+        url_contiene_sis_t: cecabankUrl.includes('sis-t.redsys.es'),
+        url_contiene_sis_produccion: cecabankUrl.includes('sis.redsys.es') && !cecabankUrl.includes('sis-t'),
+        CECABANK_ENTORNO: process.env.CECABANK_ENTORNO || 'NO CONFIGURADO',
+        CECABANK_MERCHANT_ID: process.env.CECABANK_MERCHANT_ID || 'NO CONFIGURADO',
+        razon: esCredencialesCecabank || tieneCredencialesProduccionBackend
           ? 'Credenciales de Cecabank - FORZAR producción (Cecabank no tiene entorno de prueba)' 
           : esCredencialesPruebaRedsys 
             ? 'Credenciales de prueba Redsys - usar URL de prueba' 
