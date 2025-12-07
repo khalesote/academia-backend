@@ -865,6 +865,33 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
             if (sisErrorMessages[sisErrorCodes[0]]) {
               errorMessage = `${sisErrorCodes[0]}: ${sisErrorMessages[sisErrorCodes[0]]}`;
             }
+            
+            // Advertencia específica para SIS0026
+            if (sisErrorCodes[0] === 'SIS0026') {
+              console.error('⚠️⚠️⚠️ ERROR CRÍTICO SIS0026 ⚠️⚠️⚠️');
+              console.error('📋 Este error significa que el comercio/terminal no es válido para el entorno seleccionado.');
+              console.error('📋 Posibles causas:');
+              console.error('   1. El Terminal ID configurado no es correcto para producción');
+              console.error('   2. El comercio no está activo en producción');
+              console.error('   3. El Terminal ID debe ser diferente en producción (no "00000003")');
+              console.error('   4. Las credenciales no están correctamente configuradas en la extranet de Cecabank');
+              console.error('📋 Datos enviados:');
+              try {
+                const decoded = Buffer.from(Ds_MerchantParameters, 'base64').toString('utf-8');
+                const params = JSON.parse(decoded);
+                console.error('   - Merchant Code:', params.DS_MERCHANT_MERCHANTCODE);
+                console.error('   - Terminal ID:', params.DS_MERCHANT_TERMINAL);
+                console.error('   - URL usada:', cecabankUrl);
+                console.error('   - Entorno detectado:', esCredencialesCecabank ? 'PRODUCCIÓN (Cecabank)' : 'PRUEBA');
+                console.error('💡 SOLUCIÓN:');
+                console.error('   1. Verificar en la extranet de Cecabank cuál es el Terminal ID correcto para producción');
+                console.error('   2. Actualizar la variable de entorno EXPO_PUBLIC_CECABANK_TERMINAL_ID con el valor correcto');
+                console.error('   3. Asegurarse de que el comercio esté activo en producción');
+                console.error('   4. Verificar que las credenciales sean correctas');
+              } catch (e) {
+                console.error('   (No se pudo decodificar parámetros para mostrar detalles)');
+              }
+            }
           }
           
           // Extraer texto visible del body para más contexto
