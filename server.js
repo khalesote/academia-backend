@@ -937,69 +937,34 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
           console.error('   5. Comercio no configurado correctamente en Cecabank');
         }
         
-        // Verificar y corregir el charset en el HTML si es necesario
+        // IMPORTANTE: El HTML de Cecabank tiene JavaScript embebido (webpack) que genera el contenido dinámicamente
+        // No debemos modificar demasiado el HTML para no romper la ejecución del JavaScript
+        // Solo hacer cambios mínimos necesarios
+        
         let finalHtml = htmlContent;
         
-        // Normalizar etiquetas HTML (algunos servidores devuelven <HTML> en mayúsculas)
+        // Normalizar etiquetas HTML básicas (algunos servidores devuelven <HTML> en mayúsculas)
         finalHtml = finalHtml.replace(/<HTML>/gi, '<html>');
         finalHtml = finalHtml.replace(/<\/HTML>/gi, '</html>');
-        finalHtml = finalHtml.replace(/<HEAD>/gi, '<head>');
-        finalHtml = finalHtml.replace(/<\/HEAD>/gi, '</head>');
-        finalHtml = finalHtml.replace(/<BODY>/gi, '<body>');
-        finalHtml = finalHtml.replace(/<\/BODY>/gi, '</body>');
         
-        // Asegurar que el HTML tenga charset UTF-8 en el meta tag
+        // Asegurar que el HTML tenga charset UTF-8 en el meta tag (mínimo necesario)
         if (!finalHtml.match(/<meta[^>]*charset[^>]*>/i)) {
-          // Si no hay meta charset, añadirlo al head
+          // Si no hay meta charset, añadirlo al head sin modificar nada más
           finalHtml = finalHtml.replace(
             /<head[^>]*>/i,
-            '<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">'
-          );
-        } else {
-          // Reemplazar cualquier charset existente por UTF-8
-          finalHtml = finalHtml.replace(
-            /<meta[^>]*charset=["'][^"']*["'][^>]*>/i,
-            '<meta charset="UTF-8">'
+            '<head><meta charset="UTF-8">'
           );
         }
         
-        // Asegurar que el HTML tenga viewport para móviles
+        // Asegurar que el HTML tenga viewport para móviles (mínimo necesario)
         if (!finalHtml.match(/<meta[^>]*viewport[^>]*>/i)) {
           finalHtml = finalHtml.replace(
             /<head[^>]*>/i,
-            (match) => match + '<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">'
-          );
-        }
-        
-        // Asegurar que el HTML tenga lang="es" para español
-        if (!finalHtml.match(/<html[^>]*lang[^>]*>/i)) {
-          finalHtml = finalHtml.replace(
-            /<html[^>]*>/i,
-            '<html lang="es">'
-          );
-        }
-        
-        // Asegurar que el body tenga estilos básicos para que sea visible
-        // IMPORTANTE: Solo añadir estilos si no los tiene, sin modificar el contenido
-        if (finalHtml.match(/<body[^>]*>/i)) {
-          finalHtml = finalHtml.replace(
-            /<body([^>]*)>/i,
-            (match, attrs) => {
-              // Si no tiene style, añadirlo
-              if (!attrs || !attrs.includes('style')) {
-                return `<body${attrs} style="margin: 0; padding: 0; min-height: 100vh; display: block;">`;
-              }
-              // Si ya tiene style, añadir nuestros estilos al final si no están
-              if (attrs && attrs.includes('style') && !attrs.includes('min-height')) {
-                // Extraer el style existente y añadir nuestros estilos
-                const styleMatch = attrs.match(/style=["']([^"']*)["']/i);
-                if (styleMatch) {
-                  const existingStyle = styleMatch[1];
-                  const newStyle = existingStyle + '; margin: 0; padding: 0; min-height: 100vh; display: block;';
-                  return attrs.replace(/style=["'][^"']*["']/i, `style="${newStyle}"`);
-                }
-              }
-              return match;
+            (match) => {
+              // Añadir viewport después del head, sin modificar el charset si ya existe
+              return match.includes('charset') 
+                ? match.replace('>', '><meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">')
+                : match + '<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">';
             }
           );
         }
@@ -1010,22 +975,34 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
         const bodyEndIndex = finalHtml.indexOf('</body>');
         const hasBodyContent = bodyStartIndex !== -1 && bodyEndIndex !== -1 && (bodyEndIndex - bodyStartIndex) > 20;
         
-        // Extraer contenido del body para verificación
+        // Extraer contenido del body para verificación (sin incluir scripts para ver el contenido real)
         let bodyContentPreview = 'NO HAY BODY';
+        let bodyTextContent = '';
         if (bodyStartIndex !== -1 && bodyEndIndex !== -1) {
           const bodyContent = finalHtml.substring(bodyStartIndex, bodyEndIndex + 7);
           bodyContentPreview = bodyContent.substring(0, Math.min(1000, bodyContent.length));
+          
+          // Extraer texto visible (sin scripts ni estilos)
+          const bodyWithoutScripts = bodyContent
+            .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+            .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+            .replace(/<[^>]+>/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+          bodyTextContent = bodyWithoutScripts.substring(0, 200);
         }
         
         console.log('📋 HTML procesado, longitud final:', finalHtml.length);
-        console.log('📋 Tiene charset UTF-8:', finalHtml.includes('charset="UTF-8"') || finalHtml.includes("charset='UTF-8'"));
+        console.log('📋 Tiene charset UTF-8:', finalHtml.includes('charset="UTF-8"') || finalHtml.includes("charset='UTF-8'") || finalHtml.includes('charset=UTF-8'));
         console.log('📋 Tiene viewport:', finalHtml.includes('viewport'));
         console.log('📋 Tiene body:', !!hasBody);
         console.log('📋 Body tiene contenido:', hasBodyContent);
         console.log('📋 Body start index:', bodyStartIndex);
         console.log('📋 Body end index:', bodyEndIndex);
         console.log('📋 Body length:', bodyEndIndex !== -1 && bodyStartIndex !== -1 ? bodyEndIndex - bodyStartIndex : 'N/A');
-        console.log('📋 Primeros 1000 caracteres del body:', bodyContentPreview);
+        console.log('📋 Body texto visible (sin scripts):', bodyTextContent || 'Solo scripts/estilos');
+        console.log('📋 HTML contiene scripts:', finalHtml.includes('<script'));
+        console.log('📋 HTML contiene webpack:', finalHtml.includes('webpack'));
         
         // Devolver el HTML con headers correctos para UTF-8
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
