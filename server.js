@@ -969,40 +969,58 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
           );
         }
         
-        // Verificar que el HTML tenga un body visible
-        const hasBody = finalHtml.match(/<body[^>]*>/i);
+        // Verificar estructura del HTML
+        // NOTA: El HTML de Cecabank puede tener el contenido generado completamente con JavaScript
+        // No necesariamente tiene etiquetas <body> tradicionales
+        const hasBodyTag = finalHtml.match(/<body[^>]*>/i);
         const bodyStartIndex = finalHtml.indexOf('<body');
         const bodyEndIndex = finalHtml.indexOf('</body>');
-        const hasBodyContent = bodyStartIndex !== -1 && bodyEndIndex !== -1 && (bodyEndIndex - bodyStartIndex) > 20;
+        const hasHeadTag = finalHtml.match(/<head[^>]*>/i);
+        const hasHtmlTag = finalHtml.match(/<html[^>]*>/i);
         
-        // Extraer contenido del body para verificación (sin incluir scripts para ver el contenido real)
-        let bodyContentPreview = 'NO HAY BODY';
-        let bodyTextContent = '';
-        if (bodyStartIndex !== -1 && bodyEndIndex !== -1) {
-          const bodyContent = finalHtml.substring(bodyStartIndex, bodyEndIndex + 7);
-          bodyContentPreview = bodyContent.substring(0, Math.min(1000, bodyContent.length));
-          
-          // Extraer texto visible (sin scripts ni estilos)
-          const bodyWithoutScripts = bodyContent
-            .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
-            .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-            .replace(/<[^>]+>/g, ' ')
-            .replace(/\s+/g, ' ')
-            .trim();
-          bodyTextContent = bodyWithoutScripts.substring(0, 200);
+        // Verificar si el HTML tiene estructura completa o es solo fragmentos
+        const hasCompleteStructure = hasHtmlTag && (hasHeadTag || hasBodyTag);
+        
+        // Si no tiene estructura completa, envolver el contenido
+        if (!hasCompleteStructure) {
+          console.warn('⚠️ HTML no tiene estructura completa, envolviendo contenido...');
+          // Si no tiene <html>, envolver todo
+          if (!hasHtmlTag) {
+            finalHtml = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"></head><body>${finalHtml}</body></html>`;
+          } else if (!hasBodyTag) {
+            // Si tiene <html> pero no <body>, añadir body
+            finalHtml = finalHtml.replace(/<\/html>/i, '<body></body></html>');
+            // Mover el contenido al body
+            const htmlEndIndex = finalHtml.indexOf('</html>');
+            if (htmlEndIndex !== -1) {
+              const headEndIndex = finalHtml.indexOf('</head>');
+              if (headEndIndex !== -1) {
+                const contentAfterHead = finalHtml.substring(headEndIndex + 7, htmlEndIndex - 7);
+                finalHtml = finalHtml.substring(0, headEndIndex + 7) + 
+                           '<body>' + contentAfterHead + '</body>' + 
+                           finalHtml.substring(htmlEndIndex - 7);
+              }
+            }
+          }
         }
+        
+        // Verificar contenido después del procesamiento
+        const finalBodyStartIndex = finalHtml.indexOf('<body');
+        const finalBodyEndIndex = finalHtml.indexOf('</body>');
+        const hasBodyContent = finalBodyStartIndex !== -1 && finalBodyEndIndex !== -1 && (finalBodyEndIndex - finalBodyStartIndex) > 20;
         
         console.log('📋 HTML procesado, longitud final:', finalHtml.length);
         console.log('📋 Tiene charset UTF-8:', finalHtml.includes('charset="UTF-8"') || finalHtml.includes("charset='UTF-8'") || finalHtml.includes('charset=UTF-8'));
         console.log('📋 Tiene viewport:', finalHtml.includes('viewport'));
-        console.log('📋 Tiene body:', !!hasBody);
+        console.log('📋 Tiene estructura completa:', hasCompleteStructure);
+        console.log('📋 Tiene body tag:', !!hasBodyTag);
+        console.log('📋 Body start index (final):', finalBodyStartIndex);
+        console.log('📋 Body end index (final):', finalBodyEndIndex);
         console.log('📋 Body tiene contenido:', hasBodyContent);
-        console.log('📋 Body start index:', bodyStartIndex);
-        console.log('📋 Body end index:', bodyEndIndex);
-        console.log('📋 Body length:', bodyEndIndex !== -1 && bodyStartIndex !== -1 ? bodyEndIndex - bodyStartIndex : 'N/A');
-        console.log('📋 Body texto visible (sin scripts):', bodyTextContent || 'Solo scripts/estilos');
         console.log('📋 HTML contiene scripts:', finalHtml.includes('<script'));
         console.log('📋 HTML contiene webpack:', finalHtml.includes('webpack'));
+        console.log('📋 Primeros 200 caracteres del HTML final:', finalHtml.substring(0, 200));
+        console.log('📋 Últimos 200 caracteres del HTML final:', finalHtml.substring(Math.max(0, finalHtml.length - 200)));
         
         // Devolver el HTML con headers correctos para UTF-8
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
