@@ -945,13 +945,21 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
           // Si no hay meta charset, añadirlo al head
           finalHtml = finalHtml.replace(
             /<head[^>]*>/i,
-            '<head><meta charset="UTF-8">'
+            '<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">'
           );
         } else {
           // Reemplazar cualquier charset existente por UTF-8
           finalHtml = finalHtml.replace(
             /<meta[^>]*charset=["'][^"']*["'][^>]*>/i,
             '<meta charset="UTF-8">'
+          );
+        }
+        
+        // Asegurar que el HTML tenga viewport para móviles
+        if (!finalHtml.match(/<meta[^>]*viewport[^>]*>/i)) {
+          finalHtml = finalHtml.replace(
+            /<head[^>]*>/i,
+            (match) => match + '<meta name="viewport" content="width=device-width, initial-scale=1.0">'
           );
         }
         
@@ -963,8 +971,16 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
           );
         }
         
+        // Verificar que el HTML tenga un body visible
+        const hasBody = finalHtml.match(/<body[^>]*>/i);
+        const hasBodyContent = finalHtml.match(/<body[^>]*>[\s\S]{10,}/i);
+        
         console.log('📋 HTML procesado, longitud final:', finalHtml.length);
         console.log('📋 Tiene charset UTF-8:', finalHtml.includes('charset="UTF-8"') || finalHtml.includes("charset='UTF-8'"));
+        console.log('📋 Tiene viewport:', finalHtml.includes('viewport'));
+        console.log('📋 Tiene body:', !!hasBody);
+        console.log('📋 Body tiene contenido:', !!hasBodyContent);
+        console.log('📋 Primeros 1000 caracteres del body:', hasBody ? finalHtml.substring(finalHtml.indexOf('<body'), finalHtml.indexOf('<body') + 1000) : 'NO HAY BODY');
         
         // Devolver el HTML con headers correctos para UTF-8
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
