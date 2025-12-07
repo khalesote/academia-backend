@@ -815,6 +815,82 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
         console.log('✅ HTML recibido de Cecabank SIS, longitud:', htmlContent.length);
         console.log('📄 Primeros 500 caracteres:', htmlContent.substring(0, 500));
         
+        // Verificar si es una página de error de Redsys
+        const isErrorPage = htmlContent.includes('RSisException') || 
+                           htmlContent.includes('Pantalla de excepcion') ||
+                           htmlContent.includes('excepcion Redsys');
+        
+        if (isErrorPage) {
+          console.error('❌ ERROR: Cecabank devolvió una página de error');
+          
+          // Intentar extraer el mensaje de error del HTML
+          let errorMessage = 'Error desconocido de Cecabank';
+          
+          // Buscar mensajes de error comunes en el HTML
+          const errorPatterns = [
+            /<title[^>]*>([^<]+)<\/title>/i,
+            /<h[1-6][^>]*>([^<]+)<\/h[1-6]>/i,
+            /<p[^>]*>([^<]+)<\/p>/i,
+            /<div[^>]*class[^>]*error[^>]*>([^<]+)<\/div>/i,
+            /SIS\d{4}/g, // Códigos de error SIS (ej: SIS0026)
+            /Error[:\s]+([^<\n]+)/i,
+            /Excepción[:\s]+([^<\n]+)/i,
+          ];
+          
+          for (const pattern of errorPatterns) {
+            const match = htmlContent.match(pattern);
+            if (match && match[1]) {
+              errorMessage = match[1].trim();
+              if (errorMessage.length > 20) {
+                errorMessage = errorMessage.substring(0, 200);
+              }
+              break;
+            }
+          }
+          
+          // Buscar códigos de error SIS específicos
+          const sisErrorCodes = htmlContent.match(/SIS\d{4}/g);
+          if (sisErrorCodes && sisErrorCodes.length > 0) {
+            console.error('❌ Código(s) de error SIS encontrado(s):', sisErrorCodes);
+            errorMessage = `Error SIS: ${sisErrorCodes[0]}`;
+            
+            // Mensajes conocidos de errores SIS
+            const sisErrorMessages = {
+              'SIS0026': 'Comercio/terminal no válido para el entorno seleccionado',
+              'SIS0007': 'Error al procesar la transacción',
+              'SIS0009': 'Error de autenticación',
+              'SIS0014': 'Error de firma',
+            };
+            
+            if (sisErrorMessages[sisErrorCodes[0]]) {
+              errorMessage = `${sisErrorCodes[0]}: ${sisErrorMessages[sisErrorCodes[0]]}`;
+            }
+          }
+          
+          // Extraer texto visible del body para más contexto
+          const bodyMatch = htmlContent.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+          if (bodyMatch && bodyMatch[1]) {
+            const bodyText = bodyMatch[1]
+              .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+              .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+              .replace(/<[^>]+>/g, ' ')
+              .replace(/\s+/g, ' ')
+              .trim();
+            
+            if (bodyText.length > 0 && bodyText.length < 500) {
+              console.error('❌ Contenido del error (texto visible):', bodyText);
+            }
+          }
+          
+          console.error('❌ Mensaje de error extraído:', errorMessage);
+          console.error('❌ Esto puede deberse a:');
+          console.error('   1. Credenciales incorrectas o no activas');
+          console.error('   2. Terminal ID incorrecto para producción');
+          console.error('   3. Firma incorrecta');
+          console.error('   4. Formato de datos incorrecto');
+          console.error('   5. Comercio no configurado correctamente en Cecabank');
+        }
+        
         // Verificar y corregir el charset en el HTML si es necesario
         let finalHtml = htmlContent;
         
