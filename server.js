@@ -259,8 +259,29 @@ app.get('/api/cecabank/temp-form/:formId', (req, res) => {
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
     
     console.log(`✅ Sirviendo formulario temporal: ${formId}`);
+    console.log(`📏 Tamaño del HTML: ${form.html.length} caracteres`);
+    console.log(`📋 Primeros 200 caracteres: ${form.html.substring(0, 200)}`);
+    
+    // Verificar que el HTML no esté vacío
+    if (!form.html || form.html.trim().length === 0) {
+      console.error('❌ HTML vacío detectado');
+      return res.status(500).send(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="UTF-8">
+            <title>Error</title>
+          </head>
+          <body>
+            <h1>Error</h1>
+            <p>El formulario está vacío. Por favor, intenta de nuevo.</p>
+          </body>
+        </html>
+      `);
+    }
     
     res.send(form.html);
     
