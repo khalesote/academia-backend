@@ -150,8 +150,8 @@ app.get('/api/cecabank/verify', (req, res) => {
     status: 'ok',
     message: 'Endpoints de Cecabank están accesibles',
     urls: {
-      urlOk: 'https://academia-backend-s9np.onrender.com/api/cecabank/ok',
-      urlKo: 'https://academia-backend-s9np.onrender.com/api/cecabank/ko'
+      urlOk: 'https://academiadeinmigrantes.es/api/cecabank/ok',
+      urlKo: 'https://academiadeinmigrantes.es/api/cecabank/ko'
     },
     endpoints: {
       ok: {
@@ -201,7 +201,7 @@ app.post('/api/cecabank/temp-form', express.json(), (req, res) => {
     }
     
     // Devolver la URL temporal
-    const tempUrl = `https://academia-backend-s9np.onrender.com/api/cecabank/temp-form/${formId}`;
+    const tempUrl = `https://academiadeinmigrantes.es/api/cecabank/temp-form/${formId}`;
     
     console.log(`✅ Formulario temporal creado: ${formId}`);
     console.log(`📋 URL temporal: ${tempUrl}`);
@@ -264,6 +264,7 @@ app.get('/api/cecabank/temp-form/:formId', (req, res) => {
     console.log(`✅ Sirviendo formulario temporal: ${formId}`);
     console.log(`📏 Tamaño del HTML: ${form.html.length} caracteres`);
     console.log(`📋 Primeros 200 caracteres: ${form.html.substring(0, 200)}`);
+    console.log(`📋 Últimos 200 caracteres: ${form.html.substring(Math.max(0, form.html.length - 200))}`);
     
     // Verificar que el HTML no esté vacío
     if (!form.html || form.html.trim().length === 0) {
@@ -283,6 +284,16 @@ app.get('/api/cecabank/temp-form/:formId', (req, res) => {
       `);
     }
     
+    // Verificar que el HTML tenga estructura básica
+    const hasForm = form.html.includes('<form') || form.html.includes('<FORM');
+    const hasScript = form.html.includes('<script') || form.html.includes('<SCRIPT');
+    console.log(`📋 HTML tiene form: ${hasForm}, tiene script: ${hasScript}`);
+    
+    if (!hasForm) {
+      console.error('❌ HTML no contiene formulario');
+    }
+    
+    // Enviar el HTML con headers correctos
     res.send(form.html);
     
     // Eliminar el formulario después de servirlo (solo se usa una vez)
@@ -1358,8 +1369,8 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     }
     
     // IMPORTANTE: Verificar que las URLs coincidan con las configuradas
-    const urlOkEsperada = 'https://academia-backend-s9np.onrender.com/api/cecabank/ok';
-    const urlKoEsperada = 'https://academia-backend-s9np.onrender.com/api/cecabank/ko';
+    const urlOkEsperada = 'https://academiadeinmigrantes.es/api/cecabank/ok';
+    const urlKoEsperada = 'https://academiadeinmigrantes.es/api/cecabank/ko';
     
     // Si URL_KO es igual a URL_OK, significa que el TPV solo permite una URL
     const usaUrlUnica = formData.URL_OK === formData.URL_KO;
@@ -2407,7 +2418,7 @@ app.post('/api/cecabank/ok', express.urlencoded({ extended: true }), async (req,
 // Endpoint para recibir respuesta de pago fallido de Cecabank
 // Endpoint para recibir respuesta de pago fallido de Cecabank
 // IMPORTANTE: Este endpoint DEBE devolver HTTP 200 para que Cecabank considere que la URL funciona
-// La URL debe ser exactamente: https://academia-backend-s9np.onrender.com/api/cecabank/ko
+// La URL debe ser exactamente: https://academiadeinmigrantes.es/api/cecabank/ko
 app.post('/api/cecabank/ko', express.urlencoded({ extended: true }), async (req, res) => {
   try {
     console.log('❌ Callback de Cecabank KO recibido');
