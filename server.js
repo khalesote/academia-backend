@@ -322,6 +322,8 @@ app.post('/api/solicitar-examen-presencial', async (req, res) => {
     console.log('📧 Iniciando solicitud de inscripción al examen presencial...');
     const { nombre, email, telefono, nivel, documento, mensaje } = req.body;
     console.log('📝 Datos recibidos:', { nombre, email, telefono, nivel, documento, mensaje });
+    console.log('📝 Nombre recibido (tipo y valor):', typeof nombre, nombre);
+    console.log('📝 Nombre completo recibido:', JSON.stringify(nombre));
 
     // Validar datos requeridos
     if (!nombre || !email || !nivel) {
