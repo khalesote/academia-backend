@@ -2350,35 +2350,39 @@ app.post('/api/cecabank/ok', express.urlencoded({ extended: true }), async (req,
     // Intentar extraer el nivel de la descripción si está disponible
     const descripcionLower = (Descripcion || '').toLowerCase();
     
-    // Detectar niveles individuales (15€ = 1500 céntimos)
-    if (parseInt(Importe) === 1500) { // 15.00 euros en céntimos
-      // Intentar detectar el nivel desde la descripción
-      if (descripcionLower.includes('a1') || descripcionLower.includes('nivel a1')) {
-        operationType = 'matricula-a1';
-        levelUnlocked = 'A1';
-      } else if (descripcionLower.includes('a2') || descripcionLower.includes('nivel a2')) {
-        operationType = 'matricula-a2';
-        levelUnlocked = 'A2';
-      } else if (descripcionLower.includes('b1') || descripcionLower.includes('nivel b1')) {
-        operationType = 'matricula-b1';
-        levelUnlocked = 'B1';
-      } else if (descripcionLower.includes('b2') || descripcionLower.includes('nivel b2')) {
-        operationType = 'matricula-b2';
-        levelUnlocked = 'B2';
-      } else {
-        // Por defecto, si no se puede determinar, usar genérico
-        operationType = 'matricula';
-        levelUnlocked = 'UNKNOWN';
-      }
-    } else if (parseInt(Importe) === 2000) { // 20.00 euros en céntimos (compatibilidad con sistema anterior)
-      operationType = 'matricula-a1a2';
-      levelUnlocked = 'A1A2';
-    } else if (parseInt(Importe) === 3000) { // 30.00 euros en céntimos (compatibilidad con sistema anterior)
-      operationType = 'matricula-b1b2';
-      levelUnlocked = 'B1B2';
-    } else if (parseInt(Importe) === 1000) { // 10.00 euros en céntimos
+    // PRIMERO: Intentar detectar el nivel desde la descripción (más confiable)
+    if (descripcionLower.includes('a1') || descripcionLower.includes('nivel a1')) {
+      operationType = 'matricula-a1';
+      levelUnlocked = 'A1';
+    } else if (descripcionLower.includes('a2') || descripcionLower.includes('nivel a2')) {
+      operationType = 'matricula-a2';
+      levelUnlocked = 'A2';
+    } else if (descripcionLower.includes('b1') || descripcionLower.includes('nivel b1')) {
+      operationType = 'matricula-b1';
+      levelUnlocked = 'B1';
+    } else if (descripcionLower.includes('b2') || descripcionLower.includes('nivel b2')) {
+      operationType = 'matricula-b2';
+      levelUnlocked = 'B2';
+    } else if (descripcionLower.includes('formacion') || descripcionLower.includes('profesional')) {
       operationType = 'formacion-profesional';
       levelUnlocked = 'FORMACION_PROFESIONAL';
+    }
+    
+    // SEGUNDO: Si no se detectó por descripción, usar el importe como fallback
+    if (!levelUnlocked) {
+      if (parseInt(Importe) === 1500) { // 15.00 euros en céntimos
+        operationType = 'matricula';
+        levelUnlocked = 'UNKNOWN';
+      } else if (parseInt(Importe) === 2000) { // 20.00 euros en céntimos (compatibilidad con sistema anterior)
+        operationType = 'matricula-a1a2';
+        levelUnlocked = 'A1A2';
+      } else if (parseInt(Importe) === 3000) { // 30.00 euros en céntimos (compatibilidad con sistema anterior)
+        operationType = 'matricula-b1b2';
+        levelUnlocked = 'B1B2';
+      } else if (parseInt(Importe) === 1000) { // 10.00 euros en céntimos
+        operationType = 'formacion-profesional';
+        levelUnlocked = 'FORMACION_PROFESIONAL';
+      }
     }
     
     console.log('💰 Pago exitoso de Cecabank:', {
