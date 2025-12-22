@@ -857,26 +857,14 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       const debeUsarProduccion = esModoProduccion && 
                                 (esCredencialesCecabank || tieneCredencialesProduccionBackend);
       
-      // IMPORTANTE: Cecabank tiene sus propias URLs, no las de Redsys directamente
-      // URLs de Cecabank:
-      // - Test: https://tpv.ceca.es/tpvweb/tpv/compra.action
-      // - Producción: https://pgw.ceca.es/tpvweb/tpv/compra.action
-      //
-      // Sin embargo, si Cecabank usa el sistema SIS de Redsys internamente para el método moderno,
-      // puede que necesitemos usar las URLs de Redsys SIS:
+      // IMPORTANTE: Cecabank usa el sistema SIS de Redsys internamente
+      // El formato Ds_MerchantParameters + Ds_Signature es el método SIS moderno
+      // Por lo tanto, DEBEMOS usar las URLs de Redsys SIS:
       // - Test: https://sis-t.redsys.es:25443/sis/realizarPago
       // - Producción: https://sis.redsys.es/sis/realizarPago
-      //
-      // Por ahora, usamos las URLs de Cecabank según el entorno configurado
       let cecabankUrl = esModoPrueba
-        ? 'https://tpv.ceca.es/tpvweb/tpv/compra.action'  // URL de prueba de Cecabank
-        : 'https://pgw.ceca.es/tpvweb/tpv/compra.action'; // URL de producción de Cecabank
-      
-      // NOTA: Si el método SIS moderno (Ds_MerchantParameters) no funciona con las URLs de Cecabank,
-      // puede que necesitemos cambiar a las URLs de Redsys SIS. En ese caso, descomentar:
-      // let cecabankUrl = esModoPrueba
-      //   ? 'https://sis-t.redsys.es:25443/sis/realizarPago'  // URL de prueba de Redsys SIS
-      //   : 'https://sis.redsys.es/sis/realizarPago';          // URL de producción de Redsys SIS
+        ? 'https://sis-t.redsys.es:25443/sis/realizarPago'  // URL de prueba de Redsys SIS
+        : 'https://sis.redsys.es/sis/realizarPago';          // URL de producción de Redsys SIS
       
       // Logs para debugging
       console.log('🔍 Determinando URL de Cecabank:', {
