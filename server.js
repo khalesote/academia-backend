@@ -857,14 +857,13 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       const debeUsarProduccion = esModoProduccion && 
                                 (esCredencialesCecabank || tieneCredencialesProduccionBackend);
       
-      // IMPORTANTE: Cecabank usa el sistema SIS de Redsys internamente
-      // El formato Ds_MerchantParameters + Ds_Signature es el método SIS moderno
-      // Por lo tanto, DEBEMOS usar las URLs de Redsys SIS:
-      // - Test: https://sis-t.redsys.es:25443/sis/realizarPago
-      // - Producción: https://sis.redsys.es/sis/realizarPago
+      // IMPORTANTE: Cecabank usa su PROPIO sistema PGW, NO Redsys SIS
+      // URLs de Cecabank PGW:
+      // - Test: https://tpv.ceca.es/tpvweb/tpv/compra.action
+      // - Producción: https://pgw.ceca.es/tpvweb/tpv/compra.action
       let cecabankUrl = esModoPrueba
-        ? 'https://sis-t.redsys.es:25443/sis/realizarPago'  // URL de prueba de Redsys SIS
-        : 'https://sis.redsys.es/sis/realizarPago';          // URL de producción de Redsys SIS
+        ? 'https://tpv.ceca.es/tpvweb/tpv/compra.action'   // URL de prueba de Cecabank PGW
+        : 'https://pgw.ceca.es/tpvweb/tpv/compra.action';  // URL de producción de Cecabank PGW
       
       // Logs para debugging
       console.log('🔍 Determinando URL de Cecabank:', {
