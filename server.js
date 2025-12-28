@@ -2240,10 +2240,16 @@ app.post('/api/cecabank/create-payment', async (req, res) => {
       idioma: '1',
     };
     
-    // Generar orderId único (12 dígitos)
-    const timestamp = Date.now().toString().slice(-8);
-    const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-    const orderId = timestamp + random;
+    // Generar orderId único (exactamente 12 dígitos con ceros a la izquierda)
+    // IMPORTANTE: Cecabank requiere exactamente 12 dígitos numéricos
+    const randomNum = Math.floor(Math.random() * 100000000000); // Máximo 11 dígitos
+    const orderId = randomNum.toString().padStart(12, '0');
+    
+    console.log('🆔 OrderId generado:', {
+      orderId,
+      length: orderId.length,
+      tienecerosIzquierda: orderId.startsWith('0'),
+    });
     
     // Importe en céntimos
     const importeCts = Math.round(amount * 100).toString();
