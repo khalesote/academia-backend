@@ -2273,9 +2273,22 @@ app.post('/api/cecabank/create-payment', async (req, res) => {
       CECABANK_CONFIG.urlOk +
       CECABANK_CONFIG.urlKo;
     
-    const firma = crypto.createHash('sha256').update(cadenaFirma).digest('hex');
+    const firma = crypto.createHash('sha256').update(cadenaFirma).digest('hex').toUpperCase();
     
-    console.log('🔐 Firma generada:', firma.substring(0, 20) + '...');
+    console.log('🔐 Firma generada (MAYÚSCULAS):', firma.substring(0, 20) + '...');
+    console.log('📝 Cadena para firma:', {
+      clave: CECABANK_CONFIG.claveEncriptacion ? '***' : 'VACÍA',
+      merchantId: CECABANK_CONFIG.merchantId,
+      acquirerBin: CECABANK_CONFIG.acquirerBin,
+      terminalId: CECABANK_CONFIG.terminalId,
+      orderId,
+      importeCts,
+      tipoMoneda: CECABANK_CONFIG.tipoMoneda,
+      exponente: CECABANK_CONFIG.exponente,
+      cifrado: CECABANK_CONFIG.cifrado,
+      urlOk: CECABANK_CONFIG.urlOk,
+      urlKo: CECABANK_CONFIG.urlKo,
+    });
     
     // Crear HTML del formulario
     const html = `<!DOCTYPE html>
