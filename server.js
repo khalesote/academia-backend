@@ -2236,15 +2236,16 @@ app.post('/api/cecabank/ok', express.urlencoded({ extended: true }), async (req,
     let codigoRespuesta = Ds_Response || Codigo_respuesta || Respuesta;
     
     // Si viene un código de respuesta, verificar si es éxito (00 o similar)
-    if (codigoRespuesta !== undefined && codigoRespuesta !== null) {
+    if (codigoRespuesta !== undefined && codigoRespuesta !== null && codigoRespuesta !== '') {
       const codigo = String(codigoRespuesta).trim();
       // Código 00 generalmente significa éxito en pasarelas de pago
       pagoExitoso = codigo === '00' || codigo === '0' || codigo.toLowerCase() === 'ok';
       console.log('🔍 Código de respuesta detectado:', codigo, '→ Pago exitoso:', pagoExitoso);
     } else {
-      // Si no viene código de respuesta, asumir que es éxito (comportamiento por defecto del endpoint /ok)
-      pagoExitoso = true;
-      console.log('⚠️  No se detectó código de respuesta, asumiendo pago exitoso');
+      // SEGURIDAD: Si no viene código de respuesta, NO asumir éxito
+      // El pago debe tener un código de respuesta válido para considerarse exitoso
+      pagoExitoso = false;
+      console.log('⚠️ No se detectó código de respuesta, marcando como pago FALLIDO por seguridad');
     }
 
     // MODO FLEXIBLE: Si faltan algunos datos, intentar procesar igual
