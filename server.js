@@ -2213,6 +2213,14 @@ app.post('/api/cecabank/create-payment', async (req, res) => {
     
     console.log('📋 Datos recibidos:', { amount, operationType, description, customerEmail });
     
+    // DEBUG: Verificar credenciales
+    console.log('🔧 CREDENCIALES CECABANK:', {
+      merchantId: process.env.CECABANK_MERCHANT_ID || '(usando default 086729753)',
+      acquirerBin: process.env.CECABANK_ACQUIRER_BIN || '(usando default)',
+      terminalId: process.env.CECABANK_TERMINAL_ID || '(usando default)',
+      claveConfigured: process.env.CECABANK_CLAVE ? '✅ SÍ configurada' : '❌ NO configurada (PROBLEMA!)',
+    });
+    
     if (!amount || amount <= 0) {
       return res.status(400).json({ error: 'El importe debe ser mayor que 0' });
     }
