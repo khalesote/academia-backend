@@ -2335,7 +2335,35 @@ app.post('/api/cecabank/create-payment', async (req, res) => {
 });
 
 // Endpoint para recibir respuesta de pago de Cecabank (maneja tanto OK como KO)
-// Si el TPV solo permite configurar URL_OK, este endpoint manejará ambos casos
+// Soporta tanto GET como POST porque Cecabank puede usar cualquiera de los dos
+app.get('/api/cecabank/ok', async (req, res) => {
+  console.log('📥 Callback GET de Cecabank recibido');
+  console.log('📝 Query params:', JSON.stringify(req.query, null, 2));
+  
+  // Redirigir a la versión POST con los mismos parámetros
+  // O mostrar página de éxito directamente
+  const params = req.query;
+  
+  // Mostrar página de éxito que envía mensaje al WebView
+  res.send(`<!DOCTYPE html>
+<html>
+<head><title>Pago procesado</title></head>
+<body>
+<h2>Procesando resultado del pago...</h2>
+<script>
+  console.log('Callback GET recibido');
+  if (window.ReactNativeWebView) {
+    window.ReactNativeWebView.postMessage(JSON.stringify({
+      type: 'payment-success',
+      orderId: '${params.Num_operacion || ''}',
+      importe: '${params.Importe || ''}'
+    }));
+  }
+</script>
+</body>
+</html>`);
+});
+
 app.post('/api/cecabank/ok', express.urlencoded({ extended: true }), async (req, res) => {
   try {
     console.log('📥 Callback de Cecabank recibido');
