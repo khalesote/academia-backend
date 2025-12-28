@@ -2205,6 +2205,121 @@ function validateCecabankSignature(datos) {
 // ENDPOINTS DE CECABANK
 // ============================================
 
+// Endpoint para crear formulario de pago de Cecabank
+app.post('/api/cecabank/create-payment', async (req, res) => {
+  try {
+    console.log('💳 Creando formulario de pago Cecabank');
+    const { amount, operationType, description, customerEmail, customerName } = req.body;
+    
+    console.log('📋 Datos recibidos:', { amount, operationType, description, customerEmail });
+    
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ error: 'El importe debe ser mayor que 0' });
+    }
+    
+    // Configuración de Cecabank (producción)
+    const CECABANK_CONFIG = {
+      merchantId: process.env.CECABANK_MERCHANT_ID || '086729753',
+      acquirerBin: process.env.CECABANK_ACQUIRER_BIN || '0000554027',
+      terminalId: process.env.CECABANK_TERMINAL_ID || '00000001',
+      claveEncriptacion: process.env.CECABANK_CLAVE || '',
+      urlTpv: 'https://pgw.ceca.es/tpvweb/tpv/compra.action',
+      urlOk: 'https://academiadeinmigrantes.es/api/cecabank/ok',
+      urlKo: 'https://academiadeinmigrantes.es/api/cecabank/ko',
+      tipoMoneda: '978',
+      exponente: '2',
+      cifrado: 'SHA2',
+      idioma: '1',
+    };
+    
+    // Generar orderId único (12 dígitos)
+    const timestamp = Date.now().toString().slice(-8);
+    const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+    const orderId = timestamp + random;
+    
+    // Importe en céntimos
+    const importeCts = Math.round(amount * 100).toString();
+    
+    console.log('💰 Importe en céntimos:', importeCts);
+    console.log('🆔 OrderId:', orderId);
+    
+    // Generar firma SHA256
+    // Orden: Clave + MerchantID + AcquirerBIN + TerminalID + Num_operacion + Importe + TipoMoneda + Exponente + Cifrado + URL_OK + URL_NOK
+    const crypto = require('crypto');
+    const cadenaFirma = 
+      CECABANK_CONFIG.claveEncriptacion +
+      CECABANK_CONFIG.merchantId +
+      CECABANK_CONFIG.acquirerBin +
+      CECABANK_CONFIG.terminalId +
+      orderId +
+      importeCts +
+      CECABANK_CONFIG.tipoMoneda +
+      CECABANK_CONFIG.exponente +
+      CECABANK_CONFIG.cifrado +
+      CECABANK_CONFIG.urlOk +
+      CECABANK_CONFIG.urlKo;
+    
+    const firma = crypto.createHash('sha256').update(cadenaFirma).digest('hex');
+    
+    console.log('🔐 Firma generada:', firma.substring(0, 20) + '...');
+    
+    // Crear HTML del formulario
+    const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Procesando pago...</title>
+    <style>
+        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .container { background: white; padding: 40px; border-radius: 20px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .spinner { width: 50px; height: 50px; border: 4px solid #f3f3f3; border-top: 4px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        h2 { color: #333; margin-bottom: 10px; }
+        p { color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="spinner"></div>
+        <h2>Conectando con Cecabank</h2>
+        <p>Redirigiendo a la pasarela de pago segura...</p>
+    </div>
+    <form id="cecabankForm" method="POST" action="${CECABANK_CONFIG.urlTpv}">
+        <input type="hidden" name="MerchantID" value="${CECABANK_CONFIG.merchantId}" />
+        <input type="hidden" name="AcquirerBIN" value="${CECABANK_CONFIG.acquirerBin}" />
+        <input type="hidden" name="TerminalID" value="${CECABANK_CONFIG.terminalId}" />
+        <input type="hidden" name="Num_operacion" value="${orderId}" />
+        <input type="hidden" name="Importe" value="${importeCts}" />
+        <input type="hidden" name="TipoMoneda" value="${CECABANK_CONFIG.tipoMoneda}" />
+        <input type="hidden" name="Exponente" value="${CECABANK_CONFIG.exponente}" />
+        <input type="hidden" name="Cifrado" value="${CECABANK_CONFIG.cifrado}" />
+        <input type="hidden" name="URL_OK" value="${CECABANK_CONFIG.urlOk}" />
+        <input type="hidden" name="URL_NOK" value="${CECABANK_CONFIG.urlKo}" />
+        <input type="hidden" name="Firma" value="${firma}" />
+        <input type="hidden" name="Idioma" value="${CECABANK_CONFIG.idioma}" />
+        <input type="hidden" name="Descripcion" value="${description || 'Pago Academia'}" />
+        <input type="hidden" name="Pago_soportado" value="SSL" />
+        ${customerEmail ? `<input type="hidden" name="Correo" value="${customerEmail}" />` : ''}
+    </form>
+    <script>
+        setTimeout(function() {
+            document.getElementById('cecabankForm').submit();
+        }, 500);
+    </script>
+</body>
+</html>`;
+    
+    console.log('✅ Formulario HTML generado');
+    
+    res.json({ html, orderId });
+    
+  } catch (error) {
+    console.error('❌ Error creando formulario Cecabank:', error);
+    res.status(500).json({ error: error.message || 'Error al crear el formulario de pago' });
+  }
+});
+
 // Endpoint para recibir respuesta de pago de Cecabank (maneja tanto OK como KO)
 // Si el TPV solo permite configurar URL_OK, este endpoint manejará ambos casos
 app.post('/api/cecabank/ok', express.urlencoded({ extended: true }), async (req, res) => {
