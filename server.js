@@ -2222,6 +2222,43 @@ app.post('/api/cecabank/test', express.urlencoded({ extended: true }), (req, res
   return res.status(200).send('OK');
 });
 
+// ENDPOINT DE DEBUG: Ver el formulario que se envía a Cecabank
+app.post('/api/cecabank/debug-form', express.json(), (req, res) => {
+  const { url, formData } = req.body;
+  
+  console.log('🔍 DEBUG: Formulario que se envía a Cecabank');
+  console.log('📤 URL destino:', url);
+  console.log('📋 Campos del formulario:', Object.keys(formData));
+  console.log('📊 Datos completos:', JSON.stringify(formData, null, 2));
+  
+  // Verificar campos obligatorios
+  const camposObligatorios = ['MerchantID', 'AcquirerBIN', 'TerminalID', 'Num_operacion', 'Importe', 'TipoMoneda', 'Exponente', 'Cifrado', 'URL_OK', 'URL_NOK', 'Firma'];
+  const camposFaltantes = camposObligatorios.filter(campo => !formData[campo]);
+  
+  if (camposFaltantes.length > 0) {
+    console.error('❌ CAMPOS FALTANTES:', camposFaltantes);
+  } else {
+    console.log('✅ Todos los campos obligatorios están presentes');
+  }
+  
+  // Verificar formato de campos críticos
+  console.log('🔐 Validación de campos:');
+  console.log('  - MerchantID:', formData.MerchantID, formData.MerchantID ? '✅' : '❌');
+  console.log('  - TerminalID:', formData.TerminalID, formData.TerminalID ? '✅' : '❌');
+  console.log('  - Num_operacion:', formData.Num_operacion, `(${String(formData.Num_operacion).length} dígitos)`, formData.Num_operacion && String(formData.Num_operacion).length === 12 ? '✅' : '⚠️');
+  console.log('  - Importe:', formData.Importe, '(céntimos)', formData.Importe ? '✅' : '❌');
+  console.log('  - Firma:', formData.Firma ? `${formData.Firma.substring(0, 20)}... (${formData.Firma.length} chars)` : '❌');
+  console.log('  - URL_OK:', formData.URL_OK);
+  console.log('  - URL_NOK:', formData.URL_NOK);
+  
+  return res.status(200).json({
+    success: true,
+    message: 'Formulario loguado en servidor',
+    camposFaltantes: camposFaltantes.length > 0 ? camposFaltantes : null,
+    totalCampos: Object.keys(formData).length
+  });
+});
+
 // ENDPOINT DE DIAGNÓSTICO: Consultar estado de pagos
 app.get('/api/cecabank/payment/:orderId', (req, res) => {
   const { orderId } = req.params;
