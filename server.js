@@ -2207,6 +2207,67 @@ function validateCecabankSignature(datos) {
 
 // Endpoint para recibir respuesta de pago de Cecabank (maneja tanto OK como KO)
 // Si el TPV solo permite configurar URL_OK, este endpoint manejará ambos casos
+app.get('/api/cecabank/ok', async (req, res) => {
+  try {
+    console.log('📥 Callback GET de Cecabank recibido (/ok)');
+    console.log('📝 Query params:', JSON.stringify(req.query, null, 2));
+ 
+    const Num_operacion = req.query?.Num_operacion || req.query?.num_operacion || '';
+    const Importe = req.query?.Importe || req.query?.importe || '';
+
+    const Ds_Response = req.query?.Ds_Response || req.query?.ds_response || '';
+    const Codigo_respuesta = req.query?.Codigo_respuesta || req.query?.codigo_respuesta || '';
+    const Respuesta = req.query?.Respuesta || req.query?.respuesta || '';
+    const codigoRespuesta = Ds_Response || Codigo_respuesta || Respuesta;
+
+    let pagoExitoso = false;
+    if (codigoRespuesta !== undefined && codigoRespuesta !== null && String(codigoRespuesta).trim() !== '') {
+      const codigo = String(codigoRespuesta).trim();
+      pagoExitoso = codigo === '00' || codigo === '0' || codigo.toLowerCase() === 'ok';
+    }
+
+    const payload = pagoExitoso
+      ? {
+          type: 'payment-success',
+          orderId: String(Num_operacion || ''),
+          importe: String(Importe || ''),
+          codigoRespuesta: String(codigoRespuesta || '')
+        }
+      : {
+          type: 'payment-error',
+          message: 'El pago fue cancelado o rechazado',
+          orderId: String(Num_operacion || ''),
+          codigoRespuesta: String(codigoRespuesta || '')
+        };
+
+    const payloadStr = JSON.stringify(payload);
+ 
+    return res.status(200).send(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <title>Pago procesado</title>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body>
+          <p>Procesando resultado del pago...</p>
+          <script>
+            try {
+              if (window.ReactNativeWebView) {
+                window.ReactNativeWebView.postMessage(${JSON.stringify(payloadStr)});
+              }
+            } catch (e) {}
+          </script>
+        </body>
+      </html>
+    `);
+  } catch (error) {
+    console.error('❌ Error procesando callback GET OK de Cecabank:', error);
+    return res.status(200).send('OK recibido');
+  }
+});
+
 app.post('/api/cecabank/ok', express.urlencoded({ extended: true }), async (req, res) => {
   try {
     console.log('📥 Callback de Cecabank recibido');
@@ -2550,6 +2611,48 @@ app.post('/api/cecabank/ok', express.urlencoded({ extended: true }), async (req,
 // Endpoint para recibir respuesta de pago fallido de Cecabank
 // IMPORTANTE: Este endpoint DEBE devolver HTTP 200 para que Cecabank considere que la URL funciona
 // La URL debe ser exactamente: https://academiadeinmigrantes.es/api/cecabank/ko
+app.get('/api/cecabank/ko', async (req, res) => {
+  try {
+    console.log('❌ Callback GET de Cecabank recibido (/ko)');
+    console.log('📝 Query params:', JSON.stringify(req.query, null, 2));
+ 
+    const Num_operacion = req.query?.Num_operacion || req.query?.num_operacion || '';
+    const Ds_Response = req.query?.Ds_Response || req.query?.ds_response || '';
+    const Codigo_respuesta = req.query?.Codigo_respuesta || req.query?.codigo_respuesta || '';
+    const Respuesta = req.query?.Respuesta || req.query?.respuesta || '';
+    const codigoRespuesta = Ds_Response || Codigo_respuesta || Respuesta;
+ 
+    return res.status(200).send(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <title>Pago fallido</title>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body>
+          <p>Pago no realizado. Volviendo a la app...</p>
+          <script>
+            try {
+              if (window.ReactNativeWebView) {
+                window.ReactNativeWebView.postMessage(JSON.stringify({
+                  type: 'payment-error',
+                  message: 'El pago fue cancelado o rechazado',
+                  orderId: '${Num_operacion}',
+                  codigoRespuesta: '${codigoRespuesta}'
+                }));
+              }
+            } catch (e) {}
+          </script>
+        </body>
+      </html>
+    `);
+  } catch (error) {
+    console.error('❌ Error procesando callback GET KO de Cecabank:', error);
+    return res.status(200).send('KO recibido');
+  }
+});
+
 app.post('/api/cecabank/ko', express.urlencoded({ extended: true }), async (req, res) => {
   try {
     console.log('❌ Callback de Cecabank KO recibido');
@@ -2644,7 +2747,8 @@ app.post('/api/cecabank/ko', express.urlencoded({ extended: true }), async (req,
               window.ReactNativeWebView.postMessage(JSON.stringify({
                 type: 'payment-error',
                 message: 'El pago fue cancelado o falló',
-                orderId: '${Num_operacion || ''}'
+                orderId: '${Num_operacion || ''}',
+                codigoRespuesta: '${codigoRespuesta || ''}'
               }));
             }
             
