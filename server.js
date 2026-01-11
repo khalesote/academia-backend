@@ -1576,24 +1576,16 @@ ${formFields}
         console.log('📍 URL destino:', '${urlCecabank}');
         
         var formSubmitted = false;
-        var submitAttempts = 0;
-        var maxAttempts = 10;
         
         function submitForm() {
-          submitAttempts++;
-          
-          if (formSubmitted && submitAttempts > 1) {
-            console.log('⚠️ Formulario ya enviado, intento', submitAttempts);
+          if (formSubmitted) {
             return false;
           }
           
           try {
             const form = document.getElementById('cecabankForm');
             if (!form) {
-              console.error('❌ Formulario no encontrado, intento', submitAttempts);
-              if (submitAttempts < maxAttempts) {
-                return false; // Reintentar
-              }
+              console.error('❌ Formulario no encontrado');
               return false;
             }
             
@@ -1603,9 +1595,6 @@ ${formFields}
             
             if (!urlOkField || !urlKoField) {
               console.error('❌ URLs faltantes en el formulario');
-              if (submitAttempts < maxAttempts) {
-                return false; // Reintentar
-              }
               return false;
             }
             
@@ -1618,98 +1607,29 @@ ${formFields}
             form.enctype = 'application/x-www-form-urlencoded';
             form.target = '_self';
             
-            // Verificar que el importe no sea 0
-            const importeField = form.querySelector('input[name="Importe"]');
-            if (importeField) {
-              console.log('💰 Importe:', importeField.value);
-              if (!importeField.value || importeField.value === '000000000000') {
-                console.error('❌ ERROR: Importe es 0 o vacío!');
-                alert('Error: El importe no puede ser 0. Por favor, contacta con soporte.');
-                return false;
-              }
-            }
-            
             formSubmitted = true;
             
-            console.log('📤 Enviando formulario POST a:', form.action, '(intento', submitAttempts, ')');
-            
-            // Forzar el envío de múltiples formas
-            try {
-              form.submit();
-            } catch (e1) {
-              console.error('Error en form.submit():', e1);
-              try {
-                form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-              } catch (e2) {
-                console.error('Error en dispatchEvent:', e2);
-                // Último recurso: crear un nuevo formulario y enviarlo
-                const newForm = document.createElement('form');
-                newForm.method = 'POST';
-                newForm.action = form.action;
-                newForm.enctype = 'application/x-www-form-urlencoded';
-                newForm.target = '_self';
-                
-                // Copiar todos los campos
-                Array.from(form.elements).forEach(function(element) {
-                  if (element.tagName === 'INPUT') {
-                    const newInput = element.cloneNode(true);
-                    newForm.appendChild(newInput);
-                  }
-                });
-                
-                document.body.appendChild(newForm);
-                newForm.submit();
-              }
-            }
-            
+            console.log('📤 Enviando formulario POST a:', form.action);
+            form.submit();
             return true;
           } catch (error) {
-            console.error('❌ Error en submitForm:', error);
+            console.error('❌ Error:', error);
             formSubmitted = false;
-            if (submitAttempts < maxAttempts) {
-              return false; // Reintentar
-            }
             return false;
-          }
-        }
-        
-        // Función para forzar envío inmediato
-        function forceSubmit() {
-          if (!formSubmitted) {
-            submitForm();
           }
         }
         
         // Intentar enviar cuando el DOM esté listo
         if (document.readyState === 'complete' || document.readyState === 'interactive') {
-          console.log('📋 DOM ya está listo, enviando inmediatamente');
-          forceSubmit();
+          submitForm();
         } else {
-          console.log('⏳ Esperando DOMContentLoaded...');
-          document.addEventListener('DOMContentLoaded', function() {
-            console.log('✅ DOMContentLoaded disparado');
-            forceSubmit();
-          });
+          document.addEventListener('DOMContentLoaded', submitForm);
         }
         
-        // Respaldo con timeouts múltiples para asegurar el envío
-        setTimeout(forceSubmit, 10);
-        setTimeout(forceSubmit, 50);
-        setTimeout(forceSubmit, 100);
-        setTimeout(forceSubmit, 200);
-        setTimeout(forceSubmit, 300);
-        setTimeout(forceSubmit, 500);
-        setTimeout(forceSubmit, 800);
-        setTimeout(forceSubmit, 1000);
-        setTimeout(forceSubmit, 1500);
-        setTimeout(forceSubmit, 2000);
-        
-        // También intentar cuando la ventana esté completamente cargada
-        window.addEventListener('load', function() {
-          console.log('✅ Window load event');
-          setTimeout(forceSubmit, 100);
-          setTimeout(forceSubmit, 500);
-        });
+        // Respaldo con timeouts
+        setTimeout(submitForm, 50);
+        setTimeout(submitForm, 100);
+        setTimeout(submitForm, 200);
       })();
       
       // Detectar callbacks (solo si no estamos en nuestra página de redirección)
