@@ -1292,6 +1292,8 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     const camposFaltantes = camposObligatorios.filter(campo => !formData[campo]);
     if (camposFaltantes.length > 0) {
       console.error('❌ Campos obligatorios faltantes:', camposFaltantes);
+      console.error('📋 Payload completo al llegar al backend:', JSON.stringify(req.body, null, 2));
+      console.error('📋 Campos recibidos desde el cliente:', Object.keys(req.body));
       return res.status(400).send(`Campos obligatorios faltantes: ${camposFaltantes.join(', ')}`);
     }
     
