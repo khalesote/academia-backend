@@ -1422,20 +1422,6 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       }
     });
     
-    // Asegurar que URL_OK y URL_KO estén presentes (son obligatorios)
-    if (!formDataOrdenado.URL_OK) {
-      console.error('❌ ERROR: URL_OK no está en formDataOrdenado');
-      throw new Error('URL_OK es obligatorio');
-    }
-    
-    if (!formDataOrdenado.URL_KO) {
-      console.error('❌ ERROR: URL_KO no está en formDataOrdenado');
-      console.error('📋 formData.URL_KO original:', formData.URL_KO);
-      // Si no está, usar URL_OK como fallback (algunos TPV solo permiten URL_OK)
-      formDataOrdenado.URL_KO = formDataOrdenado.URL_OK;
-      console.warn('⚠️ Usando URL_OK como URL_KO (fallback)');
-    }
-    
     console.log('📋 Campos ordenados:', Object.keys(formDataOrdenado));
     console.log('🔗 URL_OK en formDataOrdenado:', formDataOrdenado.URL_OK ? 'Sí' : 'No');
     console.log('🔗 URL_KO en formDataOrdenado:', formDataOrdenado.URL_KO ? 'Sí' : 'No');
