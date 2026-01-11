@@ -863,10 +863,10 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       // IMPORTANTE: Cecabank usa su PROPIO sistema PGW, NO Redsys SIS
       // URLs de Cecabank PGW:
       // - Test: https://tpv.ceca.es/tpvweb/tpv/compra.action
-      // - ProducciÃ³n: https://pgw.ceca.es/tpvweb/tpv/htm/entrada.htm
+      // - ProducciÃ³n: https://pgw.ceca.es/tpvweb/tpv/compra.action
       let cecabankUrl = esModoPrueba
         ? 'https://tpv.ceca.es/tpvweb/tpv/compra.action'   // URL de prueba de Cecabank PGW
-        : 'https://pgw.ceca.es/tpvweb/tpv/htm/entrada.htm';  // URL de producciÃ³n de Cecabank PGW
+        : 'https://pgw.ceca.es/tpvweb/tpv/compra.action';  // URL de producciÃ³n de Cecabank PGW
       
       // Logs para debugging
       console.log('ðŸ” Determinando URL de Cecabank:', {
@@ -1379,7 +1379,7 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     
     // URL correcta para Cecabank
     const urlCecabank = (process.env.CECABANK_ENTORNO || 'test') === 'produccion'
-      ? 'https://pgw.ceca.es/tpvweb/tpv/htm/entrada.htm'
+      ? 'https://pgw.ceca.es/tpvweb/tpv/compra.action'
       : 'https://tpv.ceca.es/tpvweb/tpv/compra.action';
     
     console.log('ðŸ”— URL de Cecabank:', urlCecabank);
