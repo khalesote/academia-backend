@@ -1056,6 +1056,16 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
           firmas_coinciden: firmaOriginal === firmaEnPostData,
         });
         
+        // IMPORTANTE: NO hacer POST a Cecabank cuando se recibe formato SIS
+        // En su lugar, generar el formulario HTML directamente (como en la versión que funciona)
+        console.log('⚠️ Formato SIS detectado - usando formulario HTML directo (sin POST a Cecabank)');
+        console.log('📋 Esta es la implementación correcta: generar HTML directamente, no hacer POST primero');
+        
+        // Lanzar error inmediatamente para usar el fallback del formulario HTML
+        throw new Error('Usando formulario HTML directo para formato SIS');
+        
+        // CÓDIGO ANTERIOR (deshabilitado - no hacer POST a Cecabank):
+        /*
         console.log('📤 Haciendo POST a Cecabank SIS...');
         console.log('📤 URL:', cecabankUrl);
         console.log('📤 Body preview (primeros 200 chars):', postData.toString().substring(0, 200));
@@ -1075,7 +1085,10 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
           console.error('❌ Error en respuesta de Cecabank SIS:', cecabankResponse.status, cecabankResponse.statusText);
           throw new Error(`Error de Cecabank SIS: ${cecabankResponse.status}`);
         }
+        */
         
+        // CÓDIGO ANTERIOR (deshabilitado - no hacer POST a Cecabank):
+        /*
         // Obtener el HTML preservando la codificación UTF-8
         const htmlContent = await cecabankResponse.text();
         console.log('✅ HTML recibido de Cecabank SIS, longitud:', htmlContent.length);
