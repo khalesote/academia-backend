@@ -1281,8 +1281,8 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       'TipoMoneda',
       'Exponente',
       'Cifrado',
-      'URLOK',  // Sin guiÃ³n bajo - requerido por algunos sistemas de Cecabank
-      'URLKO',  // Sin guiÃ³n bajo - requerido por algunos sistemas de Cecabank
+      'URL_OK',  // El frontend envÃ­a URL_OK (con guiÃ³n bajo)
+      'URL_KO',  // El frontend envÃ­a URL_KO (con guiÃ³n bajo)
       'Idioma',
       'FechaOperacion',
       'HoraOperacion',
