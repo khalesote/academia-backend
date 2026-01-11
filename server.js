@@ -1651,17 +1651,26 @@ ${formFields}
               return false;
             }
             
-            // Verificar URL_OK y URL_KO
-            const urlOkField = form.querySelector('input[name="URL_OK"]');
-            const urlKoField = form.querySelector('input[name="URL_KO"]');
+            // Verificar URLOK y URLKO
+            const urlOkField = form.querySelector('input[name="URLOK"]');
+            const urlKoField = form.querySelector('input[name="URLKO"]');
             
             if (!urlOkField || !urlKoField) {
               console.error('❌ URLs faltantes en el formulario');
-              return false;
+              console.error('🔍 Buscando URLOK:', form.querySelector('input[name="URLOK"]'));
+              console.error('🔍 Buscando URLKO:', form.querySelector('input[name="URLKO"]'));
+              // Intentar buscar con los nombres antiguos como fallback
+              const urlOkFieldAlt = form.querySelector('input[name="URL_OK"]');
+              const urlKoFieldAlt = form.querySelector('input[name="URL_KO"]');
+              if (urlOkFieldAlt && urlKoFieldAlt) {
+                console.log('✅ URLs encontradas con nombres antiguos (URL_OK, URL_KO)');
+              } else {
+                return false;
+              }
+            } else {
+              console.log('✅ URLOK:', urlOkField.value);
+              console.log('✅ URLKO:', urlKoField.value);
             }
-            
-            console.log('✅ URL_OK:', urlOkField.value);
-            console.log('✅ URL_KO:', urlKoField.value);
             
             // Asegurar atributos correctos
             form.method = 'POST';
