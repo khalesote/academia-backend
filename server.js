@@ -1460,6 +1460,12 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       const urlOkValue = postData.get('URL_OK');
       const urlKoValue = postData.get('URL_KO');
       
+      // Log completo de todos los campos que se enviarán
+      const camposEnviados = {};
+      postData.forEach((value, key) => {
+        camposEnviados[key] = value.length > 100 ? value.substring(0, 100) + '...' : value;
+      });
+      
       console.log('📋 Datos a enviar a Cecabank:', {
         numCampos: postData.toString().split('&').length,
         tieneMerchantID: postData.has('MerchantID'),
@@ -1469,8 +1475,11 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
         tieneURL_OK: tieneUrlOk,
         tieneURL_KO: tieneUrlKo,
         URL_OK_value: urlOkValue ? urlOkValue.substring(0, 50) + '...' : 'NO PRESENTE',
-        URL_KO_value: urlKoValue ? urlKoValue.substring(0, 50) + '...' : 'NO PRESENTE'
+        URL_KO_value: urlKoValue ? urlKoValue.substring(0, 50) + '...' : 'NO PRESENTE',
+        todosLosCampos: Object.keys(camposEnviados)
       });
+      
+      console.log('📋 Campos completos a enviar:', camposEnviados);
       
       // Verificar que URL_KO esté presente antes de enviar
       if (!tieneUrlKo || !urlKoValue) {
