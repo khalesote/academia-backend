@@ -1240,8 +1240,9 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     }
     
     // IMPORTANTE: Verificar que las URLs coincidan con las configuradas
-    const urlOkEsperada = 'https://academiadeinmigrantes.es/api/cecabank/ok';
-    const urlKoEsperada = 'https://academiadeinmigrantes.es/api/cecabank/ko';
+    // NOTA: Las URLs vienen del frontend con www., así que las esperadas también deben tener www.
+    const urlOkEsperada = 'https://www.academiadeinmigrantes.es/api/cecabank/ok';
+    const urlKoEsperada = 'https://www.academiadeinmigrantes.es/api/cecabank/ko';
     
     // Si URL_KO es igual a URL_OK, significa que el TPV solo permite una URL
     const usaUrlUnica = formData.URL_OK === formData.URL_KO;
