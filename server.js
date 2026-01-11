@@ -1385,7 +1385,6 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     console.log('🔗 URL de Cecabank:', urlCecabank);
     
     // Ordenar campos según el orden recomendado por Cecabank (mover antes del POST)
-    // IMPORTANTE: Los nombres de campos deben coincidir exactamente con lo que espera Cecabank
     const ordenCampos = [
       'MerchantID',
       'AcquirerBIN',
@@ -1395,8 +1394,8 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       'TipoMoneda',
       'Exponente',
       'Cifrado',
-      'URLOK',  // Cambiado de URL_OK a URLOK (sin guión bajo)
-      'URLKO',  // Cambiado de URL_KO a URLKO (sin guión bajo)
+      'URL_OK',
+      'URL_KO',
       'Idioma',
       'Descripcion',
       'FechaOperacion',
@@ -1406,19 +1405,11 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       'Nombre'
     ];
     
-    // Mapear los campos recibidos a los nombres que espera Cecabank
+    // Crear un objeto ordenado
     const formDataOrdenado = {};
     ordenCampos.forEach(campo => {
-      // Mapear URL_OK -> URLOK y URL_KO -> URLKO
-      let campoOrigen = campo;
-      if (campo === 'URLOK') {
-        campoOrigen = 'URL_OK';
-      } else if (campo === 'URLKO') {
-        campoOrigen = 'URL_KO';
-      }
-      
-      if (formData[campoOrigen] !== undefined) {
-        formDataOrdenado[campo] = formData[campoOrigen];
+      if (formData[campo] !== undefined) {
+        formDataOrdenado[campo] = formData[campo];
       }
     });
     
@@ -1433,14 +1424,14 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     
     console.log('📋 Campos ordenados:', Object.keys(formDataOrdenado));
     console.log('📋 Número de campos ordenados:', Object.keys(formDataOrdenado).length);
-    console.log('🔗 URLOK en formDataOrdenado:', formDataOrdenado.URLOK ? 'Sí' : 'No');
-    console.log('🔗 URLKO en formDataOrdenado:', formDataOrdenado.URLKO ? 'Sí' : 'No');
-    console.log('🔗 URLOK valor:', formDataOrdenado.URLOK);
-    console.log('🔗 URLKO valor:', formDataOrdenado.URLKO);
-    console.log('🔗 URLOK tipo:', typeof formDataOrdenado.URLOK);
-    console.log('🔗 URLKO tipo:', typeof formDataOrdenado.URLKO);
-    console.log('🔗 URLOK longitud:', formDataOrdenado.URLOK ? formDataOrdenado.URLOK.length : 0);
-    console.log('🔗 URLKO longitud:', formDataOrdenado.URLKO ? formDataOrdenado.URLKO.length : 0);
+    console.log('🔗 URL_OK en formDataOrdenado:', formDataOrdenado.URL_OK ? 'Sí' : 'No');
+    console.log('🔗 URL_KO en formDataOrdenado:', formDataOrdenado.URL_KO ? 'Sí' : 'No');
+    console.log('🔗 URL_OK valor:', formDataOrdenado.URL_OK);
+    console.log('🔗 URL_KO valor:', formDataOrdenado.URL_KO);
+    console.log('🔗 URL_OK tipo:', typeof formDataOrdenado.URL_OK);
+    console.log('🔗 URL_KO tipo:', typeof formDataOrdenado.URL_KO);
+    console.log('🔗 URL_OK longitud:', formDataOrdenado.URL_OK ? formDataOrdenado.URL_OK.length : 0);
+    console.log('🔗 URL_KO longitud:', formDataOrdenado.URL_KO ? formDataOrdenado.URL_KO.length : 0);
     
     // DEBUG: Mostrar todos los campos con sus valores
     console.log('🔍 DEBUG: Todos los campos en formDataOrdenado:');
@@ -1470,12 +1461,8 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     console.log('🔗 URLs antes de generar formulario:', {
       URL_OK: formData.URL_OK,
       URL_KO: formData.URL_KO,
-      URLOK: formDataOrdenado.URLOK,
-      URLKO: formDataOrdenado.URLKO,
       URL_OK_length: formData.URL_OK?.length,
       URL_KO_length: formData.URL_KO?.length,
-      URLOK_length: formDataOrdenado.URLOK?.length,
-      URLKO_length: formDataOrdenado.URLKO?.length,
       URL_OK_type: typeof formData.URL_OK,
       URL_KO_type: typeof formData.URL_KO
     });
@@ -1489,8 +1476,8 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       formData.URL_KO = String(formData.URL_KO).trim();
     }
     
-    console.log('🔗 URLKO en posición:', Object.keys(formDataOrdenado).indexOf('URLKO'));
-    console.log('🔗 URLOK en posición:', Object.keys(formDataOrdenado).indexOf('URLOK'));
+    console.log('🔗 URL_KO en posición:', Object.keys(formDataOrdenado).indexOf('URL_KO'));
+    console.log('🔗 URL_OK en posición:', Object.keys(formDataOrdenado).indexOf('URL_OK'));
     
     const formFields = Object.entries(formDataOrdenado)
       .map(([key, value]) => {
@@ -1504,7 +1491,7 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
         
         // Para URLs, asegurar que no haya espacios ni caracteres problemáticos
         let escapedValue = String(value || '');
-        if (key === 'URLOK' || key === 'URLKO') {
+        if (key === 'URL_OK' || key === 'URL_KO') {
           // Las URLs deben estar limpias y correctamente formateadas
           escapedValue = escapedValue.trim();
           // Asegurar que la URL no tenga espacios ni caracteres especiales problemáticos
@@ -1528,50 +1515,50 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     
     // Verificar que las URLs estén en el HTML generado
     console.log('🔍 DEBUG: Verificando presencia de URLs en formFields...');
-    console.log('🔍 formFields contiene "URLKO":', formFields.includes('URLKO'));
-    console.log('🔍 formFields contiene "URLOK":', formFields.includes('URLOK'));
-    console.log('🔍 formFields contiene "name=\\"URLKO\\"":', formFields.includes('name="URLKO"'));
-    console.log('🔍 formFields contiene "name=\\"URLOK\\"":', formFields.includes('name="URLOK"'));
+    console.log('🔍 formFields contiene "URL_KO":', formFields.includes('URL_KO'));
+    console.log('🔍 formFields contiene "URL_OK":', formFields.includes('URL_OK'));
+    console.log('🔍 formFields contiene "name=\\"URL_KO\\"":', formFields.includes('name="URL_KO"'));
+    console.log('🔍 formFields contiene "name=\\"URL_OK\\"":', formFields.includes('name="URL_OK"'));
     
-    // Buscar URLKO
-    const urlKoMatches = formFields.match(/name="URLKO"[^>]*value="([^"]*)"/);
+    // Buscar URL_KO
+    const urlKoMatches = formFields.match(/name="URL_KO"[^>]*value="([^"]*)"/);
     if (urlKoMatches) {
-      console.log('✅ URLKO encontrada en formFields:', urlKoMatches[1]);
-      console.log('✅ URLKO valor completo:', urlKoMatches[1]);
-      console.log('✅ URLKO longitud:', urlKoMatches[1].length);
+      console.log('✅ URL_KO encontrada en formFields:', urlKoMatches[1]);
+      console.log('✅ URL_KO valor completo:', urlKoMatches[1]);
+      console.log('✅ URL_KO longitud:', urlKoMatches[1].length);
     } else {
-      console.error('❌ URLKO NO encontrada en formFields con regex');
+      console.error('❌ URL_KO NO encontrada en formFields con regex');
       // Intentar buscar de otra manera
-      const urlKoIndex = formFields.indexOf('URLKO');
+      const urlKoIndex = formFields.indexOf('URL_KO');
       if (urlKoIndex >= 0) {
         const context = formFields.substring(Math.max(0, urlKoIndex - 50), Math.min(formFields.length, urlKoIndex + 200));
-        console.error('❌ URLKO encontrada en posición', urlKoIndex, 'pero no coincide con regex');
+        console.error('❌ URL_KO encontrada en posición', urlKoIndex, 'pero no coincide con regex');
         console.error('❌ Contexto alrededor:', context);
       } else {
-        console.error('❌ URLKO no encontrada en formFields en absoluto');
+        console.error('❌ URL_KO no encontrada en formFields en absoluto');
       }
     }
     
-    // Buscar URLOK
-    const urlOkMatches = formFields.match(/name="URLOK"[^>]*value="([^"]*)"/);
+    // Buscar URL_OK
+    const urlOkMatches = formFields.match(/name="URL_OK"[^>]*value="([^"]*)"/);
     if (urlOkMatches) {
-      console.log('✅ URLOK encontrada en formFields:', urlOkMatches[1]);
-      console.log('✅ URLOK valor completo:', urlOkMatches[1]);
-      console.log('✅ URLOK longitud:', urlOkMatches[1].length);
+      console.log('✅ URL_OK encontrada en formFields:', urlOkMatches[1]);
+      console.log('✅ URL_OK valor completo:', urlOkMatches[1]);
+      console.log('✅ URL_OK longitud:', urlOkMatches[1].length);
     } else {
-      console.error('❌ URLOK NO encontrada en formFields con regex');
+      console.error('❌ URL_OK NO encontrada en formFields con regex');
     }
     
     // Mostrar fragmento de formFields que contiene las URLs
-    const urlKoIndex = formFields.indexOf('URLKO');
-    const urlOkIndex = formFields.indexOf('URLOK');
+    const urlKoIndex = formFields.indexOf('URL_KO');
+    const urlOkIndex = formFields.indexOf('URL_OK');
     if (urlKoIndex >= 0) {
       const fragment = formFields.substring(Math.max(0, urlKoIndex - 20), Math.min(formFields.length, urlKoIndex + 300));
-      console.log('🔍 Fragmento de formFields con URLKO:', fragment);
+      console.log('🔍 Fragmento de formFields con URL_KO:', fragment);
     }
     if (urlOkIndex >= 0) {
       const fragment = formFields.substring(Math.max(0, urlOkIndex - 20), Math.min(formFields.length, urlOkIndex + 300));
-      console.log('🔍 Fragmento de formFields con URLOK:', fragment);
+      console.log('🔍 Fragmento de formFields con URL_OK:', fragment);
     }
     
     console.log('📋 Campos del formulario generados:', Object.keys(formData).length);
@@ -1651,26 +1638,17 @@ ${formFields}
               return false;
             }
             
-            // Verificar URLOK y URLKO
-            const urlOkField = form.querySelector('input[name="URLOK"]');
-            const urlKoField = form.querySelector('input[name="URLKO"]');
+            // Verificar URL_OK y URL_KO
+            const urlOkField = form.querySelector('input[name="URL_OK"]');
+            const urlKoField = form.querySelector('input[name="URL_KO"]');
             
             if (!urlOkField || !urlKoField) {
               console.error('❌ URLs faltantes en el formulario');
-              console.error('🔍 Buscando URLOK:', form.querySelector('input[name="URLOK"]'));
-              console.error('🔍 Buscando URLKO:', form.querySelector('input[name="URLKO"]'));
-              // Intentar buscar con los nombres antiguos como fallback
-              const urlOkFieldAlt = form.querySelector('input[name="URL_OK"]');
-              const urlKoFieldAlt = form.querySelector('input[name="URL_KO"]');
-              if (urlOkFieldAlt && urlKoFieldAlt) {
-                console.log('✅ URLs encontradas con nombres antiguos (URL_OK, URL_KO)');
-              } else {
-                return false;
-              }
-            } else {
-              console.log('✅ URLOK:', urlOkField.value);
-              console.log('✅ URLKO:', urlKoField.value);
+              return false;
             }
+            
+            console.log('✅ URL_OK:', urlOkField.value);
+            console.log('✅ URL_KO:', urlKoField.value);
             
             // Asegurar atributos correctos
             form.method = 'POST';
