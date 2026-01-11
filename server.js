@@ -1281,8 +1281,8 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       'TipoMoneda',
       'Exponente',
       'Cifrado',
-      'URL_OK',
-      'URL_KO',
+      'URLOK',  // Sin guiÃ³n bajo - requerido por algunos sistemas de Cecabank
+      'URLKO',  // Sin guiÃ³n bajo - requerido por algunos sistemas de Cecabank
       'Idioma',
       'FechaOperacion',
       'HoraOperacion',
@@ -1394,8 +1394,8 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       'TipoMoneda',
       'Exponente',
       'Cifrado',
-      'URL_OK',
-      'URL_KO',
+      'URLOK',  // Sin guiÃ³n bajo - requerido por algunos sistemas de Cecabank
+      'URLKO',  // Sin guiÃ³n bajo - requerido por algunos sistemas de Cecabank
       'Idioma',
       'Descripcion',
       'FechaOperacion',
@@ -1405,11 +1405,19 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       'Nombre'
     ];
     
-    // Crear un objeto ordenado
+    // Crear un objeto ordenado, mapeando URL_OK -> URLOK y URL_KO -> URLKO
     const formDataOrdenado = {};
     ordenCampos.forEach(campo => {
-      if (formData[campo] !== undefined) {
-        formDataOrdenado[campo] = formData[campo];
+      // Mapear nombres de campos (el frontend envÃ­a URL_OK/URL_KO, pero Cecabank espera URLOK/URLKO)
+      let campoOrigen = campo;
+      if (campo === 'URLOK') {
+        campoOrigen = 'URL_OK';
+      } else if (campo === 'URLKO') {
+        campoOrigen = 'URL_KO';
+      }
+      
+      if (formData[campoOrigen] !== undefined) {
+        formDataOrdenado[campo] = formData[campoOrigen];
       }
     });
     
