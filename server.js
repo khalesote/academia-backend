@@ -1412,11 +1412,10 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       }
     });
     
-    // Añadir solo campos opcionales permitidos por Cecabank (Email, Nombre)
-    // NO incluir campos internos como orderId, operationType, amount
-    const camposOpcionalesPermitidos = ['Email', 'Nombre'];
-    camposOpcionalesPermitidos.forEach(campo => {
-      if (formData[campo] !== undefined && formData[campo] !== null && formData[campo] !== '') {
+    // Añadir cualquier campo adicional que no esté en la lista (incluyendo Email, Nombre)
+    // NOTA: Los campos orderId, operationType, amount se filtrarán después al generar el formulario HTML
+    Object.keys(formData).forEach(campo => {
+      if (!ordenCampos.includes(campo) && formData[campo] !== undefined) {
         formDataOrdenado[campo] = formData[campo];
       }
     });
