@@ -55,6 +55,21 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_123456789', 
 // ENDPOINTS PRINCIPALES (STRIPE, EMAIL, ETC)
 // ============================================
 
+// Endpoint raíz
+app.get('/', (req, res) => {
+  console.log('🏠 Endpoint raíz llamado');
+  res.json({
+    message: 'Academia Backend API',
+    status: 'running',
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      health: '/api/health',
+      cecabankRedirect: '/api/cecabank/redirect',
+      cecabankTest: '/api/cecabank/test'
+    }
+  });
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   console.log('🏥 Health check llamado');
@@ -73,12 +88,24 @@ app.get('/api/health', (req, res) => {
 
 // Endpoint de test para Cecabank
 app.post('/api/cecabank/test', express.urlencoded({ extended: true }), (req, res) => {
-  console.log('🧪 Test endpoint llamado');
-  console.log('📝 Body:', req.body);
+  console.log('🧪 ============================================');
+  console.log('🧪 TEST ENDPOINT LLAMADO');
+  console.log('🧪 Body:', req.body);
+  console.log('🧪 ============================================');
   res.json({
     status: 'ok',
     message: 'Endpoint de test funcionando',
     body: req.body,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Endpoint de test simple GET
+app.get('/api/cecabank/test', (req, res) => {
+  console.log('🧪 GET Test endpoint llamado');
+  res.json({
+    status: 'ok',
+    message: 'GET test funcionando',
     timestamp: new Date().toISOString()
   });
 });
