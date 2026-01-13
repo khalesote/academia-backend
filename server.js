@@ -247,6 +247,25 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     console.log('📝 Body recibido:', req.body);
     console.log('📝 Content-Type:', req.get('Content-Type'));
     
+    // ✅ Verificar configuración de Cecabank al inicio
+    const tieneMerchantId = !!process.env.CECABANK_MERCHANT_ID;
+    const tieneClave = !!process.env.CECABANK_CLAVE;
+    const entorno = process.env.CECABANK_ENTORNO || 'produccion';
+    
+    console.log('🔧 Configuración Cecabank:', {
+      tieneMerchantId,
+      tieneClave,
+      entorno,
+      merchantId: process.env.CECABANK_MERCHANT_ID || 'NO CONFIGURADO',
+      claveLength: process.env.CECABANK_CLAVE ? process.env.CECABANK_CLAVE.length : 0,
+      claveInicio: process.env.CECABANK_CLAVE ? process.env.CECABANK_CLAVE.substring(0, 4) + '...' : 'NO CONFIGURADA'
+    });
+    
+    if (!tieneMerchantId || !tieneClave) {
+      console.error('❌ ERROR: Variables de entorno de Cecabank no configuradas correctamente');
+      return res.status(500).send('Error: Configuración de Cecabank incompleta. Verifica las variables de entorno.');
+    }
+    
     const formData = req.body;
     
     // Validar campos obligatorios
