@@ -187,20 +187,12 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     console.log('🔄 Endpoint de redirección a Cecabank recibido');
     console.log('📝 Datos recibidos:', req.body);
     
-    const formData = req.body;
+    // Obtener datos del request
+    const { Num_operacion, Importe, Descripcion, URL_OK, URL_KO } = req.body;
     
-    // Validar campos obligatorios
-    const camposObligatorios = [
-      'MerchantID', 'AcquirerBIN', 'TerminalID', 'Num_operacion',
-      'Importe', 'TipoMoneda', 'Exponente', 'Cifrado',
-      'URL_OK', 'URL_KO', 'Idioma', 'FechaOperacion',
-      'HoraOperacion', 'Firma'
-    ];
-    
-    const camposFaltantes = camposObligatorios.filter(campo => !formData[campo]);
-    if (camposFaltantes.length > 0) {
-      console.error('❌ Campos obligatorios faltantes:', camposFaltantes);
-      return res.status(400).send(`Campos obligatorios faltantes: ${camposFaltantes.join(', ')}`);
+    // Validar campos mínimos requeridos del frontend
+    if (!Num_operacion || !Importe || !URL_OK || !URL_KO) {
+      return res.status(400).send('Campos requeridos: Num_operacion, Importe, URL_OK, URL_KO');
     }
     
     // Generar fecha y hora del servidor
@@ -214,19 +206,35 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       now.getMinutes().toString().padStart(2, '0') +
       now.getSeconds().toString().padStart(2, '0');
     
-    // Recalcular firma
+    // Construir objeto formData completo con datos de las variables de entorno
+    const formData = {
+      MerchantID: process.env.CECABANK_MERCHANT_ID || '086729753',
+      AcquirerBIN: process.env.CECABANK_ACQUIRER_BIN || '0000554027',
+      TerminalID: process.env.CECABANK_TERMINAL_ID || '00000003',
+      Num_operacion: Num_operacion,
+      Importe: String(Importe).padStart(12, '0'), // Asegurar 12 dígitos
+      TipoMoneda: '978', // EUR
+      Exponente: '2',
+      Cifrado: 'SHA256',
+      URL_OK: URL_OK,
+      URL_KO: URL_KO,
+      Idioma: '1', // Español
+      Descripcion: Descripcion || 'Pago Academia de Inmigrantes',
+      FechaOperacion: fechaOperacion,
+      HoraOperacion: horaOperacion,
+    };
+    
+    // Generar firma
     const firma = generateCecabankSignature(
       formData.Num_operacion,
       formData.Importe,
-      fechaOperacion,
-      horaOperacion,
+      formData.FechaOperacion,
+      formData.HoraOperacion,
       formData.URL_OK,
       formData.URL_KO
     );
     
     formData.Firma = firma;
-    formData.FechaOperacion = fechaOperacion;
-    formData.HoraOperacion = horaOperacion;
     
     // URL de producción de Cecabank
     const urlCecabank = 'https://pgw.ceca.es/tpvweb/tpv/compra.action';
