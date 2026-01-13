@@ -466,11 +466,11 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     formData.Firma = firma;
     formData.FechaOperacion = fechaOperacion;  // Misma fecha que en la firma
     formData.HoraOperacion = horaOperacion;    // Misma hora que en la firma
-    formData.Importe = importeNormalizado;     // Mismo importe que en la firma (sin ceros)
+    formData.Importe = formData.Importe;       // Mantener importe original con ceros a la izquierda para el formulario
     formData.Referencia = referencia;         // Misma referencia que en la firma
     
     console.log('🔧 Valores finales en formulario (deben coincidir con la firma):', {
-      Importe: formData.Importe + ' (sin ceros, igual que en firma)',
+      Importe: formData.Importe + ' (con ceros, para formulario) - Firma usa: ' + importeNormalizado + ' (sin ceros)',
       Referencia: formData.Referencia + ' (igual que en firma)',
       Num_operacion: formData.Num_operacion,
       FirmaLength: firma.length
@@ -518,12 +518,9 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
         
         const value = formData[campo];
         
-        // ✅ CRÍTICO: Asegurar que Importe y Referencia sean exactamente como en la firma
+        // ✅ CRÍTICO: Asegurar que Importe mantenga los ceros a la izquierda para Cecabank
         let finalValue = String(value || '');
-        if (campo === 'Importe') {
-          // Asegurar que no tenga ceros a la izquierda (debe coincidir con la firma)
-          finalValue = finalValue.replace(/^0+/, '') || '0';
-        }
+        // NO remover ceros a la izquierda del importe - Cecabank lo requiere con padding
         
         const escapedKey = String(fieldName)
           .replace(/&/g, '&amp;')
