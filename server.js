@@ -690,8 +690,10 @@ function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, ur
     // 5. Importe (SIN ceros a la izquierda)
     // 6. TipoMoneda
     // 7. Exponente
-    // 8. Referencia (NO vacía)
-    // 9. FirmaClave (clave de encriptación)
+    // 8. URL_OK
+    // 9. URL_KO
+    // 10. Referencia (NO vacía)
+    // 11. FirmaClave (clave de encriptación)
     const cadenaFirma = 
       String(merchantId).trim() + 
       String(acquirerBin).trim() + 
@@ -700,6 +702,8 @@ function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, ur
       importeStr + 
       String(tipoMoneda).trim() + 
       String(exponente).trim() + 
+      String(urlOk).trim() + 
+      String(urlKo).trim() + 
       referenciaStr + 
       String(clave).trim();
     
@@ -733,8 +737,10 @@ function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, ur
         '5. Importe (SIN ceros a la izquierda)',
         '6. TipoMoneda',
         '7. Exponente',
-        '8. Referencia (NO vacía)',
-        '9. FirmaClave'
+        '8. URL_OK',
+        '9. URL_KO',
+        '10. Referencia (NO vacía)',
+        '11. FirmaClave'
       ],
       valores: {
         merchantId,
@@ -744,6 +750,8 @@ function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, ur
         importe: importeStr + ' (sin padding)',
         tipoMoneda,
         exponente,
+        urlOk: String(urlOk).trim(),
+        urlKo: String(urlKo).trim(),
         referencia: referenciaStr,
         claveLength: clave.length,
         claveInicio: clave.substring(0, 4) + '...' // Solo mostrar inicio para seguridad
