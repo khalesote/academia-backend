@@ -315,20 +315,67 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     formData.HoraOperacion = horaOperacion;
     
     // ✅ CRÍTICO: Asegurar que el importe NO tenga ceros a la izquierda en el formulario
-    // El importe debe ser solo el número en céntimos, sin padding
+    // El importe debe ser exactamente el mismo que se usó para la firma
     formData.Importe = importeNormalizado; // Usar el importe normalizado en el formulario
-    console.log('🔧 Importe final en formulario (sin ceros):', formData.Importe);
+    
+    // ✅ CRÍTICO: Agregar campo Referencia al formulario (debe coincidir con el usado en la firma)
+    // La referencia usada en la firma es el numOperacion
+    formData.Referencia = formData.Num_operacion;
+    
+    console.log('🔧 Valores finales en formulario (deben coincidir con la firma):', {
+      Importe: formData.Importe + ' (sin ceros, igual que en firma)',
+      Referencia: formData.Referencia + ' (igual que en firma)',
+      Num_operacion: formData.Num_operacion,
+      FirmaLength: firma.length
+    });
     
     // URL de producción de Cecabank
     const urlCecabank = 'https://pgw.ceca.es/tpvweb/tpv/compra.action';
     
-    // Generar formulario HTML
-    const formFields = Object.entries(formData)
-      .map(([key, value]) => {
+    // ✅ CRÍTICO: Ordenar campos según especificación de Cecabank y asegurar que todos estén presentes
+    // Orden recomendado para mejor compatibilidad
+    const ordenCampos = [
+      'MerchantID',
+      'AcquirerBIN',
+      'TerminalID',
+      'Num_operacion',
+      'Importe',        // ✅ Sin ceros a la izquierda
+      'TipoMoneda',
+      'Exponente',
+      'Referencia',     // ✅ Debe estar presente
+      'Cifrado',
+      'Firma',
+      'URL_OK',
+      'URL_KO',         // Se mapeará a URL_NOK
+      'Idioma',
+      'FechaOperacion',
+      'HoraOperacion',
+      'Descripcion'
+    ];
+    
+    // Generar formulario HTML con campos en orden y valores exactos
+    const formFields = ordenCampos
+      .filter(campo => {
+        // Incluir solo campos que existen en formData
+        if (campo === 'URL_KO') {
+          return formData.URL_KO !== undefined; // URL_KO se mapeará a URL_NOK
+        }
+        return formData[campo] !== undefined && formData[campo] !== null && formData[campo] !== '';
+      })
+      .map((campo) => {
         // Mapear URL_KO a URL_NOK para Cecabank
-        let fieldName = key;
-        if (key === 'URL_KO') {
+        let fieldName = campo;
+        if (campo === 'URL_KO') {
           fieldName = 'URL_NOK';
+        }
+        
+        const value = formData[campo];
+        
+        // ✅ CRÍTICO: Asegurar que Importe y Referencia sean exactamente como en la firma
+        let finalValue = String(value || '');
+        if (campo === 'Importe') {
+          // Asegurar que no tenga ceros a la izquierda (debe coincidir con la firma)
+          finalValue = finalValue.replace(/^0+/, '') || '0';
         }
         
         const escapedKey = String(fieldName)
@@ -337,7 +384,7 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
           .replace(/>/g, '&gt;')
           .replace(/"/g, '&quot;');
         
-        const escapedValue = String(value || '')
+        const escapedValue = String(finalValue)
           .replace(/&/g, '&amp;')
           .replace(/</g, '&lt;')
           .replace(/>/g, '&gt;')
@@ -346,6 +393,14 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
         return `            <input type="hidden" name="${escapedKey}" value="${escapedValue}" />`;
       })
       .join('\n');
+    
+    // Log para verificación
+    console.log('📋 Campos en formulario HTML:', {
+      Importe: formData.Importe,
+      Referencia: formData.Referencia,
+      Num_operacion: formData.Num_operacion,
+      totalCampos: ordenCampos.filter(c => formData[c] !== undefined).length
+    });
     
     // HTML con formulario auto-envío
     const html = `<!DOCTYPE html>
