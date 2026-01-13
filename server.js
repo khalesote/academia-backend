@@ -137,6 +137,116 @@ app.post('/api/create-payment-intent', async (req, res) => {
   }
 });
 
+// Endpoint para solicitar inscripción al examen presencial
+app.post('/api/solicitar-examen-presencial', async (req, res) => {
+  try {
+    console.log('📧 Iniciando solicitud de inscripción al examen presencial...');
+    const { nombre, email, telefono, nivel, documento, mensaje } = req.body;
+    console.log('📝 Datos recibidos:', { nombre, email, telefono, nivel, documento, mensaje });
+    console.log('📝 Nombre recibido (tipo y valor):', typeof nombre, nombre);
+    console.log('📝 Nombre completo recibido:', JSON.stringify(nombre));
+
+    // Validar datos requeridos
+    if (!nombre || !email || !nivel) {
+      console.log('❌ Validación fallida: faltan campos obligatorios');
+      return res.status(400).json({
+        error: 'Faltan campos obligatorios',
+        required: ['nombre', 'email', 'nivel']
+      });
+    }
+
+    // Verificar configuración de SMTP2GO
+    if (!process.env.SMTP2GO_USERNAME || !process.env.SMTP2GO_PASSWORD) {
+      console.error('❌ Credenciales de SMTP2GO no configuradas');
+      return res.status(500).json({
+        error: 'Configuración de email incompleta',
+        details: 'Credenciales de SMTP2GO no configuradas'
+      });
+    }
+
+    // Configurar el email
+    const mailOptions = {
+      from: 'admin@academiadeinmigrantes.es',
+      to: 'admin@academiadeinmigrantes.es',
+      replyTo: email,
+      subject: `Solicitud de examen presencial - Nivel ${nivel} - ${nombre}`,
+      html: `
+        <h2>Solicitud de Inscripción al Examen Presencial</h2>
+        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <h3>Datos del Estudiante:</h3>
+          <p><strong>Nombre:</strong> ${nombre}</p>
+          <p><strong>Email:</strong> ${email}</p>
+          ${telefono ? `<p><strong>Teléfono:</strong> ${telefono}</p>` : ''}
+          ${documento ? `<p><strong>Documento:</strong> ${documento}</p>` : ''}
+          <p><strong>Nivel:</strong> ${nivel}</p>
+          <p><strong>Fecha de solicitud:</strong> ${new Date().toLocaleString('es-ES')}</p>
+        </div>
+        <div style="background-color: #e8f5e9; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #4caf50;">
+          <h3 style="color: #2e7d32; margin-top: 0;">Mensaje del Estudiante:</h3>
+          <p style="font-size: 16px; font-weight: bold; color: #1b5e20;">${mensaje || 'ME APUNTO EN EXAMEN PRESENCIAL'}</p>
+        </div>
+        <p style="color: #666;">Este email fue enviado desde la app Academia de Inmigrantes.</p>
+        <p style="color: #666;">El estudiante ha completado exitosamente el examen final del nivel ${nivel} y solicita inscribirse al examen presencial.</p>
+      `,
+    };
+
+    console.log('📤 Enviando email a:', mailOptions.to);
+    console.log('📤 Desde:', mailOptions.from);
+    console.log('📤 Asunto:', mailOptions.subject);
+
+    // Enviar el email usando SMTP2GO
+    const result = await transporter.sendMail(mailOptions);
+    console.log('✅ Email enviado exitosamente:', result.messageId);
+
+    res.json({
+      success: true,
+      message: 'Solicitud de examen presencial enviada correctamente',
+      messageId: result.messageId
+    });
+
+  } catch (error) {
+    console.error('❌ Error enviando solicitud de examen presencial:', error);
+
+    // Manejo de errores específico para SMTP2GO
+    let errorMessage = 'Error al enviar la solicitud';
+    let errorDetails = error.message;
+    let errorCode = error.code;
+
+    if (error.responseCode) {
+      const responseCode = error.responseCode;
+      console.error('❌ Código de respuesta SMTP:', responseCode);
+
+      if (responseCode === 535) {
+        errorMessage = 'Error de autenticación con SMTP2GO';
+        errorDetails = 'Las credenciales de SMTP2GO son incorrectas.';
+        errorCode = 'EAUTH';
+      } else if (responseCode === 550) {
+        errorMessage = 'Email rechazado';
+        errorDetails = 'El servidor SMTP rechazó el email. Verifica el dominio y email remitente.';
+        errorCode = 'EREJECTED';
+      } else if (responseCode === 421) {
+        errorMessage = 'Servicio temporalmente no disponible';
+        errorDetails = 'SMTP2GO no está disponible temporalmente. Inténtalo más tarde.';
+        errorCode = 'ETEMP';
+      }
+    } else {
+      if (error.code === 'ETIMEDOUT' || error.code === 'ECONNRESET') {
+        errorMessage = 'Timeout de conexión con SMTP2GO';
+        errorDetails = 'El servidor de SMTP2GO no responde. Verificar conexión a internet.';
+      } else if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
+        errorMessage = 'Servidor de SMTP2GO no encontrado';
+        errorDetails = 'No se puede conectar al servidor de SMTP2GO.';
+      }
+    }
+
+    res.status(500).json({
+      error: errorMessage,
+      details: errorDetails,
+      code: errorCode
+    });
+  }
+});
+
 // Endpoint para enviar email
 app.post('/api/enviar-solicitud-asesoria', async (req, res) => {
   try {
@@ -567,8 +677,8 @@ function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, ur
 
     // ✅ CRÍTICO: Asegurar que todos los valores sean strings SIN espacios ni caracteres invisibles
     const numOpStr = String(numOperacion || '').trim();
-    // ❌ IMPORTANTE: Importe SIN ceros a la izquierda (solo el número en céntimos)
-    const importeStr = String(importe || '').replace(/^0+/, '').trim() || '0';
+    // ❌ CORRECCIÓN: Importe DEBE mantener los ceros a la izquierda (formato 12 dígitos)
+    const importeStr = String(importe || '').trim();
     
     // ✅ CRÍTICO: Referencia debe venir como parámetro (ya normalizada desde el endpoint)
     // Si no viene, usar numOperacion como fallback
