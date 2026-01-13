@@ -283,6 +283,12 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       });
     }
     
+    // ✅ CRÍTICO: Corregir campo Cifrado si viene como 'SHA256' (debe ser 'HMAC')
+    if (formData.Cifrado === 'SHA256') {
+      formData.Cifrado = 'HMAC';
+      console.log('🔧 Campo Cifrado corregido: SHA256 → HMAC');
+    }
+    
     // Recalcular firma
     let firma;
     try {
@@ -478,7 +484,7 @@ function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, ur
     const clave = process.env.CECABANK_CLAVE || 'P7BB51K0ABTDOAGN0W084FK4MUHRM5GQ';
     const tipoMoneda = '978';
     const exponente = '2';
-    const cifrado = 'SHA256';
+    const cifrado = 'HMAC'; // ✅ CRÍTICO: Debe ser 'HMAC' cuando se usa HMAC SHA256, NO 'SHA256'
     const idioma = '1';
 
     // Validar que todos los parámetros estén presentes
