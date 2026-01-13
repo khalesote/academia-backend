@@ -425,7 +425,17 @@ function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, ur
     const urlOkStr = String(urlOk || '');
     const urlKoStr = String(urlKo || '');
 
-    // Construir cadena para firma según especificación de Cecabank
+    // Construir cadena para firma según orden EXACTO requerido por Cecabank:
+    // 1. MerchantID
+    // 2. AcquirerBIN
+    // 3. TerminalID
+    // 4. Num_operacion
+    // 5. Importe
+    // 6. TipoMoneda
+    // 7. Exponente
+    // 8. Referencia (opcional, usar vacío si no existe)
+    // 9. FirmaClave (clave de encriptación)
+    const referencia = ''; // Campo opcional, dejar vacío si no se usa
     const cadenaFirma = 
       merchantId + 
       acquirerBin + 
@@ -434,24 +444,32 @@ function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, ur
       importeStr + 
       tipoMoneda + 
       exponente + 
-      cifrado + 
-      urlOkStr + 
-      urlKoStr + 
-      idioma + 
-      fechaStr + 
-      horaStr + 
+      referencia + 
       clave;
 
-    console.log('🔐 Generando firma con:', {
-      merchantId,
-      acquirerBin,
-      terminalId,
-      numOperacion: numOpStr,
-      importe: importeStr,
-      fecha: fechaStr,
-      hora: horaStr,
-      urlOk: urlOkStr,
-      urlKo: urlKoStr,
+    console.log('🔐 Generando firma con orden EXACTO de Cecabank:', {
+      orden: [
+        '1. MerchantID',
+        '2. AcquirerBIN',
+        '3. TerminalID',
+        '4. Num_operacion',
+        '5. Importe',
+        '6. TipoMoneda',
+        '7. Exponente',
+        '8. Referencia',
+        '9. FirmaClave'
+      ],
+      valores: {
+        merchantId,
+        acquirerBin,
+        terminalId,
+        numOperacion: numOpStr,
+        importe: importeStr,
+        tipoMoneda,
+        exponente,
+        referencia: referencia || '(vacío)',
+        claveLength: clave.length
+      },
       cadenaLength: cadenaFirma.length,
       tieneClave: !!clave && clave.length > 0
     });
