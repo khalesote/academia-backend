@@ -324,7 +324,7 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
         horaOperacion,      // Hora exacta que se enviará
         formData.URL_OK,
         formData.URL_KO,
-        referencia          // Referencia exacta que se enviará
+        referencia          // Referencia exacta que se enviará (numOperacion)
       );
       
       console.log('✅ Firma generada exitosamente');
@@ -494,6 +494,48 @@ function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, ur
     const acquirerBin = process.env.CECABANK_ACQUIRER_BIN || '0000554027';
     const terminalId = process.env.CECABANK_TERMINAL_ID || '00000003';
     const clave = process.env.CECABANK_CLAVE || 'P7BB51K0ABTDOAGN0W084FK4MUHRM5GQ';
+    
+    // ✅ Validar que la clave esté configurada y tenga la longitud esperada
+    if (!clave || clave.length === 0) {
+      throw new Error('La clave de encriptación (CECABANK_CLAVE) no está configurada');
+    }
+    if (clave.length < 20) {
+      console.warn('⚠️ ADVERTENCIA: La clave parece muy corta. Verifica que sea la clave correcta de producción.');
+    }
+    
+    // ✅ Validar fecha y hora (Cecabank valida que la hora sea cercana a la actual)
+    const ahora = new Date();
+    const fechaActual = 
+      ahora.getFullYear().toString() +
+      (ahora.getMonth() + 1).toString().padStart(2, '0') +
+      ahora.getDate().toString().padStart(2, '0');
+    
+    // Verificar que la fecha no sea muy antigua (más de 1 hora de diferencia)
+    if (fecha !== fechaActual) {
+      console.warn('⚠️ ADVERTENCIA: La fecha de operación no coincide con la fecha actual:', {
+        fechaOperacion: fecha,
+        fechaActual: fechaActual
+      });
+    }
+    
+    // Verificar que la hora no tenga un desfase muy grande (más de 5 minutos)
+    const horaActual = 
+      ahora.getHours().toString().padStart(2, '0') +
+      ahora.getMinutes().toString().padStart(2, '0') +
+      ahora.getSeconds().toString().padStart(2, '0');
+    
+    const diffMinutos = Math.abs(
+      (parseInt(hora.substring(0, 2)) * 60 + parseInt(hora.substring(2, 4))) -
+      (parseInt(horaActual.substring(0, 2)) * 60 + parseInt(horaActual.substring(2, 4)))
+    );
+    
+    if (diffMinutos > 5) {
+      console.warn('⚠️ ADVERTENCIA: Desfase de hora detectado (más de 5 minutos):', {
+        horaOperacion: hora,
+        horaActual: horaActual,
+        diferenciaMinutos: diffMinutos
+      });
+    }
     const tipoMoneda = '978';
     const exponente = '2';
     const cifrado = 'HMAC_SHA256'; // ✅ CRÍTICO: Debe ser 'HMAC_SHA256' según especificación de Cecabank
@@ -535,9 +577,25 @@ function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, ur
       referenciaStr + 
       String(clave).trim();
     
-    // ✅ Verificar que no haya caracteres invisibles o espacios
-    if (cadenaFirma.includes(' ') || cadenaFirma.includes('\n') || cadenaFirma.includes('\r') || cadenaFirma.includes('\t')) {
-      console.warn('⚠️ ADVERTENCIA: La cadena de firma contiene espacios o caracteres invisibles');
+    // ✅ CRÍTICO: Verificar que no haya caracteres invisibles o espacios
+    const tieneEspacios = cadenaFirma.includes(' ');
+    const tieneSaltosLinea = cadenaFirma.includes('\n') || cadenaFirma.includes('\r');
+    const tieneTabs = cadenaFirma.includes('\t');
+    
+    if (tieneEspacios || tieneSaltosLinea || tieneTabs) {
+      console.error('❌ ERROR CRÍTICO: La cadena de firma contiene caracteres invisibles:', {
+        espacios: tieneEspacios,
+        saltosLinea: tieneSaltosLinea,
+        tabs: tieneTabs,
+        cadenaLength: cadenaFirma.length,
+        cadenaHex: Buffer.from(cadenaFirma).toString('hex')
+      });
+      throw new Error('La cadena de firma contiene caracteres invisibles que invalidarán la firma');
+    }
+    
+    // ✅ Verificar que la cadena no esté vacía
+    if (!cadenaFirma || cadenaFirma.length === 0) {
+      throw new Error('La cadena de firma está vacía');
     }
 
     console.log('🔐 Generando firma con orden EXACTO de Cecabank:', {
@@ -561,11 +619,13 @@ function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, ur
         tipoMoneda,
         exponente,
         referencia: referenciaStr,
-        claveLength: clave.length
+        claveLength: clave.length,
+        claveInicio: clave.substring(0, 4) + '...' // Solo mostrar inicio para seguridad
       },
       cadenaLength: cadenaFirma.length,
       tieneClave: !!clave && clave.length > 0,
-      formatoFirma: 'HEX (64 caracteres)'
+      formatoFirma: 'HEX (64 caracteres)',
+      cadenaHex: Buffer.from(cadenaFirma).toString('hex').substring(0, 40) + '...' // Para verificar caracteres invisibles
     });
 
     if (!clave || clave.length === 0) {
