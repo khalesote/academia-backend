@@ -32,6 +32,20 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Middleware de logging para todas las peticiones
+app.use((req, res, next) => {
+  console.log('📥 Petición recibida:', {
+    method: req.method,
+    path: req.path,
+    timestamp: new Date().toISOString(),
+    headers: {
+      'content-type': req.get('content-type'),
+      'user-agent': req.get('user-agent')
+    }
+  });
+  next();
+});
+
 // Configurar Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_123456789', {
   apiVersion: '2023-10-16',
@@ -43,6 +57,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_123456789', 
 
 // Health check
 app.get('/api/health', (req, res) => {
+  console.log('🏥 Health check llamado');
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
@@ -53,6 +68,18 @@ app.get('/api/health', (req, res) => {
       smtp2go: !!transporter,
       cecabank: !!(process.env.CECABANK_MERCHANT_ID && process.env.CECABANK_CLAVE)
     }
+  });
+});
+
+// Endpoint de test para Cecabank
+app.post('/api/cecabank/test', express.urlencoded({ extended: true }), (req, res) => {
+  console.log('🧪 Test endpoint llamado');
+  console.log('📝 Body:', req.body);
+  res.json({
+    status: 'ok',
+    message: 'Endpoint de test funcionando',
+    body: req.body,
+    timestamp: new Date().toISOString()
   });
 });
 
@@ -183,9 +210,15 @@ app.post('/api/cecabank/ko', express.urlencoded({ extended: true }), (req, res) 
 
 // Endpoint de redirección a Cecabank
 app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async (req, res) => {
+  console.log('🚨 ============================================');
+  console.log('🚨 ENDPOINT /api/cecabank/redirect LLAMADO');
+  console.log('🚨 Timestamp:', new Date().toISOString());
+  console.log('🚨 ============================================');
   try {
     console.log('🔄 Endpoint de redirección a Cecabank recibido');
-    console.log('📝 Datos recibidos:', req.body);
+    console.log('📝 Headers recibidos:', req.headers);
+    console.log('📝 Body recibido:', req.body);
+    console.log('📝 Content-Type:', req.get('Content-Type'));
     
     const formData = req.body;
     
@@ -309,7 +342,10 @@ ${formFields}
     res.send(html);
     
   } catch (error) {
-    console.error('❌ Error en endpoint de redirección:', error);
+    console.error('❌ ============================================');
+    console.error('❌ ERROR en endpoint de redirección:', error);
+    console.error('❌ Stack:', error.stack);
+    console.error('❌ ============================================');
     res.status(500).send('Error al redirigir a Cecabank');
   }
 });
