@@ -1,122 +1,11 @@
-require('dotenv').config();
+// ENDPOINTS DE CECABANK - VERSIÓN PRODUCCIÓN LIMPIA
+// Solo para MatriculaScreen (Escuela Virtual)
+
 const express = require('express');
-const cors = require('cors');
-const Stripe = require('stripe');
-const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 
-const app = express();
-const PORT = process.env.PORT || 10000;
-const NODE_ENV = process.env.NODE_ENV || 'production';
-const FORMACION_PRICE_EUR = parseFloat(process.env.FORMACION_PRICE_EUR || '10');
-
-// Configurar SMTP2GO con nodemailer
-let transporter;
-if (process.env.SMTP2GO_USERNAME && process.env.SMTP2GO_PASSWORD) {
-  transporter = nodemailer.createTransport({
-    host: 'mail.smtp2go.com',
-    port: 2525,
-    secure: false,
-    auth: {
-      user: process.env.SMTP2GO_USERNAME,
-      pass: process.env.SMTP2GO_PASSWORD,
-    },
-  });
-  console.log('✅ Credenciales de SMTP2GO configuradas');
-} else {
-  console.log('⚠️ Credenciales de SMTP2GO no configuradas');
-}
-
-// Middlewares
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Configurar Stripe
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_123456789', {
-  apiVersion: '2023-10-16',
-});
-
 // ============================================
-// ENDPOINTS PRINCIPALES (STRIPE, EMAIL, ETC)
-// ============================================
-
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    environment: NODE_ENV,
-    port: PORT,
-    services: {
-      stripe: !!process.env.STRIPE_SECRET_KEY,
-      smtp2go: !!transporter,
-      cecabank: !!(process.env.CECABANK_MERCHANT_ID && process.env.CECABANK_CLAVE)
-    }
-  });
-});
-
-// Endpoint para crear Payment Intent de Stripe
-app.post('/api/create-payment-intent', async (req, res) => {
-  try {
-    const { amount, description } = req.body;
-    
-    if (!amount || !description) {
-      return res.status(400).json({ error: 'Amount and description are required' });
-    }
-    
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100),
-      currency: 'eur',
-      description,
-      metadata: {
-        integration_check: 'accept_a_payment',
-      },
-    });
-    
-    res.json({
-      clientSecret: paymentIntent.client_secret,
-    });
-  } catch (error) {
-    console.error('❌ Error creating payment intent:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Endpoint para enviar email
-app.post('/api/enviar-solicitud-asesoria', async (req, res) => {
-  try {
-    const { nombre, email, telefono, mensaje, tipoConsulta } = req.body;
-    
-    if (!transporter) {
-      return res.status(500).json({ error: 'Servicio de email no configurado' });
-    }
-    
-    const mailOptions = {
-      from: process.env.SMTP2GO_USERNAME,
-      to: 'academiadeinmigrantes@gmail.com',
-      subject: `Nueva solicitud de ${tipoConsulta}`,
-      html: `
-        <h2>Nueva solicitud de asesoría</h2>
-        <p><strong>Nombre:</strong> ${nombre}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Teléfono:</strong> ${telefono}</p>
-        <p><strong>Tipo de consulta:</strong> ${tipoConsulta}</p>
-        <p><strong>Mensaje:</strong></p>
-        <p>${mensaje}</p>
-      `,
-    };
-    
-    await transporter.sendMail(mailOptions);
-    res.json({ success: true, message: 'Solicitud enviada correctamente' });
-  } catch (error) {
-    console.error('❌ Error enviando email:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// ============================================
-// ENDPOINTS DE CECABANK - PRODUCCIÓN (SOLO PARA MATRICULA SCREEN)
+// ENDPOINTS DE CECABANK - PRODUCCIÓN
 // ============================================
 
 // Endpoint OK - Pago exitoso
@@ -125,6 +14,7 @@ app.post('/api/cecabank/ok', express.urlencoded({ extended: true }), (req, res) 
     console.log('✅ Pago exitoso recibido de Cecabank');
     console.log('📝 Datos recibidos:', req.body);
     
+    // Responder con página de éxito
     res.send(`
       <!DOCTYPE html>
       <html>
@@ -134,6 +24,7 @@ app.post('/api/cecabank/ok', express.urlencoded({ extended: true }), (req, res) 
         <style>
           body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
           .success { color: #4CAF50; font-size: 48px; margin-bottom: 20px; }
+          h1 { color: #333; }
         </style>
       </head>
       <body>
@@ -156,6 +47,7 @@ app.post('/api/cecabank/ko', express.urlencoded({ extended: true }), (req, res) 
     console.log('❌ Pago fallido recibido de Cecabank');
     console.log('📝 Datos recibidos:', req.body);
     
+    // Responder con página de error
     res.send(`
       <!DOCTYPE html>
       <html>
@@ -165,12 +57,14 @@ app.post('/api/cecabank/ko', express.urlencoded({ extended: true }), (req, res) 
         <style>
           body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
           .error { color: #f44336; font-size: 48px; margin-bottom: 20px; }
+          h1 { color: #333; }
         </style>
       </head>
       <body>
         <div class="error">❌</div>
         <h1>Pago No Procesado</h1>
         <p>No se pudo completar el pago.</p>
+        <p>Puedes intentarlo nuevamente o contactar soporte.</p>
         <p>Puedes cerrar esta ventana y volver a la aplicación.</p>
       </body>
       </html>
@@ -261,12 +155,35 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
 <html>
   <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Redirigiendo a Cecabank...</title>
     <style>
-      body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f5f5f5; }
-      .container { text-align: center; padding: 20px; }
-      .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #4CAF50; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
-      @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+      body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        background: #f5f5f5;
+      }
+      .container {
+        text-align: center;
+        padding: 20px;
+      }
+      .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #4CAF50;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 20px auto;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
     </style>
   </head>
   <body>
@@ -280,24 +197,33 @@ ${formFields}
     </form>
     <script>
       (function() {
+        console.log('🚀 Iniciando redirección a Cecabank');
+        
         function submitForm() {
           try {
             const form = document.getElementById('cecabankForm');
-            if (form) {
-              form.submit();
-              return true;
+            if (!form) {
+              console.error('❌ Formulario no encontrado');
+              return false;
             }
+            
+            console.log('✅ Enviando formulario a:', form.action);
+            form.submit();
+            return true;
           } catch (error) {
             console.error('❌ Error:', error);
+            return false;
           }
-          return false;
         }
         
+        // Auto-enviar formulario
         if (document.readyState === 'complete' || document.readyState === 'interactive') {
           submitForm();
         } else {
           document.addEventListener('DOMContentLoaded', submitForm);
         }
+        
+        // Respaldo
         setTimeout(submitForm, 100);
       })();
     </script>
@@ -333,28 +259,38 @@ function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, ur
 
   // Construir cadena para firma
   const cadenaFirma = 
-    merchantId + acquirerBin + terminalId + numOperacion + importe + 
-    tipoMoneda + exponente + cifrado + (urlOk || '') + (urlKo || '') + 
-    idioma + fecha + hora + clave;
+    merchantId +
+    acquirerBin +
+    terminalId +
+    numOperacion +
+    importe +
+    tipoMoneda +
+    exponente +
+    cifrado +
+    (urlOk || '') +
+    (urlKo || '') +
+    idioma +
+    fecha +
+    hora +
+    clave;
+
+  console.log('🔐 Generando firma Cecabank:', {
+    merchantId,
+    numOperacion,
+    importe,
+    fecha,
+    hora,
+    urlOk,
+    urlKo
+  });
 
   // Generar HMAC SHA256 en Base64
   const hmac = crypto.createHmac('sha256', clave);
   hmac.update(cadenaFirma);
   const firma = hmac.digest('base64');
   
-  console.log('✅ Firma Cecabank generada');
+  console.log('✅ Firma generada:', firma.substring(0, 20) + '...');
   return firma;
 }
 
-// ============================================
-// INICIAR SERVIDOR
-// ============================================
-
-app.listen(PORT, () => {
-  console.log('🚀 Servidor iniciado en puerto', PORT);
-  console.log('🌍 Entorno:', NODE_ENV);
-  console.log('🔗 URL: http://localhost:' + PORT);
-  console.log('✅ Endpoints de Cecabank cargados para MatriculaScreen');
-  console.log('💳 Stripe configurado:', !!process.env.STRIPE_SECRET_KEY);
-  console.log('📧 Email configurado:', !!transporter);
-});
+console.log('✅ Endpoints de Cecabank cargados para producción');
