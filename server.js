@@ -275,14 +275,31 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       now.getSeconds().toString().padStart(2, '0');
     
     // Recalcular firma
-    const firma = generateCecabankSignature(
-      formData.Num_operacion,
-      formData.Importe,
-      fechaOperacion,
-      horaOperacion,
-      formData.URL_OK,
-      formData.URL_KO
-    );
+    let firma;
+    try {
+      console.log('🔐 Generando firma con datos:', {
+        numOperacion: formData.Num_operacion,
+        importe: formData.Importe,
+        fecha: fechaOperacion,
+        hora: horaOperacion,
+        urlOk: formData.URL_OK,
+        urlKo: formData.URL_KO
+      });
+      
+      firma = generateCecabankSignature(
+        formData.Num_operacion,
+        formData.Importe,
+        fechaOperacion,
+        horaOperacion,
+        formData.URL_OK,
+        formData.URL_KO
+      );
+      
+      console.log('✅ Firma generada exitosamente');
+    } catch (firmaError) {
+      console.error('❌ Error al generar firma:', firmaError);
+      return res.status(500).send(`Error al generar firma: ${firmaError.message}`);
+    }
     
     formData.Firma = firma;
     formData.FechaOperacion = fechaOperacion;
@@ -385,28 +402,76 @@ ${formFields}
  * Genera la firma HMAC SHA256 para Cecabank
  */
 function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, urlKo) {
-  const merchantId = process.env.CECABANK_MERCHANT_ID || '';
-  const acquirerBin = process.env.CECABANK_ACQUIRER_BIN || '';
-  const terminalId = process.env.CECABANK_TERMINAL_ID || '';
-  const clave = process.env.CECABANK_CLAVE || '';
-  const tipoMoneda = '978';
-  const exponente = '2';
-  const cifrado = 'SHA256';
-  const idioma = '1';
+  try {
+    const merchantId = process.env.CECABANK_MERCHANT_ID || '086729753';
+    const acquirerBin = process.env.CECABANK_ACQUIRER_BIN || '0000554027';
+    const terminalId = process.env.CECABANK_TERMINAL_ID || '00000003';
+    const clave = process.env.CECABANK_CLAVE || 'P7BB51K0ABTDOAGN0W084FK4MUHRM5GQ';
+    const tipoMoneda = '978';
+    const exponente = '2';
+    const cifrado = 'SHA256';
+    const idioma = '1';
 
-  // Construir cadena para firma
-  const cadenaFirma = 
-    merchantId + acquirerBin + terminalId + numOperacion + importe + 
-    tipoMoneda + exponente + cifrado + (urlOk || '') + (urlKo || '') + 
-    idioma + fecha + hora + clave;
+    // Validar que todos los parámetros estén presentes
+    if (!numOperacion || !importe || !fecha || !hora) {
+      throw new Error('Faltan parámetros requeridos para generar la firma');
+    }
 
-  // Generar HMAC SHA256 en Base64
-  const hmac = crypto.createHmac('sha256', clave);
-  hmac.update(cadenaFirma);
-  const firma = hmac.digest('base64');
-  
-  console.log('✅ Firma Cecabank generada');
-  return firma;
+    // Asegurar que todos los valores sean strings
+    const numOpStr = String(numOperacion || '');
+    const importeStr = String(importe || '').padStart(12, '0');
+    const fechaStr = String(fecha || '');
+    const horaStr = String(hora || '');
+    const urlOkStr = String(urlOk || '');
+    const urlKoStr = String(urlKo || '');
+
+    // Construir cadena para firma según especificación de Cecabank
+    const cadenaFirma = 
+      merchantId + 
+      acquirerBin + 
+      terminalId + 
+      numOpStr + 
+      importeStr + 
+      tipoMoneda + 
+      exponente + 
+      cifrado + 
+      urlOkStr + 
+      urlKoStr + 
+      idioma + 
+      fechaStr + 
+      horaStr + 
+      clave;
+
+    console.log('🔐 Generando firma con:', {
+      merchantId,
+      acquirerBin,
+      terminalId,
+      numOperacion: numOpStr,
+      importe: importeStr,
+      fecha: fechaStr,
+      hora: horaStr,
+      urlOk: urlOkStr,
+      urlKo: urlKoStr,
+      cadenaLength: cadenaFirma.length,
+      tieneClave: !!clave && clave.length > 0
+    });
+
+    if (!clave || clave.length === 0) {
+      throw new Error('La clave de encriptación (CECABANK_CLAVE) no está configurada');
+    }
+
+    // Generar HMAC SHA256 en Base64
+    const hmac = crypto.createHmac('sha256', clave);
+    hmac.update(cadenaFirma);
+    const firma = hmac.digest('base64');
+    
+    console.log('✅ Firma Cecabank generada correctamente, longitud:', firma.length);
+    return firma;
+  } catch (error) {
+    console.error('❌ Error generando firma Cecabank:', error);
+    console.error('❌ Stack:', error.stack);
+    throw new Error(`Error al generar firma: ${error.message}`);
+  }
 }
 
 // ============================================
