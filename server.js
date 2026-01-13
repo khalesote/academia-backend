@@ -274,12 +274,21 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       now.getMinutes().toString().padStart(2, '0') +
       now.getSeconds().toString().padStart(2, '0');
     
+    // ✅ CRÍTICO: Normalizar importe (eliminar ceros a la izquierda) antes de generar firma
+    const importeNormalizado = String(formData.Importe || '').replace(/^0+/, '') || '0';
+    if (importeNormalizado !== formData.Importe) {
+      console.log('🔧 Importe normalizado para firma:', {
+        original: formData.Importe,
+        normalizado: importeNormalizado
+      });
+    }
+    
     // Recalcular firma
     let firma;
     try {
       console.log('🔐 Generando firma con datos:', {
         numOperacion: formData.Num_operacion,
-        importe: formData.Importe,
+        importe: importeNormalizado + ' (normalizado, sin ceros)',
         fecha: fechaOperacion,
         hora: horaOperacion,
         urlOk: formData.URL_OK,
@@ -288,7 +297,7 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       
       firma = generateCecabankSignature(
         formData.Num_operacion,
-        formData.Importe,
+        importeNormalizado, // Usar importe normalizado para la firma
         fechaOperacion,
         horaOperacion,
         formData.URL_OK,
@@ -304,6 +313,11 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     formData.Firma = firma;
     formData.FechaOperacion = fechaOperacion;
     formData.HoraOperacion = horaOperacion;
+    
+    // ✅ CRÍTICO: Asegurar que el importe NO tenga ceros a la izquierda en el formulario
+    // El importe debe ser solo el número en céntimos, sin padding
+    formData.Importe = importeNormalizado; // Usar el importe normalizado en el formulario
+    console.log('🔧 Importe final en formulario (sin ceros):', formData.Importe);
     
     // URL de producción de Cecabank
     const urlCecabank = 'https://pgw.ceca.es/tpvweb/tpv/compra.action';
@@ -419,23 +433,22 @@ function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, ur
 
     // Asegurar que todos los valores sean strings
     const numOpStr = String(numOperacion || '');
-    const importeStr = String(importe || '').padStart(12, '0');
-    const fechaStr = String(fecha || '');
-    const horaStr = String(hora || '');
-    const urlOkStr = String(urlOk || '');
-    const urlKoStr = String(urlKo || '');
+    // ❌ IMPORTANTE: Importe SIN ceros a la izquierda (solo el número en céntimos)
+    const importeStr = String(importe || '').replace(/^0+/, '') || '0';
+    
+    // Referencia NO puede estar vacía - usar valor fijo o el numOperacion
+    const referencia = numOpStr || '0'; // Usar numOperacion como referencia o '0' si no existe
 
     // Construir cadena para firma según orden EXACTO requerido por Cecabank:
     // 1. MerchantID
     // 2. AcquirerBIN
     // 3. TerminalID
     // 4. Num_operacion
-    // 5. Importe
+    // 5. Importe (SIN ceros a la izquierda)
     // 6. TipoMoneda
     // 7. Exponente
-    // 8. Referencia (opcional, usar vacío si no existe)
+    // 8. Referencia (NO vacía)
     // 9. FirmaClave (clave de encriptación)
-    const referencia = ''; // Campo opcional, dejar vacío si no se usa
     const cadenaFirma = 
       merchantId + 
       acquirerBin + 
@@ -453,10 +466,10 @@ function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, ur
         '2. AcquirerBIN',
         '3. TerminalID',
         '4. Num_operacion',
-        '5. Importe',
+        '5. Importe (SIN ceros a la izquierda)',
         '6. TipoMoneda',
         '7. Exponente',
-        '8. Referencia',
+        '8. Referencia (NO vacía)',
         '9. FirmaClave'
       ],
       valores: {
@@ -464,26 +477,37 @@ function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, ur
         acquirerBin,
         terminalId,
         numOperacion: numOpStr,
-        importe: importeStr,
+        importe: importeStr + ' (sin padding)',
         tipoMoneda,
         exponente,
-        referencia: referencia || '(vacío)',
+        referencia: referencia,
         claveLength: clave.length
       },
       cadenaLength: cadenaFirma.length,
-      tieneClave: !!clave && clave.length > 0
+      tieneClave: !!clave && clave.length > 0,
+      formatoFirma: 'HEX (64 caracteres)'
     });
 
     if (!clave || clave.length === 0) {
       throw new Error('La clave de encriptación (CECABANK_CLAVE) no está configurada');
     }
 
-    // Generar HMAC SHA256 en Base64
-    const hmac = crypto.createHmac('sha256', clave);
-    hmac.update(cadenaFirma);
-    const firma = hmac.digest('base64');
+    // ✅ CRÍTICO: Cecabank requiere SHA-256 en HEX (64 caracteres), NO Base64 (44 caracteres)
+    // Usar createHash (no createHmac) según especificación de Cecabank
+    const firma = crypto
+      .createHash('sha256')
+      .update(cadenaFirma, 'utf8')
+      .digest('hex'); // ✅ HEX (64 chars), NO Base64 (44 chars)
     
-    console.log('✅ Firma Cecabank generada correctamente, longitud:', firma.length);
+    if (firma.length !== 64) {
+      throw new Error(`Firma generada con longitud incorrecta: ${firma.length} (debe ser 64 caracteres HEX)`);
+    }
+    
+    console.log('✅ Firma Cecabank generada correctamente:', {
+      longitud: firma.length,
+      formato: 'HEX',
+      primerosCaracteres: firma.substring(0, 10) + '...'
+    });
     return firma;
   } catch (error) {
     console.error('❌ Error generando firma Cecabank:', error);
