@@ -79,6 +79,72 @@ app.get('/api/health', (_, res) => {
 });
 
 // ─────────────────────────────
+// DEBUG FORM (TEMP)
+// ─────────────────────────────
+app.get('/api/cecabank/debug-form', (req, res) => {
+  try {
+    const amount = parseFloat(String(req.query.amount || ''));
+    const operationType = String(req.query.operationType || 'debug');
+
+    if (!amount || isNaN(amount)) {
+      return res.status(400).send('Importe inválido');
+    }
+
+    if (!CECABANK_CONFIG.urlOk || !CECABANK_CONFIG.urlKo) {
+      return res.status(500).send('URL OK/KO no configuradas');
+    }
+
+    const numOperacion = generateOrderId();
+    const { fecha, hora } = getDateTime();
+    const importe = Math.round(amount * 100);
+    const importePadded = importe.toString().padStart(12, '0');
+
+    const firma = generateSignature({
+      numOperacion,
+      importe: importe.toString()
+    });
+
+    const formData = {
+      MerchantID: CECABANK_CONFIG.merchantId,
+      AcquirerBIN: CECABANK_CONFIG.acquirerBin,
+      TerminalID: CECABANK_CONFIG.terminalId,
+      Num_operacion: numOperacion,
+      Importe: importePadded,
+      TipoMoneda: CECABANK_CONFIG.tipoMoneda,
+      Exponente: CECABANK_CONFIG.exponente,
+      Cifrado: CECABANK_CONFIG.cifrado,
+      Firma: firma,
+      UrlOK: CECABANK_CONFIG.urlOk,
+      UrlNOK: CECABANK_CONFIG.urlKo,
+      Idioma: CECABANK_CONFIG.idioma,
+      FechaOperacion: fecha,
+      HoraOperacion: hora,
+      Referencia: numOperacion,
+      Descripcion: `Matrícula ${operationType}`
+    };
+
+    const inputs = Object.entries(formData)
+      .map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`)
+      .join('\n');
+
+    const html = `
+<!DOCTYPE html>
+<html>
+<body>
+  <h2>Debug Cecabank Form</h2>
+  <table border="1" cellpadding="6">${inputs}</table>
+</body>
+</html>`;
+
+    res.setHeader('Content-Type', 'text/html');
+    res.send(html);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error interno');
+  }
+});
+
+// ─────────────────────────────
 // CREATE PAYMENT
 // ─────────────────────────────
 app.post('/api/cecabank/redirect', (req, res) => {
