@@ -119,12 +119,12 @@ app.post('/api/cecabank/redirect', (req, res) => {
       Firma: firma,
 
       // 🔥 CAMPOS CORRECTOS
-      // Cecabank espera UrlOK / UrlKO (case-sensitive)
+      // Cecabank suele esperar UrlOK / UrlNOK (case-sensitive)
       UrlOK: CECABANK_CONFIG.urlOk,
-      UrlKO: CECABANK_CONFIG.urlKo,
-      // En algunos entornos Cecabank acepta/espera URL_OK/URL_KO
+      UrlNOK: CECABANK_CONFIG.urlKo,
+      // En algunos entornos acepta/espera URL_OK/URL_NOK
       URL_OK: CECABANK_CONFIG.urlOk,
-      URL_KO: CECABANK_CONFIG.urlKo,
+      URL_NOK: CECABANK_CONFIG.urlKo,
       Idioma: CECABANK_CONFIG.idioma,
       FechaOperacion: fecha,
       HoraOperacion: hora,
