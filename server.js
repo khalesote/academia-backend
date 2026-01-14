@@ -116,11 +116,22 @@ app.get('/api/health', (req, res) => {
 app.post('/api/cecabank/redirect', (req, res) => {
   try {
     console.log('🚀 Cecabank redirect request received');
+    console.log('📦 Full body:', req.body);
+    console.log('🔍 operationType received:', req.body.operationType);
 
     const { operationType, customerEmail, customerName } = req.body;
 
+    console.log('✅ Extracted operationType:', operationType);
+    console.log('✅ Available PRICES keys:', Object.keys(PRICES));
+
     // Validate operation type
     if (!operationType || !PRICES[operationType]) {
+      console.error('❌ Validation failed:', {
+        operationType,
+        operationTypeExists: !!operationType,
+        operationTypeInPrices: !!PRICES[operationType],
+        allPricesKeys: Object.keys(PRICES)
+      });
       return res.status(400).send('Tipo de operación inválido');
     }
 
