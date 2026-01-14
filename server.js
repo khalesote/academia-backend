@@ -1,762 +1,283 @@
-require('dotenv').config();
 const express = require('express');
-const cors = require('cors');
-const nodemailer = require('nodemailer');
 const crypto = require('crypto');
+const cors = require('cors');
+require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 10000;
-const NODE_ENV = process.env.NODE_ENV || 'production';
+const PORT = process.env.PORT || 3000;
+const NODE_ENV = process.env.NODE_ENV || 'development';
 
-// Configurar SMTP2GO con nodemailer
-let transporter;
-if (process.env.SMTP2GO_USERNAME && process.env.SMTP2GO_PASSWORD) {
-  transporter = nodemailer.createTransport({
-    host: 'mail.smtp2go.com',
-    port: 2525,
-    secure: false,
-    auth: {
-      user: process.env.SMTP2GO_USERNAME,
-      pass: process.env.SMTP2GO_PASSWORD,
-    },
-  });
-  console.log('✅ Credenciales de SMTP2GO configuradas');
-} else {
-  console.log('⚠️ Credenciales de SMTP2GO no configuradas');
-}
-
-// Middlewares
+// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Middleware de logging para todas las peticiones
-app.use((req, res, next) => {
-  console.log('📥 Petición recibida:', {
-    method: req.method,
-    path: req.path,
-    timestamp: new Date().toISOString(),
-    headers: {
-      'content-type': req.get('content-type'),
-      'user-agent': req.get('user-agent')
-    }
-  });
-  next();
-});
+// Cecabank Configuration
+const CECABANK_CONFIG = {
+  merchantId: process.env.CECABANK_MERCHANT_ID || '086729753',
+  acquirerBin: process.env.CECABANK_ACQUIRER_BIN || '0000554027',
+  terminalId: process.env.CECABANK_TERMINAL_ID || '00000003',
+  clave: process.env.CECABANK_CLAVE || 'P7BB51K0ABTDOAGN0W084FK4MUHRM5GQ',
+  tipoMoneda: '978', // EUR
+  exponente: '2',
+  cifrado: 'HMAC_SHA256',
+  idioma: '1',
+  urlProduccion: 'https://pgw.ceca.es/tpvweb/tpv/compra.action',
+  urlOk: 'https://academiadeinmigrantes.es/api/cecabank/ok',
+  urlKo: 'https://academiadeinmigrantes.es/api/cecabank/ko'
+};
 
-// ============================================
-// ENDPOINTS PRINCIPALES (EMAIL, ETC)
-// ============================================
+// Prices for courses
+const PRICES = {
+  'matricula-a1': 25.00,
+  'matricula-a2': 35.00,
+  'matricula-b1': 45.00,
+  'matricula-b2': 55.00,
+  'matricula-a1a2': 50.00,
+  'matricula-b1b2': 90.00
+};
 
-// Endpoint raíz
+/**
+ * Generate HMAC SHA256 signature for Cecabank
+ */
+function generateCecabankSignature(data) {
+  const { merchantId, acquirerBin, terminalId, numOperacion, importe, fecha, hora, referencia } = data;
+
+  // Build signature string (10 fields only, no clave)
+  const signatureString = [
+    merchantId,
+    acquirerBin,
+    terminalId,
+    numOperacion,
+    importe, // without padding
+    CECABANK_CONFIG.tipoMoneda,
+    CECABANK_CONFIG.exponente,
+    CECABANK_CONFIG.urlOk,
+    CECABANK_CONFIG.urlKo,
+    referencia
+  ].join('');
+
+  console.log('🔐 Signature string:', signatureString);
+
+  // Generate HMAC SHA256
+  const signature = crypto
+    .createHmac('sha256', CECABANK_CONFIG.clave)
+    .update(signatureString, 'utf8')
+    .digest('hex');
+
+  console.log('✅ Signature generated:', signature.substring(0, 16) + '...');
+  return signature;
+}
+
+/**
+ * Generate unique order number
+ */
+function generateOrderId() {
+  const timestamp = Date.now().toString();
+  const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+  return (timestamp + random).slice(-12);
+}
+
+/**
+ * Get current date and time in Cecabank format
+ */
+function getCecabankDateTime() {
+  const now = new Date();
+  const fecha = now.getFullYear().toString() +
+               (now.getMonth() + 1).toString().padStart(2, '0') +
+               now.getDate().toString().padStart(2, '0');
+  const hora = now.getHours().toString().padStart(2, '0') +
+              now.getMinutes().toString().padStart(2, '0') +
+              now.getSeconds().toString().padStart(2, '0');
+  return { fecha, hora };
+}
+
+// Routes
 app.get('/', (req, res) => {
-  console.log('🏠 Endpoint raíz llamado');
   res.json({
-    message: 'Academia Backend API',
+    message: 'Academia Backend - Cecabank Payments',
     status: 'running',
-    timestamp: new Date().toISOString(),
-    endpoints: {
-      health: '/api/health',
-      email: '/api/enviar-solicitud-asesoria'
-    }
+    timestamp: new Date().toISOString()
   });
 });
 
-// Health check
 app.get('/api/health', (req, res) => {
-  console.log('🏥 Health check llamado');
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    environment: NODE_ENV,
-    port: PORT,
-    services: {
-      smtp2go: !!transporter
+    cecabank: {
+      configured: !!CECABANK_CONFIG.clave,
+      merchantId: CECABANK_CONFIG.merchantId
     }
   });
 });
 
-// Endpoint para solicitar inscripción al examen presencial
-app.post('/api/solicitar-examen-presencial', async (req, res) => {
+// Cecabank redirect endpoint
+app.post('/api/cecabank/redirect', (req, res) => {
   try {
-    console.log('📧 Iniciando solicitud de inscripción al examen presencial...');
-    const { nombre, email, telefono, nivel, documento, mensaje } = req.body;
-    console.log('📝 Datos recibidos:', { nombre, email, telefono, nivel, documento, mensaje });
-    console.log('📝 Nombre recibido (tipo y valor):', typeof nombre, nombre);
-    console.log('📝 Nombre completo recibido:', JSON.stringify(nombre));
+    console.log('🚀 Cecabank redirect request received');
 
-    // Validar datos requeridos
-    if (!nombre || !email || !nivel) {
-      console.log('❌ Validación fallida: faltan campos obligatorios');
-      return res.status(400).json({
-        error: 'Faltan campos obligatorios',
-        required: ['nombre', 'email', 'nivel']
-      });
+    const { operationType, customerEmail, customerName } = req.body;
+
+    // Validate operation type
+    if (!operationType || !PRICES[operationType]) {
+      return res.status(400).send('Tipo de operación inválido');
     }
 
-    // Verificar configuración de SMTP2GO
-    if (!process.env.SMTP2GO_USERNAME || !process.env.SMTP2GO_PASSWORD) {
-      console.error('❌ Credenciales de SMTP2GO no configuradas');
-      return res.status(500).json({
-        error: 'Configuración de email incompleta',
-        details: 'Credenciales de SMTP2GO no configuradas'
-      });
-    }
+    // Get price
+    const amount = PRICES[operationType];
+    const importe = Math.round(amount * 100).toString().padStart(12, '0'); // 12 digits with padding
+    const importeSinPadding = Math.round(amount * 100).toString(); // for signature
 
-    // Configurar el email
-    const mailOptions = {
-      from: 'admin@academiadeinmigrantes.es',
-      to: 'admin@academiadeinmigrantes.es',
-      replyTo: email,
-      subject: `Solicitud de examen presencial - Nivel ${nivel} - ${nombre}`,
-      html: `
-        <h2>Solicitud de Inscripción al Examen Presencial</h2>
-        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-          <h3>Datos del Estudiante:</h3>
-          <p><strong>Nombre:</strong> ${nombre}</p>
-          <p><strong>Email:</strong> ${email}</p>
-          ${telefono ? `<p><strong>Teléfono:</strong> ${telefono}</p>` : ''}
-          ${documento ? `<p><strong>Documento:</strong> ${documento}</p>` : ''}
-          <p><strong>Nivel:</strong> ${nivel}</p>
-          <p><strong>Fecha de solicitud:</strong> ${new Date().toLocaleString('es-ES')}</p>
-        </div>
-        <div style="background-color: #e8f5e9; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #4caf50;">
-          <h3 style="color: #2e7d32; margin-top: 0;">Mensaje del Estudiante:</h3>
-          <p style="font-size: 16px; font-weight: bold; color: #1b5e20;">${mensaje || 'ME APUNTO EN EXAMEN PRESENCIAL'}</p>
-        </div>
-        <p style="color: #666;">Este email fue enviado desde la app Academia de Inmigrantes.</p>
-        <p style="color: #666;">El estudiante ha completado exitosamente el examen final del nivel ${nivel} y solicita inscribirse al examen presencial.</p>
-      `,
+    // Generate order data
+    const numOperacion = generateOrderId();
+    const { fecha, hora } = getCecabankDateTime();
+
+    // Generate signature
+    const signatureData = {
+      merchantId: CECABANK_CONFIG.merchantId,
+      acquirerBin: CECABANK_CONFIG.acquirerBin,
+      terminalId: CECABANK_CONFIG.terminalId,
+      numOperacion,
+      importe: importeSinPadding,
+      fecha,
+      hora,
+      referencia: numOperacion
     };
 
-    console.log('📤 Enviando email a:', mailOptions.to);
-    console.log('📤 Desde:', mailOptions.from);
-    console.log('📤 Asunto:', mailOptions.subject);
+    const firma = generateCecabankSignature(signatureData);
 
-    // Enviar el email usando SMTP2GO
-    const result = await transporter.sendMail(mailOptions);
-    console.log('✅ Email enviado exitosamente:', result.messageId);
-
-    res.json({
-      success: true,
-      message: 'Solicitud de examen presencial enviada correctamente',
-      messageId: result.messageId
-    });
-
-  } catch (error) {
-    console.error('❌ Error enviando solicitud de examen presencial:', error);
-
-    // Manejo de errores específico para SMTP2GO
-    let errorMessage = 'Error al enviar la solicitud';
-    let errorDetails = error.message;
-    let errorCode = error.code;
-
-    if (error.responseCode) {
-      const responseCode = error.responseCode;
-      console.error('❌ Código de respuesta SMTP:', responseCode);
-
-      if (responseCode === 535) {
-        errorMessage = 'Error de autenticación con SMTP2GO';
-        errorDetails = 'Las credenciales de SMTP2GO son incorrectas.';
-        errorCode = 'EAUTH';
-      } else if (responseCode === 550) {
-        errorMessage = 'Email rechazado';
-        errorDetails = 'El servidor SMTP rechazó el email. Verifica el dominio y email remitente.';
-        errorCode = 'EREJECTED';
-      } else if (responseCode === 421) {
-        errorMessage = 'Servicio temporalmente no disponible';
-        errorDetails = 'SMTP2GO no está disponible temporalmente. Inténtalo más tarde.';
-        errorCode = 'ETEMP';
-      }
-    } else {
-      if (error.code === 'ETIMEDOUT' || error.code === 'ECONNRESET') {
-        errorMessage = 'Timeout de conexión con SMTP2GO';
-        errorDetails = 'El servidor de SMTP2GO no responde. Verificar conexión a internet.';
-      } else if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
-        errorMessage = 'Servidor de SMTP2GO no encontrado';
-        errorDetails = 'No se puede conectar al servidor de SMTP2GO.';
-      }
-    }
-
-    res.status(500).json({
-      error: errorMessage,
-      details: errorDetails,
-      code: errorCode
-    });
-  }
-});
-
-// Endpoint para enviar email
-app.post('/api/enviar-solicitud-asesoria', async (req, res) => {
-  try {
-    const { nombre, email, telefono, mensaje, tipoConsulta } = req.body;
-    
-    if (!transporter) {
-      return res.status(500).json({ error: 'Servicio de email no configurado' });
-    }
-    
-    const mailOptions = {
-      from: process.env.SMTP2GO_USERNAME,
-      to: 'academiadeinmigrantes@gmail.com',
-      subject: `Nueva solicitud de ${tipoConsulta}`,
-      html: `
-        <h2>Nueva solicitud de asesoría</h2>
-        <p><strong>Nombre:</strong> ${nombre}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Teléfono:</strong> ${telefono}</p>
-        <p><strong>Tipo de consulta:</strong> ${tipoConsulta}</p>
-        <p><strong>Mensaje:</strong></p>
-        <p>${mensaje}</p>
-      `,
+    // Build form data
+    const formData = {
+      MerchantID: CECABANK_CONFIG.merchantId,
+      AcquirerBIN: CECABANK_CONFIG.acquirerBin,
+      TerminalID: CECABANK_CONFIG.terminalId,
+      Num_operacion: numOperacion,
+      Importe: importe,
+      TipoMoneda: CECABANK_CONFIG.tipoMoneda,
+      Exponente: CECABANK_CONFIG.exponente,
+      Cifrado: CECABANK_CONFIG.cifrado,
+      Firma: firma,
+      URL_OK: CECABANK_CONFIG.urlOk,
+      URL_KO: CECABANK_CONFIG.urlKo,
+      Idioma: CECABANK_CONFIG.idioma,
+      FechaOperacion: fecha,
+      HoraOperacion: hora,
+      Referencia: numOperacion,
+      Descripcion: `Matrícula ${operationType.toUpperCase()}`
     };
-    
-    await transporter.sendMail(mailOptions);
-    res.json({ success: true, message: 'Solicitud enviada correctamente' });
-  } catch (error) {
-    console.error('❌ Error enviando email:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
 
-// ============================================
-// ENDPOINTS DE CECABANK - PRODUCCIÓN (SOLO PARA MATRICULA SCREEN)
-// ============================================
+    if (customerEmail) formData.Email = customerEmail;
+    if (customerName) formData.Nombre = customerName;
 
-// Endpoint OK - Pago exitoso
-app.post('/api/cecabank/ok', express.urlencoded({ extended: true }), (req, res) => {
-  try {
-    console.log('✅ Pago exitoso recibido de Cecabank');
-    console.log('📝 Datos recibidos:', req.body);
+    console.log('📋 Form data prepared:', Object.keys(formData));
 
-    res.send(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <title>Pago Exitoso</title>
-        <style>
-          body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
-          .success { color: #4CAF50; font-size: 48px; margin-bottom: 20px; }
-        </style>
-      </head>
-      <body>
-        <div class="success">✅</div>
-        <h1>Pago Procesado Correctamente</h1>
-        <p>Tu matrícula ha sido confirmada.</p>
-        <p>Puedes cerrar esta ventana y volver a la aplicación.</p>
-      </body>
-      </html>
-    `);
-  } catch (error) {
-    console.error('❌ Error en endpoint OK:', error);
-    res.status(500).send('Error procesando pago exitoso');
-  }
-});
-
-// Endpoint KO - Pago fallido (GET)
-app.get('/api/cecabank/ko', (req, res) => {
-  try {
-    console.log('❌ Pago fallido GET recibido de Cecabank');
-    console.log('📝 Query params:', req.query);
-
-    res.send(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <title>Pago Fallido</title>
-        <style>
-          body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
-          .error { color: #f44336; font-size: 48px; margin-bottom: 20px; }
-        </style>
-      </head>
-      <body>
-        <div class="error">❌</div>
-        <h1>Pago No Procesado</h1>
-        <p>No se pudo completar el pago.</p>
-        <p>Puedes cerrar esta ventana y volver a la aplicación.</p>
-      </body>
-      </html>
-    `);
-  } catch (error) {
-    console.error('❌ Error en endpoint GET KO:', error);
-    res.status(500).send('Error procesando pago fallido');
-  }
-});
-
-// Endpoint KO - Pago fallido (POST)
-app.post('/api/cecabank/ko', express.urlencoded({ extended: true }), (req, res) => {
-  try {
-    console.log('❌ Pago fallido POST recibido de Cecabank');
-    console.log('📝 Datos recibidos:', req.body);
-
-    res.send(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <title>Pago Fallido</title>
-        <style>
-          body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
-          .error { color: #f44336; font-size: 48px; margin-bottom: 20px; }
-        </style>
-      </head>
-      <body>
-        <div class="error">❌</div>
-        <h1>Pago No Procesado</h1>
-        <p>No se pudo completar el pago.</p>
-        <p>Puedes cerrar esta ventana y volver a la aplicación.</p>
-      </body>
-      </html>
-    `);
-  } catch (error) {
-    console.error('❌ Error en endpoint POST KO:', error);
-    res.status(500).send('Error procesando pago fallido');
-  }
-});
-
-// Endpoint de redirección a Cecabank
-app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async (req, res) => {
-  console.log('🚨 ============================================');
-  console.log('🚨 ENDPOINT /api/cecabank/redirect LLAMADO');
-  console.log('🚨 Timestamp:', new Date().toISOString());
-  console.log('🚨 ============================================');
-  try {
-    console.log('🔄 Endpoint de redirección a Cecabank recibido');
-    console.log('📝 Headers recibidos:', req.headers);
-    console.log('📝 Body recibido:', req.body);
-    console.log('📝 Content-Type:', req.get('Content-Type'));
-
-    // ✅ Verificar configuración de Cecabank al inicio
-    const tieneMerchantId = !!process.env.CECABANK_MERCHANT_ID;
-    const tieneClave = !!process.env.CECABANK_CLAVE;
-    const entorno = process.env.CECABANK_ENTORNO || 'produccion';
-
-    console.log('🔧 Configuración Cecabank:', {
-      tieneMerchantId,
-      tieneClave,
-      entorno,
-      merchantId: process.env.CECABANK_MERCHANT_ID || 'NO CONFIGURADO',
-      claveLength: process.env.CECABANK_CLAVE ? process.env.CECABANK_CLAVE.length : 0,
-      claveInicio: process.env.CECABANK_CLAVE ? process.env.CECABANK_CLAVE.substring(0, 4) + '...' : 'NO CONFIGURADA'
-    });
-
-    if (!tieneMerchantId || !tieneClave) {
-      console.error('❌ ERROR: Variables de entorno de Cecabank no configuradas correctamente');
-      return res.status(500).send('Error: Configuración de Cecabank incompleta. Verifica las variables de entorno.');
-    }
-
-    const formData = req.body;
-
-    // Validar campos obligatorios
-    const camposObligatorios = [
-      'MerchantID', 'AcquirerBIN', 'TerminalID', 'Num_operacion',
-      'Importe', 'TipoMoneda', 'Exponente', 'Cifrado',
-      'URL_OK', 'URL_KO', 'Idioma', 'FechaOperacion',
-      'HoraOperacion', 'Firma'
-    ];
-
-    const camposFaltantes = camposObligatorios.filter(campo => !formData[campo]);
-    if (camposFaltantes.length > 0) {
-      console.error('❌ Campos obligatorios faltantes:', camposFaltantes);
-      return res.status(400).send(`Campos obligatorios faltantes: ${camposFaltantes.join(', ')}`);
-    }
-
-    // ✅ CRÍTICO: Usar fecha y hora del frontend si están presentes, o generar nuevas
-    // IMPORTANTE: La fecha y hora usadas en la firma DEBEN ser exactamente las mismas que se envían en el formulario
-    let fechaOperacion, horaOperacion;
-    if (formData.FechaOperacion && formData.HoraOperacion) {
-      // Usar las que vienen del frontend (ya generadas)
-      fechaOperacion = String(formData.FechaOperacion).trim();
-      horaOperacion = String(formData.HoraOperacion).trim();
-      console.log('📅 Usando fecha/hora del frontend:', { fecha: fechaOperacion, hora: horaOperacion });
-    } else {
-      // Generar nuevas si no vienen
-      const now = new Date();
-      fechaOperacion =
-        now.getFullYear().toString() +
-        (now.getMonth() + 1).toString().padStart(2, '0') +
-        now.getDate().toString().padStart(2, '0');
-      horaOperacion =
-        now.getHours().toString().padStart(2, '0') +
-        now.getMinutes().toString().padStart(2, '0') +
-        now.getSeconds().toString().padStart(2, '0');
-      console.log('📅 Generando nueva fecha/hora:', { fecha: fechaOperacion, hora: horaOperacion });
-    }
-
-    // ✅ CRÍTICO: Normalizar importe (eliminar ceros a la izquierda) antes de generar firma
-    // El importe debe ser exactamente el mismo en la firma y en el formulario
-    const importeNormalizado = String(formData.Importe || '').replace(/^0+/, '') || '0';
-    if (importeNormalizado !== formData.Importe) {
-      console.log('🔧 Importe normalizado para firma:', {
-        original: formData.Importe,
-        normalizado: importeNormalizado
-      });
-    }
-
-    // ✅ CRÍTICO: Referencia debe ser exactamente el numOperacion (igual en firma y formulario)
-    const referencia = String(formData.Num_operacion || '').trim();
-
-    // ✅ CRÍTICO: Corregir campo Cifrado si viene como 'SHA256' o 'HMAC' (debe ser 'HMAC_SHA256')
-    if (formData.Cifrado === 'SHA256' || formData.Cifrado === 'HMAC') {
-      formData.Cifrado = 'HMAC_SHA256';
-      console.log('🔧 Campo Cifrado corregido:', formData.Cifrado === 'SHA256' ? 'SHA256' : 'HMAC', '→ HMAC_SHA256');
-    }
-
-    // Recalcular firma con valores exactos que se enviarán en el formulario
-    let firma;
-    try {
-      console.log('🔐 Generando firma con datos EXACTOS (que se enviarán en formulario):', {
-        numOperacion: formData.Num_operacion,
-        importe: importeNormalizado + ' (sin padding)',
-        fecha: fechaOperacion,
-        hora: horaOperacion,
-        referencia: referencia,
-        urlOk: formData.URL_OK,
-        urlKo: formData.URL_KO
-      });
-
-      firma = generateCecabankSignature(
-        formData.Num_operacion,
-        importeNormalizado, // Importe sin ceros
-        fechaOperacion,     // Fecha exacta que se enviará
-        horaOperacion,      // Hora exacta que se enviará
-        formData.URL_OK,
-        formData.URL_KO,
-        referencia          // Referencia exacta que se enviará (numOperacion)
-      );
-
-      console.log('✅ Firma generada exitosamente');
-    } catch (firmaError) {
-      console.error('❌ Error al generar firma:', firmaError);
-      return res.status(500).send(`Error al generar firma: ${firmaError.message}`);
-    }
-
-    // ✅ CRÍTICO: Asignar valores EXACTOS que se usarán en el formulario (deben coincidir con la firma)
-    formData.Firma = firma;
-    formData.FechaOperacion = fechaOperacion;  // Misma fecha que en la firma
-    formData.HoraOperacion = horaOperacion;    // Misma hora que en la firma
-    formData.Importe = formData.Importe;       // Mantener importe original con ceros a la izquierda para el formulario
-    formData.Referencia = referencia;         // Misma referencia que en la firma
-
-    console.log('🔧 Valores finales en formulario (deben coincidir con la firma):', {
-      Importe: formData.Importe + ' (con ceros, para formulario) - Firma usa: ' + importeNormalizado + ' (sin ceros)',
-      Referencia: formData.Referencia + ' (igual que en firma)',
-      Num_operacion: formData.Num_operacion,
-      FirmaLength: firma.length
-    });
-
-    // URL de producción de Cecabank
-    const urlCecabank = 'https://pgw.ceca.es/tpvweb/tpv/compra.action';
-
-    // ✅ CRÍTICO: Ordenar campos según especificación de Cecabank y asegurar que todos estén presentes
-    // Orden recomendado para mejor compatibilidad
-    const ordenCampos = [
-      'MerchantID',
-      'AcquirerBIN',
-      'TerminalID',
-      'Num_operacion',
-      'Importe',        // ✅ Sin ceros a la izquierda
-      'TipoMoneda',
-      'Exponente',
-      'Referencia',     // ✅ Debe estar presente
-      'Cifrado',
-      'Firma',
-      'URL_OK',
-      'URL_KO',         // Se mapeará a URL_NOK
-      'Idioma',
-      'FechaOperacion',
-      'HoraOperacion',
-      'Descripcion'
-    ];
-
-    // Generar formulario HTML con campos en orden y valores exactos
-    const formFields = ordenCampos
-      .filter(campo => {
-        // Incluir solo campos que existen en formData
-        if (campo === 'URL_KO') {
-          return formData.URL_KO !== undefined; // URL_KO se mapeará a URL_NOK
-        }
-        return formData[campo] !== undefined && formData[campo] !== null && formData[campo] !== '';
-      })
-      .map((campo) => {
-        // Mapear URL_KO a URL_NOK para Cecabank
-        let fieldName = campo;
-        if (campo === 'URL_KO') {
-          fieldName = 'URL_NOK';
-        }
-
-        const value = formData[campo];
-
-        // ✅ CRÍTICO: Asegurar que Importe mantenga los ceros a la izquierda para Cecabank
-        let finalValue = String(value || '');
-        // NO remover ceros a la izquierda del importe - Cecabank lo requiere con padding
-
-        const escapedKey = String(fieldName)
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;');
-
-        const escapedValue = String(finalValue)
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;');
-
-        return `            <input type="hidden" name="${escapedKey}" value="${escapedValue}" />`;
+    // Generate HTML form
+    const formFields = Object.entries(formData)
+      .map(([key, value]) => {
+        const escapedValue = String(value).replace(/[<>&"]/g, (c) => {
+          return { '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c];
+        });
+        return `        <input type="hidden" name="${key}" value="${escapedValue}" />`;
       })
       .join('\n');
 
-    // Log para verificación
-    console.log('📋 Campos en formulario HTML:', {
-      Importe: formData.Importe,
-      Referencia: formData.Referencia,
-      Num_operacion: formData.Num_operacion,
-      totalCampos: ordenCampos.filter(c => formData[c] !== undefined).length
-    });
-
-    // HTML con formulario auto-envío
     const html = `<!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <title>Redirigiendo a Cecabank...</title>
-    <style>
-      body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f5f5f5; }
-      .container { text-align: center; padding: 20px; }
-      .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #4CAF50; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
-      @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <h2>Redirigiendo al TPV de Cecabank...</h2>
-      <div class="spinner"></div>
-      <p>Por favor, espera mientras se procesa tu pago.</p>
-    </div>
-    <form id="cecabankForm" method="POST" action="${urlCecabank}" enctype="application/x-www-form-urlencoded" style="display: none;">
-${formFields}
-    </form>
-    <script>
-      (function() {
-        function submitForm() {
-          try {
-            const form = document.getElementById('cecabankForm');
-            if (form) {
-              form.submit();
-              return true;
-            }
-          } catch (error) {
-            console.error('❌ Error:', error);
-          }
-          return false;
-        }
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Procesando pago...</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    .container { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; max-width: 400px; }
+    .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #4CAF50; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .loading-text { color: #666; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="spinner"></div>
+    <h2>Procesando pago seguro</h2>
+    <p class="loading-text">Redirigiendo a Cecabank...</p>
+  </div>
 
-        if (document.readyState === 'complete' || document.readyState === 'interactive') {
-          submitForm();
-        } else {
-          document.addEventListener('DOMContentLoaded', submitForm);
-        }
-        setTimeout(submitForm, 100);
-      })();
-    </script>
-  </body>
+  <form id="cecabankForm" method="POST" action="${CECABANK_CONFIG.urlProduccion}" style="display: none;">
+${formFields}
+  </form>
+
+  <script>
+    setTimeout(() => {
+      document.getElementById('cecabankForm').submit();
+    }, 1000);
+  </script>
+</body>
 </html>`;
 
-    console.log('✅ HTML generado, enviando al cliente');
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.send(html);
 
   } catch (error) {
-    console.error('❌ ============================================');
-    console.error('❌ ERROR en endpoint de redirección:', error);
-    console.error('❌ Stack:', error.stack);
-    console.error('❌ ============================================');
-    res.status(500).send('Error al redirigir a Cecabank');
+    console.error('❌ Error in redirect:', error);
+    res.status(500).send('Error interno del servidor');
   }
 });
 
-// ============================================
-// FUNCIONES DE CECABANK
-// ============================================
+// Success callback
+app.get('/api/cecabank/ok', (req, res) => {
+  console.log('✅ Payment success callback received');
+  res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>Pago Exitoso</title>
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; padding: 50px; background: #e8f5e9; }
+        .success { color: #4CAF50; font-size: 64px; margin-bottom: 20px; }
+        .message { font-size: 18px; color: #333; margin-bottom: 30px; }
+        .button { display: inline-block; padding: 12px 24px; background: #4CAF50; color: white; text-decoration: none; border-radius: 6px; font-weight: 500; }
+      </style>
+    </head>
+    <body>
+      <div class="success">✅</div>
+      <h1>¡Pago procesado correctamente!</h1>
+      <p class="message">Tu matrícula ha sido confirmada. Puedes cerrar esta ventana.</p>
+    </body>
+    </html>
+  `);
+});
 
-/**
- * Genera la firma HMAC SHA256 para Cecabank
- */
-function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, urlKo, referencia) {
-  try {
-    const merchantId = process.env.CECABANK_MERCHANT_ID || '086729753';
-    const acquirerBin = process.env.CECABANK_ACQUIRER_BIN || '0000554027';
-    const terminalId = process.env.CECABANK_TERMINAL_ID || '00000003';
-    const clave = process.env.CECABANK_CLAVE || 'P7BB51K0ABTDOAGN0W084FK4MUHRM5GQ';
+// Error callback
+app.get('/api/cecabank/ko', (req, res) => {
+  console.log('❌ Payment error callback received');
+  res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>Pago No Procesado</title>
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; padding: 50px; background: #ffebee; }
+        .error { color: #f44336; font-size: 64px; margin-bottom: 20px; }
+        .message { font-size: 18px; color: #333; margin-bottom: 30px; }
+        .button { display: inline-block; padding: 12px 24px; background: #f44336; color: white; text-decoration: none; border-radius: 6px; font-weight: 500; }
+      </style>
+    </head>
+    <body>
+      <div class="error">❌</div>
+      <h1>Pago no procesado</h1>
+      <p class="message">Ha ocurrido un error al procesar tu pago. Puedes cerrar esta ventana e intentarlo nuevamente.</p>
+    </body>
+    </html>
+  `);
+});
 
-    // ✅ Validar que la clave esté configurada y tenga la longitud esperada
-    if (!clave || clave.length === 0) {
-      throw new Error('La clave de encriptación (CECABANK_CLAVE) no está configurada');
-    }
-    if (clave.length < 20) {
-      console.warn('⚠️ ADVERTENCIA: La clave parece muy corta. Verifica que sea la clave correcta de producción.');
-    }
-
-    // ✅ Validar fecha y hora (Cecabank valida que la hora sea cercana a la actual)
-    const ahora = new Date();
-    const fechaActual =
-      ahora.getFullYear().toString() +
-      (ahora.getMonth() + 1).toString().padStart(2, '0') +
-      ahora.getDate().toString().padStart(2, '0');
-
-    // Verificar que la fecha no sea muy antigua (más de 1 hora de diferencia)
-    if (fecha !== fechaActual) {
-      console.warn('⚠️ ADVERTENCIA: La fecha de operación no coincide con la fecha actual:', {
-        fechaOperacion: fecha,
-        fechaActual: fechaActual
-      });
-    }
-
-    // Verificar que la hora no tenga un desfase muy grande (más de 5 minutos)
-    const horaActual =
-      ahora.getHours().toString().padStart(2, '0') +
-      ahora.getMinutes().toString().padStart(2, '0') +
-      ahora.getSeconds().toString().padStart(2, '0');
-
-    const diffMinutos = Math.abs(
-      (parseInt(hora.substring(0, 2)) * 60 + parseInt(hora.substring(2, 4))) -
-      (parseInt(horaActual.substring(0, 2)) * 60 + parseInt(horaActual.substring(2, 4)))
-    );
-
-    if (diffMinutos > 5) {
-      console.warn('⚠️ ADVERTENCIA: Desfase de hora detectado (más de 5 minutos):', {
-        horaOperacion: hora,
-        horaActual: horaActual,
-        diferenciaMinutos: diffMinutos
-      });
-    }
-    const tipoMoneda = '978';
-    const exponente = '2';
-    const cifrado = 'HMAC_SHA256'; // ✅ CRÍTICO: Debe ser 'HMAC_SHA256' según especificación de Cecabank
-    const idioma = '1';
-
-    // Validar que todos los parámetros estén presentes
-    if (!numOperacion || !importe || !fecha || !hora) {
-      throw new Error('Faltan parámetros requeridos para generar la firma');
-    }
-
-    // ✅ CRÍTICO: Asegurar que todos los valores sean strings SIN espacios ni caracteres invisibles
-    const numOpStr = String(numOperacion || '').trim();
-    // ❌ CORRECCIÓN: Importe DEBE mantener los ceros a la izquierda (formato 12 dígitos)
-    const importeStr = String(importe || '').trim();
-
-    // ✅ CRÍTICO: Referencia debe venir como parámetro (ya normalizada desde el endpoint)
-    // Si no viene, usar numOperacion como fallback
-    const referenciaStr = String(referencia || numOpStr || '0').trim();
-
-    // ✅ CRÍTICO: Construir cadena para firma según orden EXACTO requerido por Cecabank
-    // IMPORTANTE: Para HMAC, la clave NO se incluye en la cadena de datos
-    // Solo los primeros 10 campos, la clave se usa como parámetro separado
-    const cadenaFirma =
-      String(merchantId).trim() +
-      String(acquirerBin).trim() +
-      String(terminalId).trim() +
-      numOpStr +
-      importeStr +
-      String(tipoMoneda).trim() +
-      String(exponente).trim() +
-      String(urlOk).trim() +
-      String(urlKo).trim() +
-      referenciaStr;
-
-    // ✅ CRÍTICO: Verificar que no haya caracteres invisibles o espacios
-    const tieneEspacios = cadenaFirma.includes(' ');
-    const tieneSaltosLinea = cadenaFirma.includes('\n') || cadenaFirma.includes('\r');
-    const tieneTabs = cadenaFirma.includes('\t');
-
-    if (tieneEspacios || tieneSaltosLinea || tieneTabs) {
-      console.error('❌ ERROR CRÍTICO: La cadena de firma contiene caracteres invisibles:', {
-        espacios: tieneEspacios,
-        saltosLinea: tieneSaltosLinea,
-        tabs: tieneTabs,
-        cadenaLength: cadenaFirma.length,
-        cadenaHex: Buffer.from(cadenaFirma).toString('hex')
-      });
-      throw new Error('La cadena de firma contiene caracteres invisibles que invalidarán la firma');
-    }
-
-    // ✅ Verificar que la cadena no esté vacía
-    if (!cadenaFirma || cadenaFirma.length === 0) {
-      throw new Error('La cadena de firma está vacía');
-    }
-
-    console.log('🔐 Generando firma con orden EXACTO de Cecabank:', {
-      orden: [
-        '1. MerchantID',
-        '2. AcquirerBIN',
-        '3. TerminalID',
-        '4. Num_operacion',
-        '5. Importe (SIN ceros a la izquierda)',
-        '6. TipoMoneda',
-        '7. Exponente',
-        '8. URL_OK',
-        '9. URL_KO',
-        '10. Referencia (NO vacía)',
-        '11. FirmaClave'
-      ],
-      valores: {
-        merchantId,
-        acquirerBin,
-        terminalId,
-        numOperacion: numOpStr,
-        importe: importeStr + ' (sin padding)',
-        tipoMoneda,
-        exponente,
-        urlOk: String(urlOk).trim(),
-        urlKo: String(urlKo).trim(),
-        referencia: referenciaStr,
-        claveLength: clave.length,
-        claveInicio: clave.substring(0, 4) + '...' // Solo mostrar inicio para seguridad
-      },
-      cadenaLength: cadenaFirma.length,
-      tieneClave: !!clave && clave.length > 0,
-      formatoFirma: 'HEX (64 caracteres)',
-      cadenaHex: Buffer.from(cadenaFirma).toString('hex').substring(0, 40) + '...' // Para verificar caracteres invisibles
-    });
-
-    if (!clave || clave.length === 0) {
-      throw new Error('La clave de encriptación (CECABANK_CLAVE) no está configurada');
-    }
-
-    // ✅ CRÍTICO: Cecabank requiere HMAC-SHA256 cuando Cifrado='HMAC_SHA256'
-    // Usar createHmac con clave secreta, NO createHash
-    const firma = crypto
-      .createHmac('sha256', clave)
-      .update(cadenaFirma, 'utf8')
-      .digest('hex'); // ✅ HEX (64 chars) con HMAC-SHA256
-
-    if (firma.length !== 64) {
-      throw new Error(`Firma generada con longitud incorrecta: ${firma.length} (debe ser 64 caracteres HEX)`);
-    }
-
-    console.log('✅ Firma Cecabank generada correctamente:', {
-      longitud: firma.length,
-      formato: 'HEX',
-      primerosCaracteres: firma.substring(0, 10) + '...'
-    });
-    return firma;
-  } catch (error) {
-    console.error('❌ Error generando firma Cecabank:', error);
-    console.error('❌ Stack:', error.stack);
-    throw new Error(`Error al generar firma: ${error.message}`);
-  }
-}
-
-// ============================================
-// INICIAR SERVIDOR
-// ============================================
-
+// Start server
 app.listen(PORT, () => {
-  console.log('🚀 Servidor iniciado en puerto', PORT);
-  console.log('🌍 Entorno:', NODE_ENV);
-  console.log('🔗 URL: http://localhost:' + PORT);
-  console.log('📧 Email configurado:', !!transporter);
-  console.log('💳 Cecabank configurado para matrículas');
+  console.log('🚀 Academia Backend Server Started');
+  console.log(`🌍 Environment: ${NODE_ENV}`);
+  console.log(`🔗 URL: http://localhost:${PORT}`);
+  console.log(`💳 Cecabank: ${CECABANK_CONFIG.clave ? '✅ Configured' : '❌ Not configured'}`);
 });
