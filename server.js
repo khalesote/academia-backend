@@ -304,6 +304,32 @@ app.get('/api/cecabank/ko', (req, res) => {
   `);
 });
 
+// Error callback - POST
+app.post('/api/cecabank/ko', (req, res) => {
+  console.log('❌ Payment error callback received (POST)');
+  console.log('📦 Callback data:', req.body);
+  res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>Pago No Procesado</title>
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; padding: 50px; background: #ffebee; }
+        .error { color: #f44336; font-size: 64px; margin-bottom: 20px; }
+        .message { font-size: 18px; color: #333; margin-bottom: 30px; }
+        .button { display: inline-block; padding: 12px 24px; background: #f44336; color: white; text-decoration: none; border-radius: 6px; font-weight: 500; }
+      </style>
+    </head>
+    <body>
+      <div class="error">❌</div>
+      <h1>Pago no procesado</h1>
+      <p class="message">Ha ocurrido un error al procesar tu pago. Puedes cerrar esta ventana e intentarlo nuevamente.</p>
+    </body>
+    </html>
+  `);
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log('🚀 Academia Backend Server Started');
