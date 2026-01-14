@@ -12,6 +12,12 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Environment configuration
+const ENTORNO = process.env.CECABANK_ENTORNO || 'PRODUCCION';
+
+// Normalize entorno to handle both 'production' and 'PRODUCCION'
+const normalizedEntorno = ENTORNO.toUpperCase() === 'PRODUCTION' ? 'PRODUCCION' : ENTORNO;
+
 // Cecabank Configuration
 const CECABANK_CONFIG = {
   merchantId: process.env.CECABANK_MERCHANT_ID || '086729753',
@@ -214,7 +220,7 @@ app.post('/api/cecabank/redirect', (req, res) => {
     <p class="loading-text">Redirigiendo a Cecabank...</p>
   </div>
 
-  <form id="cecabankForm" method="POST" action="${CECABANK_CONFIG.urlProduccion}" style="display: none;">
+  <form id="cecabankForm" method="POST" action="${normalizedEntorno === 'PRODUCCION' ? CECABANK_CONFIG.urlProduccion : CECABANK_CONFIG.urlTest}" style="display: none;">
 ${formFields}
   </form>
 
