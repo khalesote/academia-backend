@@ -176,8 +176,8 @@ app.post('/api/cecabank/redirect', (req, res) => {
       Exponente: CECABANK_CONFIG.exponente,
       Cifrado: CECABANK_CONFIG.cifrado,
       Firma: firma,
-      UrlOK: CECABANK_CONFIG.urlOk,      // ✅ Cecabank expects UrlOK
-      UrlNOK: CECABANK_CONFIG.urlKo,     // ✅ Cecabank expects UrlNOK
+      URL_OK: CECABANK_CONFIG.urlOk,     // ✅ Cecabank expects URL_OK
+      URL_KO: CECABANK_CONFIG.urlKo,     // ✅ Cecabank expects URL_KO
       Idioma: CECABANK_CONFIG.idioma,
       FechaOperacion: fecha,
       HoraOperacion: hora,
@@ -254,80 +254,32 @@ ${formFields}
   }
 });
 
-// Success callback
+// Success callback - GET
 app.get('/api/cecabank/ok', (req, res) => {
-  console.log('✅ Payment success callback received');
-  res.send(`
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <title>Pago Exitoso</title>
-      <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; padding: 50px; background: #e8f5e9; }
-        .success { color: #4CAF50; font-size: 64px; margin-bottom: 20px; }
-        .message { font-size: 18px; color: #333; margin-bottom: 30px; }
-        .button { display: inline-block; padding: 12px 24px; background: #4CAF50; color: white; text-decoration: none; border-radius: 6px; font-weight: 500; }
-      </style>
-    </head>
-    <body>
-      <div class="success">✅</div>
-      <h1>¡Pago procesado correctamente!</h1>
-      <p class="message">Tu matrícula ha sido confirmada. Puedes cerrar esta ventana.</p>
-    </body>
-    </html>
-  `);
+  console.log('✅ Payment success callback received (GET)');
+  console.log('📦 Query params:', req.query);
+  res.status(200).send('OK');
 });
 
-// Error callback
+// Error callback - GET  
 app.get('/api/cecabank/ko', (req, res) => {
-  console.log('❌ Payment error callback received');
-  res.send(`
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <title>Pago No Procesado</title>
-      <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; padding: 50px; background: #ffebee; }
-        .error { color: #f44336; font-size: 64px; margin-bottom: 20px; }
-        .message { font-size: 18px; color: #333; margin-bottom: 30px; }
-        .button { display: inline-block; padding: 12px 24px; background: #f44336; color: white; text-decoration: none; border-radius: 6px; font-weight: 500; }
-      </style>
-    </head>
-    <body>
-      <div class="error">❌</div>
-      <h1>Pago no procesado</h1>
-      <p class="message">Ha ocurrido un error al procesar tu pago. Puedes cerrar esta ventana e intentarlo nuevamente.</p>
-    </body>
-    </html>
-  `);
+  console.log('❌ Payment error callback received (GET)');
+  console.log('📦 Query params:', req.query);
+  res.status(200).send('OK');
+});
+
+// Success callback - POST
+app.post('/api/cecabank/ok', (req, res) => {
+  console.log('✅ Payment success callback received (POST)');
+  console.log('📦 Callback data:', req.body);
+  res.status(200).send('OK');
 });
 
 // Error callback - POST
 app.post('/api/cecabank/ko', (req, res) => {
   console.log('❌ Payment error callback received (POST)');
   console.log('📦 Callback data:', req.body);
-  res.send(`
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <title>Pago No Procesado</title>
-      <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; padding: 50px; background: #ffebee; }
-        .error { color: #f44336; font-size: 64px; margin-bottom: 20px; }
-        .message { font-size: 18px; color: #333; margin-bottom: 30px; }
-        .button { display: inline-block; padding: 12px 24px; background: #f44336; color: white; text-decoration: none; border-radius: 6px; font-weight: 500; }
-      </style>
-    </head>
-    <body>
-      <div class="error">❌</div>
-      <h1>Pago no procesado</h1>
-      <p class="message">Ha ocurrido un error al procesar tu pago. Puedes cerrar esta ventana e intentarlo nuevamente.</p>
-    </body>
-    </html>
-  `);
+  res.status(200).send('OK');
 });
 
 // Start server
