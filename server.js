@@ -74,7 +74,7 @@ function generateSignature({ numOperacion, importe }) {
   return crypto
     .createHmac('sha256', CECABANK_CONFIG.clave)
     .update(signatureString, 'utf8')
-    .digest('base64');
+    .digest('hex');
 }
 
 // ─────────────────────────────
@@ -113,7 +113,7 @@ app.get('/api/cecabank/debug-form', (req, res) => {
 
     const firma = generateSignature({
       numOperacion,
-      importe: importePadded
+      importe: importe.toString()
     });
 
     const formData = {
@@ -182,7 +182,7 @@ app.get('/api/cecabank/redirect-test', (req, res) => {
 
     const firma = generateSignature({
       numOperacion,
-      importe: importePadded
+      importe: importe.toString()
     });
 
     const formData = {
@@ -249,7 +249,7 @@ app.post('/api/cecabank/redirect', (req, res) => {
 
     const firma = generateSignature({
       numOperacion,
-      importe: importePadded
+      importe: importe.toString()
     });
 
     if (!CECABANK_CONFIG.urlOk || !CECABANK_CONFIG.urlKo) {
