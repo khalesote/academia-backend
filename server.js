@@ -204,8 +204,8 @@ app.post('/api/cecabank/redirect', (req, res) => {
       Exponente: CECABANK_CONFIG.exponente,
       Cifrado: CECABANK_CONFIG.cifrado,
       Firma: firma,
-      URL_OK: CECABANK_CONFIG.urlOk,     // ✅ Cecabank expects URL_OK
-      URL_KO: CECABANK_CONFIG.urlKo,     // ✅ Cecabank expects URL_KO
+      UrlOK: CECABANK_CONFIG.urlOk,     // ✅ Cecabank expects UrlOK
+      UrlNOK: CECABANK_CONFIG.urlKo,     // ✅ Cecabank expects UrlNOK
       Idioma: CECABANK_CONFIG.idioma,
       FechaOperacion: fecha,
       HoraOperacion: hora,
