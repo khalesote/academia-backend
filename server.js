@@ -99,6 +99,14 @@ app.post('/api/cecabank/redirect', (req, res) => {
       importe: importe.toString()
     });
 
+    if (!CECABANK_CONFIG.urlOk || !CECABANK_CONFIG.urlKo) {
+      console.error('❌ URLs de callback no configuradas:', {
+        urlOk: CECABANK_CONFIG.urlOk,
+        urlKo: CECABANK_CONFIG.urlKo
+      });
+      return res.status(500).send('URL OK/KO no configuradas');
+    }
+
     const formData = {
       MerchantID: CECABANK_CONFIG.merchantId,
       AcquirerBIN: CECABANK_CONFIG.acquirerBin,
@@ -114,6 +122,9 @@ app.post('/api/cecabank/redirect', (req, res) => {
       // Cecabank espera UrlOK / UrlKO (case-sensitive)
       UrlOK: CECABANK_CONFIG.urlOk,
       UrlKO: CECABANK_CONFIG.urlKo,
+      // En algunos entornos Cecabank acepta/espera URL_OK/URL_KO
+      URL_OK: CECABANK_CONFIG.urlOk,
+      URL_KO: CECABANK_CONFIG.urlKo,
       Idioma: CECABANK_CONFIG.idioma,
       FechaOperacion: fecha,
       HoraOperacion: hora,
