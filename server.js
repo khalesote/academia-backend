@@ -30,8 +30,8 @@ const CECABANK_CONFIG = {
   idioma: '1',
   urlProduccion: 'https://pgw.ceca.es/tpvweb/tpv/compra.action',
   urlTest: 'https://tpv.ceca.es/tpvweb/tpv/compra.action',
-  urlOk: process.env.CECABANK_SUCCESS_URL || 'https://academiadeinmigrantes.es/api/cecabank/ok',
-  urlKo: process.env.CECABANK_ERROR_URL || 'https://academiadeinmigrantes.es/api/cecabank/ko'
+  urlOk: 'https://academia-backend-s9np.onrender.com/api/cecabank/ok', // Temporarily hardcoded for testing
+  urlKo: 'https://academia-backend-s9np.onrender.com/api/cecabank/ko'  // Temporarily hardcoded for testing
 };
 
 // Prices for courses
