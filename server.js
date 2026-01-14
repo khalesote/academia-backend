@@ -736,12 +736,12 @@ function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, ur
       throw new Error('La clave de encriptación (CECABANK_CLAVE) no está configurada');
     }
 
-    // ✅ CRÍTICO: Cecabank requiere SHA-256 en HEX (64 caracteres), NO Base64 (44 caracteres)
-    // Usar createHash (no createHmac) según especificación de Cecabank
+    // ✅ CRÍTICO: Cecabank requiere HMAC-SHA256 cuando Cifrado='HMAC_SHA256'
+    // Usar createHmac con clave secreta, NO createHash
     const firma = crypto
-      .createHash('sha256')
+      .createHmac('sha256', clave)
       .update(cadenaFirma, 'utf8')
-      .digest('hex'); // ✅ HEX (64 chars), NO Base64 (44 chars)
+      .digest('hex'); // ✅ HEX (64 chars) con HMAC-SHA256
 
     if (firma.length !== 64) {
       throw new Error(`Firma generada con longitud incorrecta: ${firma.length} (debe ser 64 caracteres HEX)`);
