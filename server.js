@@ -55,7 +55,10 @@ function getDateTime() {
 }
 
 function generateSignature({ numOperacion, importe }) {
+  // Según manual: Clave + MerchantID + AcquirerBIN + TerminalID + Num_operacion +
+  // Importe + TipoMoneda + Exponente + "SHA2" + URL_OK + URL_NOK
   const signatureString = [
+    CECABANK_CONFIG.clave,
     CECABANK_CONFIG.merchantId,
     CECABANK_CONFIG.acquirerBin,
     CECABANK_CONFIG.terminalId,
@@ -63,15 +66,15 @@ function generateSignature({ numOperacion, importe }) {
     importe,
     CECABANK_CONFIG.tipoMoneda,
     CECABANK_CONFIG.exponente,
+    'SHA2',
     CECABANK_CONFIG.urlOk,
-    CECABANK_CONFIG.urlKo,
-    numOperacion
+    CECABANK_CONFIG.urlKo
   ].join('');
 
   console.log('🔐 Signature string:', signatureString);
 
   return crypto
-    .createHmac('sha256', CECABANK_CONFIG.clave)
+    .createHash('sha256')
     .update(signatureString, 'utf8')
     .digest('hex');
 }
