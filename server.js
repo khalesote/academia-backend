@@ -652,18 +652,8 @@ function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, ur
     const referenciaStr = String(referencia || numOpStr || '0').trim();
 
     // ✅ CRÍTICO: Construir cadena para firma según orden EXACTO requerido por Cecabank
-    // IMPORTANTE: Sin espacios, sin saltos de línea, sin separadores - concatenación directa
-    // 1. MerchantID
-    // 2. AcquirerBIN
-    // 3. TerminalID
-    // 4. Num_operacion
-    // 5. Importe (SIN ceros a la izquierda)
-    // 6. TipoMoneda
-    // 7. Exponente
-    // 8. URL_OK
-    // 9. URL_KO
-    // 10. Referencia (NO vacía)
-    // 11. FirmaClave (clave de encriptación)
+    // IMPORTANTE: Para HMAC, la clave NO se incluye en la cadena de datos
+    // Solo los primeros 10 campos, la clave se usa como parámetro separado
     const cadenaFirma =
       String(merchantId).trim() +
       String(acquirerBin).trim() +
@@ -674,8 +664,7 @@ function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, ur
       String(exponente).trim() +
       String(urlOk).trim() +
       String(urlKo).trim() +
-      referenciaStr +
-      String(clave).trim();
+      referenciaStr;
 
     // ✅ CRÍTICO: Verificar que no haya caracteres invisibles o espacios
     const tieneEspacios = cadenaFirma.includes(' ');
