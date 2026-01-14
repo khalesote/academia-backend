@@ -112,7 +112,7 @@ app.get('/api/cecabank/debug-form', (req, res) => {
 
     const firma = generateSignature({
       numOperacion,
-      importe: importe.toString()
+      importe: importePadded
     });
 
     const formData = {
@@ -181,7 +181,7 @@ app.get('/api/cecabank/redirect-test', (req, res) => {
 
     const firma = generateSignature({
       numOperacion,
-      importe: importe.toString()
+      importe: importePadded
     });
 
     const formData = {
@@ -248,7 +248,7 @@ app.post('/api/cecabank/redirect', (req, res) => {
 
     const firma = generateSignature({
       numOperacion,
-      importe: importe.toString()
+      importe: importePadded
     });
 
     if (!CECABANK_CONFIG.urlOk || !CECABANK_CONFIG.urlKo) {
