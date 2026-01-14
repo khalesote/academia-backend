@@ -176,8 +176,8 @@ app.post('/api/cecabank/redirect', (req, res) => {
       Exponente: CECABANK_CONFIG.exponente,
       Cifrado: CECABANK_CONFIG.cifrado,
       Firma: firma,
-      UrlOK: CECABANK_CONFIG.urlOk,      // ✅ Cecabank expects UrlOK (not URL_OK)
-      UrlNOK: CECABANK_CONFIG.urlKo,     // ✅ Cecabank expects UrlNOK (not URL_KO)
+      URL_OK: CECABANK_CONFIG.urlOk,     // ✅ Revert to URL_OK
+      URL_KO: CECABANK_CONFIG.urlKo,     // ✅ Revert to URL_KO
       Idioma: CECABANK_CONFIG.idioma,
       FechaOperacion: fecha,
       HoraOperacion: hora,
@@ -189,6 +189,18 @@ app.post('/api/cecabank/redirect', (req, res) => {
     if (customerName) formData.Nombre = customerName;
 
     console.log('📋 Form data prepared:', Object.keys(formData));
+    console.log('🔗 URL_OK value:', formData.URL_OK);
+    console.log('🔗 URL_KO value:', formData.URL_KO);
+    console.log('⚙️ CECABANK_CONFIG.urlOk:', CECABANK_CONFIG.urlOk);
+    console.log('⚙️ CECABANK_CONFIG.urlKo:', CECABANK_CONFIG.urlKo);
+    console.log('🌍 Environment CECABANK_SUCCESS_URL:', process.env.CECABANK_SUCCESS_URL);
+    console.log('🌍 Environment CECABANK_ERROR_URL:', process.env.CECABANK_ERROR_URL);
+    
+    // Log all form data values
+    console.log('📝 Complete form data being sent to Cecabank:');
+    Object.entries(formData).forEach(([key, value]) => {
+      console.log(`  ${key}: ${value}`);
+    });
 
     // Generate HTML form
     const formFields = Object.entries(formData)
