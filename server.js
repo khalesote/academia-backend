@@ -147,8 +147,20 @@ app.post('/api/cecabank/redirect', (req, res) => {
 
     // Use the amount sent from frontend instead of recalculating
     const amount = parseFloat(frontendAmount);
+    console.log('🔢 Frontend amount parsing:', {
+      frontendAmount,
+      frontendAmountType: typeof frontendAmount,
+      parsedAmount: amount,
+      isNaN: isNaN(amount),
+      isValid: !isNaN(amount) && amount > 0
+    });
+    
     if (isNaN(amount) || amount <= 0) {
-      console.error('❌ Invalid amount:', frontendAmount);
+      console.error('❌ Invalid amount:', {
+        frontendAmount,
+        parsedAmount: amount,
+        reason: isNaN(amount) ? 'NaN' : amount <= 0 ? 'negative or zero' : 'unknown'
+      });
       return res.status(400).send('Importe inválido');
     }
 
