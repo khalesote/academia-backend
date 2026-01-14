@@ -78,6 +78,12 @@ app.get('/api/health', (_, res) => {
   res.json({ status: 'ok' });
 });
 
+app.get('/api/version', (_, res) => {
+  res.json({
+    commit: process.env.RENDER_GIT_COMMIT || process.env.COMMIT_SHA || 'unknown'
+  });
+});
+
 // ─────────────────────────────
 // DEBUG FORM (TEMP)
 // ─────────────────────────────
