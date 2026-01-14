@@ -128,10 +128,9 @@ app.post('/api/cecabank/redirect', (req, res) => {
     console.log('📦 Full body:', JSON.stringify(req.body, null, 2));
     console.log('🔍 operationType received:', req.body.operationType);
 
-    const { operationType, customerEmail, customerName } = req.body;
+    const { operationType, customerEmail, customerName, amount: frontendAmount } = req.body;
 
-    console.log('✅ Extracted data:', { operationType, customerEmail, customerName });
-    console.log('✅ Available PRICES keys:', Object.keys(PRICES));
+    console.log('✅ Extracted data:', { operationType, customerEmail, customerName, frontendAmount });
 
     // Validate operation type
     if (!operationType || !PRICES[operationType]) {
@@ -146,12 +145,17 @@ app.post('/api/cecabank/redirect', (req, res) => {
 
     console.log('✅ Operation type validated successfully');
 
-    // Get price
-    const amount = PRICES[operationType];
+    // Use the amount sent from frontend instead of recalculating
+    const amount = parseFloat(frontendAmount);
+    if (isNaN(amount) || amount <= 0) {
+      console.error('❌ Invalid amount:', frontendAmount);
+      return res.status(400).send('Importe inválido');
+    }
+
     const importe = Math.round(amount * 100).toString().padStart(12, '0'); // 12 digits with padding
     const importeSinPadding = Math.round(amount * 100).toString(); // for signature
 
-    console.log('💰 Price calculation:', { operationType, amount, importe, importeSinPadding });
+    console.log('💰 Using frontend amount:', { operationType, amount, importe, importeSinPadding });
 
     // Generate order data
     const numOperacion = generateOrderId();
