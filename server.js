@@ -253,10 +253,41 @@ app.post('/api/cecabank/ok', express.urlencoded({ extended: true }), (req, res) 
   }
 });
 
-// Endpoint KO - Pago fallido
+// Endpoint KO - Pago fallido (GET)
+app.get('/api/cecabank/ko', (req, res) => {
+  try {
+    console.log('❌ Pago fallido GET recibido de Cecabank');
+    console.log('📝 Query params:', req.query);
+
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Pago Fallido</title>
+        <style>
+          body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+          .error { color: #f44336; font-size: 48px; margin-bottom: 20px; }
+        </style>
+      </head>
+      <body>
+        <div class="error">❌</div>
+        <h1>Pago No Procesado</h1>
+        <p>No se pudo completar el pago.</p>
+        <p>Puedes cerrar esta ventana y volver a la aplicación.</p>
+      </body>
+      </html>
+    `);
+  } catch (error) {
+    console.error('❌ Error en endpoint GET KO:', error);
+    res.status(500).send('Error procesando pago fallido');
+  }
+});
+
+// Endpoint KO - Pago fallido (POST)
 app.post('/api/cecabank/ko', express.urlencoded({ extended: true }), (req, res) => {
   try {
-    console.log('❌ Pago fallido recibido de Cecabank');
+    console.log('❌ Pago fallido POST recibido de Cecabank');
     console.log('📝 Datos recibidos:', req.body);
 
     res.send(`
@@ -279,7 +310,7 @@ app.post('/api/cecabank/ko', express.urlencoded({ extended: true }), (req, res) 
       </html>
     `);
   } catch (error) {
-    console.error('❌ Error en endpoint KO:', error);
+    console.error('❌ Error en endpoint POST KO:', error);
     res.status(500).send('Error procesando pago fallido');
   }
 });
