@@ -64,7 +64,6 @@ function generateSignature({ numOperacion, importe }) {
     importe,
     CECABANK_CONFIG.tipoMoneda,
     CECABANK_CONFIG.exponente,
-    CECABANK_CONFIG.cifrado,
     CECABANK_CONFIG.urlOk,
     CECABANK_CONFIG.urlKo
   ].join('');
