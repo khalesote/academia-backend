@@ -121,14 +121,16 @@ app.get('/api/health', (req, res) => {
 
 // Cecabank redirect endpoint
 app.post('/api/cecabank/redirect', (req, res) => {
+  console.log('🚀 === CECABANK REDIRECT START ===');
+  console.log('🚀 Timestamp:', new Date().toISOString());
   try {
     console.log('🚀 Cecabank redirect request received');
-    console.log('📦 Full body:', req.body);
+    console.log('📦 Full body:', JSON.stringify(req.body, null, 2));
     console.log('🔍 operationType received:', req.body.operationType);
 
     const { operationType, customerEmail, customerName } = req.body;
 
-    console.log('✅ Extracted operationType:', operationType);
+    console.log('✅ Extracted data:', { operationType, customerEmail, customerName });
     console.log('✅ Available PRICES keys:', Object.keys(PRICES));
 
     // Validate operation type
@@ -142,14 +144,20 @@ app.post('/api/cecabank/redirect', (req, res) => {
       return res.status(400).send('Tipo de operación inválido');
     }
 
+    console.log('✅ Operation type validated successfully');
+
     // Get price
     const amount = PRICES[operationType];
     const importe = Math.round(amount * 100).toString().padStart(12, '0'); // 12 digits with padding
     const importeSinPadding = Math.round(amount * 100).toString(); // for signature
 
+    console.log('💰 Price calculation:', { operationType, amount, importe, importeSinPadding });
+
     // Generate order data
     const numOperacion = generateOrderId();
     const { fecha, hora } = getCecabankDateTime();
+
+    console.log('📋 Order data generated:', { numOperacion, fecha, hora });
 
     // Generate signature
     const signatureData = {
@@ -163,7 +171,11 @@ app.post('/api/cecabank/redirect', (req, res) => {
       referencia: numOperacion
     };
 
+    console.log('🔐 Generating signature with data:', signatureData);
+
     const firma = generateCecabankSignature(signatureData);
+
+    console.log('✅ Signature generated successfully');
 
     // Build form data
     const formData = {
@@ -185,24 +197,29 @@ app.post('/api/cecabank/redirect', (req, res) => {
       Descripcion: `Matrícula ${operationType.toUpperCase()}`
     };
 
-    if (customerEmail) formData.Email = customerEmail;
-    if (customerName) formData.Nombre = customerName;
-
-    console.log('📋 Form data prepared:', Object.keys(formData));
+    console.log('📋 Form data built successfully');
     console.log('🔗 URL_OK value:', formData.URL_OK);
     console.log('🔗 URL_KO value:', formData.URL_KO);
     console.log('⚙️ CECABANK_CONFIG.urlOk:', CECABANK_CONFIG.urlOk);
     console.log('⚙️ CECABANK_CONFIG.urlKo:', CECABANK_CONFIG.urlKo);
-    console.log('🌍 Environment CECABANK_SUCCESS_URL:', process.env.CECABANK_SUCCESS_URL);
-    console.log('🌍 Environment CECABANK_ERROR_URL:', process.env.CECABANK_ERROR_URL);
-    
-    // Log all form data values
-    console.log('📝 Complete form data being sent to Cecabank:');
+
+    if (customerEmail) {
+      formData.Email = customerEmail;
+      console.log('📧 Added customer email:', customerEmail);
+    }
+    if (customerName) {
+      formData.Nombre = customerName;
+      console.log('👤 Added customer name:', customerName);
+    }
+
+    console.log('📝 Complete form data:');
     Object.entries(formData).forEach(([key, value]) => {
       console.log(`  ${key}: ${value}`);
     });
 
     // Generate HTML form
+    console.log('🎨 Generating HTML form...');
+
     const formFields = Object.entries(formData)
       .map(([key, value]) => {
         const escapedValue = String(value).replace(/[<>&"]/g, (c) => {
@@ -211,6 +228,8 @@ app.post('/api/cecabank/redirect', (req, res) => {
         return `        <input type="hidden" name="${key}" value="${escapedValue}" />`;
       })
       .join('\n');
+
+    console.log('✅ HTML form fields generated, length:', formFields.length);
 
     const html = `<!DOCTYPE html>
 <html>
@@ -239,17 +258,27 @@ ${formFields}
 
   <script>
     setTimeout(() => {
+      console.log('🚀 Submitting Cecabank form...');
       document.getElementById('cecabankForm').submit();
     }, 1000);
   </script>
 </body>
 </html>`;
 
+    console.log('✅ HTML generated successfully, length:', html.length);
+    console.log('🎯 Form action URL:', normalizedEntorno === 'PRODUCCION' ? CECABANK_CONFIG.urlProduccion : CECABANK_CONFIG.urlTest);
+
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    console.log('📤 Sending HTML response...');
     res.send(html);
+    console.log('✅ HTML response sent successfully');
 
   } catch (error) {
-    console.error('❌ Error in redirect:', error);
+    console.error('❌ === CECABANK REDIRECT ERROR ===');
+    console.error('❌ Error type:', error.constructor.name);
+    console.error('❌ Error message:', error.message);
+    console.error('❌ Error stack:', error.stack);
+    console.error('❌ === END ERROR ===');
     res.status(500).send('Error interno del servidor');
   }
 });
