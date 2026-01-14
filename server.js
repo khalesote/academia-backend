@@ -16,6 +16,9 @@ app.use(express.urlencoded({ extended: true }));
 // ─────────────────────────────
 // Cecabank config
 // ─────────────────────────────
+const CECABANK_ENV = (process.env.CECABANK_ENTORNO || 'PRODUCCION').toUpperCase();
+const CECABANK_IS_TEST = ['TEST', 'PRUEBAS', 'TESTING', 'SANDBOX'].includes(CECABANK_ENV);
+
 const CECABANK_CONFIG = {
   merchantId: process.env.CECABANK_MERCHANT_ID,
   acquirerBin: process.env.CECABANK_ACQUIRER_BIN,
@@ -26,8 +29,10 @@ const CECABANK_CONFIG = {
   cifrado: 'HMAC_SHA256',
   idioma: '1',
 
-  // PRODUCCIÓN
-  paymentUrl: 'https://pgw.ceca.es/tpvweb/tpv/compra.action',
+  // Entorno
+  paymentUrl: CECABANK_IS_TEST
+    ? 'https://tpv.ceca.es/tpvweb/tpv/compra.action'
+    : 'https://pgw.ceca.es/tpvweb/tpv/compra.action',
 
   // CALLBACKS (BACKEND ONLY)
   urlOk: process.env.CECABANK_SUCCESS_URL,
@@ -75,7 +80,7 @@ function generateSignature({ numOperacion, importe }) {
 // Health
 // ─────────────────────────────
 app.get('/api/health', (_, res) => {
-  res.json({ status: 'ok' });
+  res.json({ status: 'ok', cecabankEnv: CECABANK_ENV, paymentUrl: CECABANK_CONFIG.paymentUrl });
 });
 
 app.get('/api/version', (_, res) => {
@@ -138,6 +143,8 @@ app.get('/api/cecabank/debug-form', (req, res) => {
 <html>
 <body>
   <h2>Debug Cecabank Form</h2>
+  <p>Entorno: ${CECABANK_ENV}</p>
+  <p>Payment URL: ${CECABANK_CONFIG.paymentUrl}</p>
   <table border="1" cellpadding="6">${inputs}</table>
 </body>
 </html>`;
@@ -204,6 +211,8 @@ app.get('/api/cecabank/redirect-test', (req, res) => {
 <html>
 <body>
   <h2>Redirect Test Cecabank</h2>
+  <p>Entorno: ${CECABANK_ENV}</p>
+  <p>Payment URL: ${CECABANK_CONFIG.paymentUrl}</p>
   <form method="POST" action="${CECABANK_CONFIG.paymentUrl}">
     ${inputs}
     <button type="submit">Enviar a Cecabank</button>
