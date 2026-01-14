@@ -74,7 +74,7 @@ function generateSignature({ numOperacion, importe }) {
   return crypto
     .createHmac('sha256', CECABANK_CONFIG.clave)
     .update(signatureString, 'utf8')
-    .digest('hex');
+    .digest('base64');
 }
 
 // ─────────────────────────────
