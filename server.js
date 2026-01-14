@@ -26,7 +26,7 @@ const CECABANK_CONFIG = {
   clave: process.env.CECABANK_CLAVE,
   tipoMoneda: '978',
   exponente: '2',
-  cifrado: 'SHA2',
+  cifrado: 'HMAC_SHA256',
   idioma: '1',
 
   // Entorno
@@ -55,10 +55,8 @@ function getDateTime() {
 }
 
 function generateSignature({ numOperacion, importe }) {
-  // Según manual: Clave + MerchantID + AcquirerBIN + TerminalID + Num_operacion +
-  // Importe + TipoMoneda + Exponente + "SHA2" + URL_OK + URL_NOK
+  // En modo HMAC: la clave se usa como key del HMAC, no se concatena.
   const signatureString = [
-    CECABANK_CONFIG.clave,
     CECABANK_CONFIG.merchantId,
     CECABANK_CONFIG.acquirerBin,
     CECABANK_CONFIG.terminalId,
@@ -66,7 +64,7 @@ function generateSignature({ numOperacion, importe }) {
     importe,
     CECABANK_CONFIG.tipoMoneda,
     CECABANK_CONFIG.exponente,
-    'SHA2',
+    CECABANK_CONFIG.cifrado,
     CECABANK_CONFIG.urlOk,
     CECABANK_CONFIG.urlKo
   ].join('');
@@ -74,7 +72,7 @@ function generateSignature({ numOperacion, importe }) {
   console.log('🔐 Signature string:', signatureString);
 
   return crypto
-    .createHash('sha256')
+    .createHmac('sha256', CECABANK_CONFIG.clave)
     .update(signatureString, 'utf8')
     .digest('hex');
 }
