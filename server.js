@@ -118,17 +118,9 @@ app.post('/api/cecabank/redirect', (req, res) => {
       Cifrado: CECABANK_CONFIG.cifrado,
       Firma: firma,
 
-      // 🔥 CAMPOS CORRECTOS
-      // Cecabank puede ser sensible a mayúsculas/minúsculas según entorno.
+      // 🔥 CAMPOS CORRECTOS (Cecabank espera UrlOK y UrlNOK)
       UrlOK: CECABANK_CONFIG.urlOk,
-      UrlOk: CECABANK_CONFIG.urlOk,
-      UrlKO: CECABANK_CONFIG.urlKo,
-      UrlKo: CECABANK_CONFIG.urlKo,
       UrlNOK: CECABANK_CONFIG.urlKo,
-      UrlNok: CECABANK_CONFIG.urlKo,
-      URL_OK: CECABANK_CONFIG.urlOk,
-      URL_KO: CECABANK_CONFIG.urlKo,
-      URL_NOK: CECABANK_CONFIG.urlKo,
       Idioma: CECABANK_CONFIG.idioma,
       FechaOperacion: fecha,
       HoraOperacion: hora,
