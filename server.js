@@ -29,8 +29,9 @@ const CECABANK_CONFIG = {
   cifrado: 'HMAC_SHA256',
   idioma: '1',
   urlProduccion: 'https://pgw.ceca.es/tpvweb/tpv/compra.action',
-  urlOk: 'https://academiadeinmigrantes.es/api/cecabank/ok',
-  urlKo: 'https://academiadeinmigrantes.es/api/cecabank/ko'
+  urlTest: 'https://tpv.ceca.es/tpvweb/tpv/compra.action',
+  urlOk: process.env.CECABANK_SUCCESS_URL || 'https://academiadeinmigrantes.es/api/cecabank/ok',
+  urlKo: process.env.CECABANK_ERROR_URL || 'https://academiadeinmigrantes.es/api/cecabank/ko'
 };
 
 // Prices for courses
@@ -175,8 +176,8 @@ app.post('/api/cecabank/redirect', (req, res) => {
       Exponente: CECABANK_CONFIG.exponente,
       Cifrado: CECABANK_CONFIG.cifrado,
       Firma: firma,
-      URL_OK: CECABANK_CONFIG.urlOk,
-      URL_KO: CECABANK_CONFIG.urlKo,
+      UrlOK: CECABANK_CONFIG.urlOk,      // ✅ Cecabank expects UrlOK (not URL_OK)
+      UrlNOK: CECABANK_CONFIG.urlKo,     // ✅ Cecabank expects UrlNOK (not URL_KO)
       Idioma: CECABANK_CONFIG.idioma,
       FechaOperacion: fecha,
       HoraOperacion: hora,
