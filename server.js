@@ -1,5 +1,6 @@
 const express = require('express');
 const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 const cors = require('cors');
 require('dotenv').config();
 
@@ -12,6 +13,26 @@ const PORT = process.env.PORT || 10000;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// ─────────────────────────────
+// SMTP2GO (Examen presencial)
+// ─────────────────────────────
+let transporter;
+if (process.env.SMTP2GO_USERNAME && process.env.SMTP2GO_PASSWORD) {
+  transporter = nodemailer.createTransport({
+    host: 'mail.smtp2go.com',
+    port: 2525,
+    secure: false,
+    requireTLS: true,
+    auth: {
+      user: process.env.SMTP2GO_USERNAME,
+      pass: process.env.SMTP2GO_PASSWORD,
+    },
+  });
+  console.log('✅ SMTP2GO configurado');
+} else {
+  console.log('⚠️ SMTP2GO no configurado (faltan credenciales)');
+}
 
 // ─────────────────────────────
 // Cecabank config
@@ -88,6 +109,63 @@ app.get('/api/version', (_, res) => {
   res.json({
     commit: process.env.RENDER_GIT_COMMIT || process.env.COMMIT_SHA || 'unknown'
   });
+});
+
+// ─────────────────────────────
+// EXAMEN PRESENCIAL (EMAIL SMTP2GO)
+// ─────────────────────────────
+app.post('/api/solicitar-examen-presencial', async (req, res) => {
+  try {
+    const { nombre, email, telefono, nivel, mensaje } = req.body;
+
+    if (!nombre || !email || !nivel) {
+      return res.status(400).json({
+        error: 'Faltan campos obligatorios',
+        required: ['nombre', 'email', 'nivel']
+      });
+    }
+
+    if (!transporter) {
+      return res.status(500).json({
+        error: 'Servicio de email no configurado',
+        details: 'Credenciales de SMTP2GO no configuradas'
+      });
+    }
+
+    const mailOptions = {
+      from: 'admin@academiadeinmigrantes.es',
+      to: 'admin@academiadeinmigrantes.es',
+      replyTo: email,
+      subject: `Solicitud de examen presencial - Nivel ${nivel} - ${nombre}`,
+      html: `
+        <h2>Solicitud de Inscripción al Examen Presencial</h2>
+        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <h3>Datos del Estudiante:</h3>
+          <p><strong>Nombre:</strong> ${nombre}</p>
+          <p><strong>Email:</strong> ${email}</p>
+          ${telefono ? `<p><strong>Teléfono:</strong> ${telefono}</p>` : ''}
+          <p><strong>Nivel:</strong> ${nivel}</p>
+          <p><strong>Fecha de solicitud:</strong> ${new Date().toLocaleString('es-ES')}</p>
+        </div>
+        <div style="background-color: #e8f5e9; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #4caf50;">
+          <h3 style="color: #2e7d32; margin-top: 0;">Mensaje del Estudiante:</h3>
+          <p style="font-size: 16px; font-weight: bold; color: #1b5e20;">${mensaje || 'ME APUNTO EN EXAMEN PRESENCIAL'}</p>
+        </div>
+        <p style="color: #666;">Este email fue enviado desde la app Academia de Inmigrantes.</p>
+      `,
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+
+    res.json({
+      success: true,
+      message: 'Solicitud de examen presencial enviada correctamente',
+      messageId: result.messageId
+    });
+  } catch (error) {
+    console.error('❌ Error enviando solicitud de examen presencial:', error);
+    res.status(500).json({ error: 'Error al enviar la solicitud' });
+  }
 });
 
 // ─────────────────────────────
