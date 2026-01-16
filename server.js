@@ -170,6 +170,7 @@ app.post('/api/cecabank/ko', express.urlencoded({ extended: true }), (req, res) 
 app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async (req, res) => {
   try {
     const formData = req.body || {};
+    console.log('📥 Cecabank redirect body recibido:', Object.keys(formData));
 
     const requiredVars = [
       'CECABANK_MERCHANT_ID',
@@ -179,6 +180,7 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     ];
     const missingVars = requiredVars.filter((v) => !process.env[v]);
     if (missingVars.length) {
+      console.error('❌ Cecabank vars faltantes:', missingVars);
       return res.status(500).send(`Faltan variables Cecabank: ${missingVars.join(', ')}`);
     }
 
@@ -190,6 +192,7 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     ];
     const missingFields = requiredFields.filter((f) => !formData[f]);
     if (missingFields.length) {
+      console.error('❌ Campos faltantes en formulario:', missingFields);
       return res.status(400).send(`Campos faltantes: ${missingFields.join(', ')}`);
     }
 
@@ -202,6 +205,16 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     if (formData.Cifrado === 'SHA256' || formData.Cifrado === 'HMAC') {
       formData.Cifrado = 'HMAC_SHA256';
     }
+
+    console.log('🧾 Cecabank datos firma:', {
+      numOperacion: String(formData.Num_operacion || '').trim(),
+      importe: importeNormalizado,
+      fechaOperacion,
+      horaOperacion,
+      urlOkLength: String(formData.URL_OK || '').length,
+      urlKoLength: String(formData.URL_KO || '').length,
+      referencia,
+    });
 
     const firma = generateCecabankSignature(
       formData.Num_operacion,
@@ -295,7 +308,7 @@ ${formFields}
     res.send(html);
   } catch (error) {
     console.error('❌ Error en Cecabank redirect:', error);
-    res.status(500).send('Error al redirigir a Cecabank');
+    res.status(500).send(`Error calcular firma: ${error.message || 'desconocido'}`);
   }
 });
 
