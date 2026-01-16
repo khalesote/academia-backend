@@ -4,6 +4,7 @@ const cors = require('cors');
 const Stripe = require('stripe');
 const nodemailer = require('nodemailer');
 const vision = require('@google-cloud/vision');
+const Tesseract = require('tesseract.js');
 const admin = require('firebase-admin');
 
 const app = express();
@@ -282,18 +283,25 @@ app.post('/api/solicitar-examen-presencial', async (req, res) => {
   }
 });
 
-// OCR Aprende a Escribir (Render + Google Vision)
+const runTesseractOcr = async (buffer) => {
+  const lang = process.env.OCR_LANGUAGE || 'spa';
+  const { data } = await Tesseract.recognize(buffer, lang, {
+    logger: (message) => {
+      if (message?.status) {
+        console.log('🧠 OCR Tesseract:', message.status, message.progress ?? '');
+      }
+    },
+  });
+  return data?.text || '';
+};
+
+// OCR Aprende a Escribir (Render + Google Vision o Tesseract)
 app.post('/api/ocr-aprende-escribir', async (req, res) => {
   try {
     const { imageBase64, expectedText, exerciseId, userId } = req.body;
 
     if (!imageBase64) {
       return res.status(400).json({ error: 'imageBase64 es requerido' });
-    }
-
-    initGoogleClients();
-    if (!visionClient) {
-      return res.status(500).json({ error: 'Vision no configurado' });
     }
 
     const cleanedBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, '');
@@ -309,8 +317,19 @@ app.post('/api/ocr-aprende-escribir', async (req, res) => {
       });
     }
 
-    const [result] = await visionClient.textDetection(buffer);
-    const detectedText = result?.fullTextAnnotation?.text || '';
+    const ocrProvider = (process.env.OCR_PROVIDER || 'tesseract').toLowerCase();
+    let detectedText = '';
+
+    if (ocrProvider === 'vision') {
+      initGoogleClients();
+      if (!visionClient) {
+        return res.status(500).json({ error: 'Vision no configurado' });
+      }
+      const [result] = await visionClient.textDetection(buffer);
+      detectedText = result?.fullTextAnnotation?.text || '';
+    } else {
+      detectedText = await runTesseractOcr(buffer);
+    }
     const normalizedDetected = normalizeText(detectedText);
     const normalizedExpected = normalizeText(expectedText || '');
     const matched = normalizedExpected
