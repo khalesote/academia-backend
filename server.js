@@ -219,7 +219,7 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     const fechaOperacion = String(formData.FechaOperacion || '').trim();
     const horaOperacion = String(formData.HoraOperacion || '').trim();
 
-    const importeNormalizado = String(formData.Importe || '').replace(/^0+/, '') || '0';
+    const importeFirma = String(formData.Importe || '').trim();
     const referencia = String(formData.Num_operacion || '').trim();
 
     if (formData.Cifrado === 'SHA256' || formData.Cifrado === 'HMAC') {
@@ -228,7 +228,7 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
 
     console.log('🧾 Cecabank datos firma:', {
       numOperacion: String(formData.Num_operacion || '').trim(),
-      importe: importeNormalizado,
+      importe: importeFirma,
       fechaOperacion,
       horaOperacion,
       urlOkLength: String(formData.URL_OK || '').length,
@@ -238,12 +238,13 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
 
     const firma = generateCecabankSignature(
       formData.Num_operacion,
-      importeNormalizado,
+      importeFirma,
       fechaOperacion,
       horaOperacion,
       formData.URL_OK,
       formData.URL_KO,
-      referencia
+      formData.Cifrado,
+      formData.Idioma
     );
 
     formData.Firma = firma;
@@ -340,7 +341,7 @@ function getCecabankGatewayUrl() {
   return 'https://pgw.ceca.es/tpvweb/tpv/compra.action';
 }
 
-function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, urlKo, referencia) {
+function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, urlKo, cifrado, idioma) {
   const merchantId = String(process.env.CECABANK_MERCHANT_ID || '').trim();
   const acquirerBin = String(process.env.CECABANK_ACQUIRER_BIN || '').trim();
   const terminalId = String(process.env.CECABANK_TERMINAL_ID || '').trim();
@@ -352,10 +353,19 @@ function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, ur
 
   const tipoMoneda = '978';
   const exponente = '2';
+  const cifradoStr = String(cifrado || 'SHA256').trim();
+  const idiomaStr = String(idioma || '1').trim();
 
   const numOpStr = String(numOperacion || '').trim();
   const importeStr = String(importe || '').trim();
-  const referenciaStr = String(referencia || numOpStr || '0').trim();
+
+  const incluirProtocoloEnFirma = process.env.CECABANK_URLS_CON_PROTOCOLO !== 'false';
+  let urlOkFirma = String(urlOk || '').trim();
+  let urlKoFirma = String(urlKo || '').trim();
+  if (!incluirProtocoloEnFirma) {
+    urlOkFirma = urlOkFirma.replace(/^https?:\/\//, '');
+    urlKoFirma = urlKoFirma.replace(/^https?:\/\//, '');
+  }
 
   const cadenaFirma =
     merchantId +
@@ -365,12 +375,15 @@ function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, ur
     importeStr +
     tipoMoneda +
     exponente +
-    String(urlOk || '').trim() +
-    String(urlKo || '').trim() +
-    referenciaStr +
+    cifradoStr +
+    urlOkFirma +
+    urlKoFirma +
+    idiomaStr +
+    String(fecha || '').trim() +
+    String(hora || '').trim() +
     clave;
 
-  return crypto.createHash('sha256').update(cadenaFirma, 'utf8').digest('hex');
+  return crypto.createHash('sha256').update(cadenaFirma, 'utf8').digest('hex').toUpperCase();
 }
 
 // Configurar Stripe
