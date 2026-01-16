@@ -167,6 +167,26 @@ app.post('/api/cecabank/ko', express.urlencoded({ extended: true }), (req, res) 
   }
 });
 
+app.get('/api/cecabank/status', (req, res) => {
+  const merchantId = process.env.CECABANK_MERCHANT_ID || '';
+  const acquirerBin = process.env.CECABANK_ACQUIRER_BIN || '';
+  const terminalId = process.env.CECABANK_TERMINAL_ID || '';
+  const clave = process.env.CECABANK_CLAVE || '';
+  const entorno = process.env.CECABANK_ENTORNO || '';
+  res.json({
+    ok: true,
+    vars: {
+      merchantId: !!merchantId,
+      acquirerBin: !!acquirerBin,
+      terminalId: !!terminalId,
+      clave: !!clave,
+      entorno: entorno || 'produccion',
+      claveLength: clave.length,
+      claveInicio: clave ? `${clave.substring(0, 4)}...` : '',
+    },
+  });
+});
+
 app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async (req, res) => {
   try {
     const formData = req.body || {};
