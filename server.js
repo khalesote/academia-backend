@@ -276,6 +276,23 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       referencia,
     });
 
+    const merchantIdForm = String(formData.MerchantID || '').trim();
+    const acquirerBinForm = String(formData.AcquirerBIN || '').trim();
+    const terminalIdForm = String(formData.TerminalID || '').trim();
+    const merchantIdEnv = String(process.env.CECABANK_MERCHANT_ID || '').trim();
+    const acquirerBinEnv = String(process.env.CECABANK_ACQUIRER_BIN || '').trim();
+    const terminalIdEnv = String(process.env.CECABANK_TERMINAL_ID || '').trim();
+
+    if (merchantIdEnv && merchantIdForm && merchantIdEnv !== merchantIdForm) {
+      console.warn('⚠️ MerchantID difiere entre frontend y backend');
+    }
+    if (acquirerBinEnv && acquirerBinForm && acquirerBinEnv !== acquirerBinForm) {
+      console.warn('⚠️ AcquirerBIN difiere entre frontend y backend');
+    }
+    if (terminalIdEnv && terminalIdForm && terminalIdEnv !== terminalIdForm) {
+      console.warn('⚠️ TerminalID difiere entre frontend y backend');
+    }
+
     const firma = generateCecabankSignature(
       formData.Num_operacion,
       importeFirma,
@@ -284,7 +301,10 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       formData.URL_OK,
       formData.URL_KO,
       formData.Cifrado,
-      formData.Idioma
+      formData.Idioma,
+      merchantIdForm || merchantIdEnv,
+      acquirerBinForm || acquirerBinEnv,
+      terminalIdForm || terminalIdEnv
     );
 
     formData.Firma = firma;
@@ -381,10 +401,10 @@ function getCecabankGatewayUrl() {
   return 'https://pgw.ceca.es/tpvweb/tpv/compra.action';
 }
 
-function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, urlKo, cifrado, idioma) {
-  const merchantId = String(process.env.CECABANK_MERCHANT_ID || '').trim();
-  const acquirerBin = String(process.env.CECABANK_ACQUIRER_BIN || '').trim();
-  const terminalId = String(process.env.CECABANK_TERMINAL_ID || '').trim();
+function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, urlKo, cifrado, idioma, merchantIdValue, acquirerBinValue, terminalIdValue) {
+  const merchantId = String(merchantIdValue || process.env.CECABANK_MERCHANT_ID || '').trim();
+  const acquirerBin = String(acquirerBinValue || process.env.CECABANK_ACQUIRER_BIN || '').trim();
+  const terminalId = String(terminalIdValue || process.env.CECABANK_TERMINAL_ID || '').trim();
   const clave = String(process.env.CECABANK_CLAVE || '').trim();
 
   if (!merchantId || !acquirerBin || !terminalId || !clave) {
@@ -393,7 +413,8 @@ function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, ur
 
   const tipoMoneda = '978';
   const exponente = '2';
-  const cifradoStr = String(cifrado || 'SHA256').trim();
+  const cifradoOverride = String(process.env.CECABANK_FIRMA_CIFRADO || '').trim();
+  const cifradoStr = String(cifradoOverride || cifrado || 'SHA256').trim();
   const idiomaStr = String(idioma || '1').trim();
 
   const numOpStr = String(numOperacion || '').trim();
