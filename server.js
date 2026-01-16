@@ -262,8 +262,8 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     const importeFirma = String(formData.Importe || '').trim();
     const referencia = String(formData.Num_operacion || '').trim();
 
-    if (formData.Cifrado === 'HMAC_SHA256' || formData.Cifrado === 'HMAC') {
-      formData.Cifrado = 'SHA256';
+    if (formData.Cifrado === 'SHA256' || formData.Cifrado === 'HMAC') {
+      formData.Cifrado = 'HMAC_SHA256';
     }
 
     console.log('🧾 Cecabank datos firma:', {
