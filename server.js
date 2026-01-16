@@ -127,6 +127,26 @@ app.use((req, res, next) => {
 // ENDPOINTS CECABANK (TPV VIRTUAL)
 // ============================================
 
+app.get('/api/cecabank/ok', (req, res) => {
+  try {
+    console.log('✅ Cecabank OK recibido (GET)');
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+      <head><meta charset="UTF-8"><title>Pago Confirmado</title></head>
+      <body style="font-family: Arial, sans-serif; text-align:center; padding: 40px;">
+        <div style="font-size:48px;">✅</div>
+        <h1>Pago Confirmado</h1>
+        <p>Tu pago ha sido procesado correctamente. Puedes cerrar esta ventana y volver a la aplicación.</p>
+      </body>
+      </html>
+    `);
+  } catch (error) {
+    console.error('❌ Error en Cecabank OK (GET):', error);
+    res.status(500).send('Error procesando pago');
+  }
+});
+
 app.post('/api/cecabank/ok', express.urlencoded({ extended: true }), (req, res) => {
   try {
     console.log('✅ Cecabank OK recibido');
@@ -143,6 +163,26 @@ app.post('/api/cecabank/ok', express.urlencoded({ extended: true }), (req, res) 
     `);
   } catch (error) {
     console.error('❌ Error en Cecabank OK:', error);
+    res.status(500).send('Error procesando pago');
+  }
+});
+
+app.get('/api/cecabank/ko', (req, res) => {
+  try {
+    console.log('❌ Cecabank KO recibido (GET)');
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+      <head><meta charset="UTF-8"><title>Pago Fallido</title></head>
+      <body style="font-family: Arial, sans-serif; text-align:center; padding: 40px;">
+        <div style="font-size:48px;">❌</div>
+        <h1>Pago No Procesado</h1>
+        <p>Puedes cerrar esta ventana y volver a la aplicación.</p>
+      </body>
+      </html>
+    `);
+  } catch (error) {
+    console.error('❌ Error en Cecabank KO (GET):', error);
     res.status(500).send('Error procesando pago');
   }
 });
