@@ -383,7 +383,11 @@ function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, ur
     String(hora || '').trim() +
     clave;
 
-  return crypto.createHash('sha256').update(cadenaFirma, 'utf8').digest('hex').toUpperCase();
+  const hmac = crypto.createHmac('sha256', clave);
+  hmac.update(cadenaFirma, 'utf8');
+  const firma = hmac.digest('base64');
+  console.log('🔐 Cecabank firma generada (base64):', firma.substring(0, 12) + '...');
+  return firma;
 }
 
 // Configurar Stripe
