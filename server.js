@@ -69,16 +69,20 @@ const initGoogleClients = () => {
     projectId: serviceAccount.project_id,
   });
 
+  const bucketName = process.env.FIREBASE_STORAGE_BUCKET;
   if (!admin.apps.length) {
-    const bucketName = process.env.FIREBASE_STORAGE_BUCKET
-      || `${serviceAccount.project_id}.appspot.com`;
-    admin.initializeApp({
+    const firebaseOptions = {
       credential: admin.credential.cert(serviceAccount),
-      storageBucket: bucketName,
-    });
+    };
+    if (bucketName) {
+      firebaseOptions.storageBucket = bucketName;
+    } else {
+      console.warn('⚠️ FIREBASE_STORAGE_BUCKET no configurado, se omite subida de imágenes.');
+    }
+    admin.initializeApp(firebaseOptions);
   }
   firestore = admin.firestore();
-  storageBucket = admin.storage().bucket();
+  storageBucket = bucketName ? admin.storage().bucket(bucketName) : null;
 };
 
 const normalizeText = (text = '') => text
