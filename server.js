@@ -3,6 +3,8 @@ const express = require('express');
 const cors = require('cors');
 const Stripe = require('stripe');
 const nodemailer = require('nodemailer');
+const vision = require('@google-cloud/vision');
+const admin = require('firebase-admin');
 
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -28,8 +30,64 @@ if (process.env.SMTP2GO_USERNAME && process.env.SMTP2GO_PASSWORD) {
 
 // Middlewares
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// Google Vision + Firebase Admin setup
+let visionClient = null;
+let firestore = null;
+let storageBucket = null;
+
+const getServiceAccount = () => {
+  const raw = process.env.VISION_SERVICE_ACCOUNT_JSON;
+  if (!raw) {
+    return null;
+  }
+  try {
+    return JSON.parse(raw);
+  } catch (error) {
+    console.error('❌ JSON de servicio inválido:', error);
+    return null;
+  }
+};
+
+const initGoogleClients = () => {
+  if (visionClient) {
+    return;
+  }
+  const serviceAccount = getServiceAccount();
+  if (!serviceAccount) {
+    console.warn('⚠️ VISION_SERVICE_ACCOUNT_JSON no configurado');
+    return;
+  }
+
+  visionClient = new vision.ImageAnnotatorClient({
+    credentials: {
+      client_email: serviceAccount.client_email,
+      private_key: serviceAccount.private_key,
+    },
+    projectId: serviceAccount.project_id,
+  });
+
+  if (!admin.apps.length) {
+    const bucketName = process.env.FIREBASE_STORAGE_BUCKET
+      || `${serviceAccount.project_id}.appspot.com`;
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+      storageBucket: bucketName,
+    });
+  }
+  firestore = admin.firestore();
+  storageBucket = admin.storage().bucket();
+};
+
+const normalizeText = (text = '') => text
+  .toLowerCase()
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .replace(/[^a-z0-9ñáéíóúü\s]/gi, ' ')
+  .replace(/\s+/g, ' ')
+  .trim();
 
 // Middleware de logging para todas las peticiones
 app.use((req, res, next) => {
@@ -217,6 +275,64 @@ app.post('/api/solicitar-examen-presencial', async (req, res) => {
       details: errorDetails,
       code: errorCode
     });
+  }
+});
+
+// OCR Aprende a Escribir (Render + Google Vision)
+app.post('/api/ocr-aprende-escribir', async (req, res) => {
+  try {
+    const { imageBase64, expectedText, exerciseId, userId } = req.body;
+
+    if (!imageBase64) {
+      return res.status(400).json({ error: 'imageBase64 es requerido' });
+    }
+
+    initGoogleClients();
+    if (!visionClient) {
+      return res.status(500).json({ error: 'Vision no configurado' });
+    }
+
+    const cleanedBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, '');
+    const buffer = Buffer.from(cleanedBase64, 'base64');
+
+    let storagePath = null;
+    if (storageBucket) {
+      storagePath = `aprende_escribir/${userId || 'anon'}/${Date.now()}.jpg`;
+      const file = storageBucket.file(storagePath);
+      await file.save(buffer, {
+        contentType: 'image/jpeg',
+        resumable: false,
+      });
+    }
+
+    const [result] = await visionClient.textDetection(buffer);
+    const detectedText = result?.fullTextAnnotation?.text || '';
+    const normalizedDetected = normalizeText(detectedText);
+    const normalizedExpected = normalizeText(expectedText || '');
+    const matched = normalizedExpected
+      ? normalizedDetected.includes(normalizedExpected)
+      : false;
+
+    if (firestore) {
+      await firestore.collection('aprende_escribir_submissions').add({
+        storagePath,
+        expectedText: expectedText || null,
+        detectedText,
+        matched,
+        exerciseId: exerciseId || null,
+        userId: userId || null,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+    }
+
+    res.json({
+      detectedText,
+      matched,
+      storagePath,
+    });
+  } catch (error) {
+    console.error('❌ Error OCR:', error);
+    res.status(500).json({ error: 'No se pudo procesar la imagen' });
   }
 });
 
