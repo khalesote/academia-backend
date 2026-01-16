@@ -399,7 +399,7 @@ function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, ur
   const numOpStr = String(numOperacion || '').trim();
   const importeStr = String(importe || '').trim();
 
-  const incluirProtocoloEnFirma = process.env.CECABANK_URLS_CON_PROTOCOLO !== 'false';
+  const incluirProtocoloEnFirma = process.env.CECABANK_URLS_CON_PROTOCOLO === 'true';
   let urlOkFirma = String(urlOk || '').trim();
   let urlKoFirma = String(urlKo || '').trim();
   if (!incluirProtocoloEnFirma) {
