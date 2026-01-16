@@ -94,6 +94,20 @@ const normalizeText = (text = '') => text
   .replace(/\s+/g, ' ')
   .trim();
 
+const isSupportedImageBuffer = (buffer) => {
+  if (!buffer || buffer.length < 8) {
+    return false;
+  }
+  const isPng = buffer[0] === 0x89
+    && buffer[1] === 0x50
+    && buffer[2] === 0x4e
+    && buffer[3] === 0x47;
+  const isJpeg = buffer[0] === 0xff
+    && buffer[1] === 0xd8
+    && buffer[2] === 0xff;
+  return isPng || isJpeg;
+};
+
 // Middleware de logging para todas las peticiones
 app.use((req, res, next) => {
   console.log('📥 Petición recibida:', {
@@ -306,6 +320,10 @@ app.post('/api/ocr-aprende-escribir', async (req, res) => {
 
     const cleanedBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, '');
     const buffer = Buffer.from(cleanedBase64, 'base64');
+    const minBytes = parseInt(process.env.OCR_MIN_BYTES || '2048', 10);
+    if (!buffer.length || buffer.length < minBytes || !isSupportedImageBuffer(buffer)) {
+      return res.status(400).json({ error: 'Imagen inválida o demasiado pequeña' });
+    }
 
     let storagePath = null;
     if (storageBucket) {
