@@ -299,13 +299,7 @@ app.post('/api/solicitar-examen-presencial', async (req, res) => {
 
 const runTesseractOcr = async (buffer) => {
   const lang = process.env.OCR_LANGUAGE || 'spa';
-  const { data } = await Tesseract.recognize(buffer, lang, {
-    logger: (message) => {
-      if (message?.status) {
-        console.log('🧠 OCR Tesseract:', message.status, message.progress ?? '');
-      }
-    },
-  });
+  const { data } = await Tesseract.recognize(buffer, lang);
   return data?.text || '';
 };
 
