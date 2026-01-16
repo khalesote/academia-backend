@@ -423,7 +423,16 @@ function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, ur
     String(hora || '').trim() +
     clave;
 
-  const hmac = crypto.createHmac('sha256', clave);
+  const claveTrim = clave.trim();
+  const claveHexEnv = (process.env.CECABANK_CLAVE_HEX || '').toLowerCase();
+  const clavePareceHex = /^[0-9a-fA-F]+$/.test(claveTrim) && claveTrim.length % 2 === 0;
+  const usarClaveHex = claveHexEnv === 'true' || (claveHexEnv !== 'false' && clavePareceHex);
+  const claveHmac = usarClaveHex ? Buffer.from(claveTrim, 'hex') : claveTrim;
+  console.log('🔐 Cecabank clave hex:', {
+    usarClaveHex,
+    claveLength: claveTrim.length,
+  });
+  const hmac = crypto.createHmac('sha256', claveHmac);
   hmac.update(cadenaFirma, 'utf8');
   const firma = hmac.digest('base64');
   console.log('🔐 Cecabank firma generada (base64):', firma.substring(0, 12) + '...');
