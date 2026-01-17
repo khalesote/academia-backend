@@ -532,11 +532,18 @@ app.post('/api/cecabank/redirect-clean', express.urlencoded({ extended: true }),
   <head>
     <meta charset="UTF-8">
     <title>Redirigiendo a Cecabank...</title>
+    <style>
+      body { font-family: Arial, sans-serif; text-align: center; padding: 32px; }
+      button { padding: 12px 20px; font-size: 16px; cursor: pointer; }
+    </style>
   </head>
   <body>
+    <h2>Redirigiendo al TPV de Cecabank...</h2>
+    <p>Si no se abre automáticamente, pulsa el botón.</p>
     <form id="cecabankForm" method="POST" action="${urlCecabank}" enctype="application/x-www-form-urlencoded" style="display:none;">
 ${formFields}
     </form>
+    <button onclick="document.getElementById('cecabankForm').submit()">Continuar</button>
     <script>
       (function(){
         function submitForm(){ try { const f = document.getElementById('cecabankForm'); if (f) { f.submit(); } } catch(e) {} }
