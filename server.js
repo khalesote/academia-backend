@@ -2205,176 +2205,67 @@ function validateCecabankSignature(datos) {
 // ENDPOINTS DE CECABANK
 // ============================================
 
-// Endpoint para crear formulario de pago de Cecabank
-app.post('/api/cecabank/create-payment', async (req, res) => {
-  try {
-    console.log('💳 Creando formulario de pago Cecabank');
-    const { amount, operationType, description, customerEmail, customerName } = req.body;
-    
-    console.log('📋 Datos recibidos:', { amount, operationType, description, customerEmail });
-    
-    // DEBUG: Verificar credenciales
-    console.log('🔧 CREDENCIALES CECABANK:', {
-      merchantId: process.env.CECABANK_MERCHANT_ID || '(usando default 086729753)',
-      acquirerBin: process.env.CECABANK_ACQUIRER_BIN || '(usando default)',
-      terminalId: process.env.CECABANK_TERMINAL_ID || '(usando default)',
-      claveConfigured: process.env.CECABANK_CLAVE ? '✅ SÍ configurada' : '❌ NO configurada (PROBLEMA!)',
-    });
-    
-    if (!amount || amount <= 0) {
-      return res.status(400).json({ error: 'El importe debe ser mayor que 0' });
-    }
-    
-    // Configuración de Cecabank (producción)
-    const CECABANK_CONFIG = {
-      merchantId: process.env.CECABANK_MERCHANT_ID || '086729753',
-      acquirerBin: process.env.CECABANK_ACQUIRER_BIN || '0000554027',
-      terminalId: process.env.CECABANK_TERMINAL_ID || '00000001',
-      claveEncriptacion: process.env.CECABANK_CLAVE || '',
-      urlTpv: 'https://pgw.ceca.es/tpvweb/tpv/compra.action',
-      urlOk: 'https://academiadeinmigrantes.es/api/cecabank/ok',
-      urlKo: 'https://academiadeinmigrantes.es/api/cecabank/ko',
-      tipoMoneda: '978',
-      exponente: '2',
-      cifrado: 'SHA2',
-      idioma: '1',
-    };
-    
-    // Generar orderId único (exactamente 12 dígitos con ceros a la izquierda)
-    // IMPORTANTE: Cecabank requiere exactamente 12 dígitos numéricos
-    const randomNum = Math.floor(Math.random() * 100000000000); // Máximo 11 dígitos
-    const orderId = randomNum.toString().padStart(12, '0');
-    
-    console.log('🆔 OrderId generado:', {
-      orderId,
-      length: orderId.length,
-      tienecerosIzquierda: orderId.startsWith('0'),
-    });
-    
-    // Importe en céntimos
-    const importeCts = Math.round(amount * 100).toString();
-    
-    console.log('💰 Importe en céntimos:', importeCts);
-    console.log('🆔 OrderId:', orderId);
-    
-    // Generar firma SHA256
-    // Orden: Clave + MerchantID + AcquirerBIN + TerminalID + Num_operacion + Importe + TipoMoneda + Exponente + Cifrado + URL_OK + URL_NOK
-    const crypto = require('crypto');
-    const cadenaFirma = 
-      CECABANK_CONFIG.claveEncriptacion +
-      CECABANK_CONFIG.merchantId +
-      CECABANK_CONFIG.acquirerBin +
-      CECABANK_CONFIG.terminalId +
-      orderId +
-      importeCts +
-      CECABANK_CONFIG.tipoMoneda +
-      CECABANK_CONFIG.exponente +
-      CECABANK_CONFIG.cifrado +
-      CECABANK_CONFIG.urlOk +
-      CECABANK_CONFIG.urlKo;
-    
-    const firma = crypto.createHash('sha256').update(cadenaFirma).digest('hex').toUpperCase();
-    
-    console.log('🔐 Firma generada (MAYÚSCULAS):', firma.substring(0, 20) + '...');
-    console.log('📝 Cadena para firma:', {
-      clave: CECABANK_CONFIG.claveEncriptacion ? '***' : 'VACÍA',
-      merchantId: CECABANK_CONFIG.merchantId,
-      acquirerBin: CECABANK_CONFIG.acquirerBin,
-      terminalId: CECABANK_CONFIG.terminalId,
-      orderId,
-      importeCts,
-      tipoMoneda: CECABANK_CONFIG.tipoMoneda,
-      exponente: CECABANK_CONFIG.exponente,
-      cifrado: CECABANK_CONFIG.cifrado,
-      urlOk: CECABANK_CONFIG.urlOk,
-      urlKo: CECABANK_CONFIG.urlKo,
-    });
-    
-    // Crear HTML del formulario
-    const html = `<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Procesando pago...</title>
-    <style>
-        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        .container { background: white; padding: 40px; border-radius: 20px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
-        .spinner { width: 50px; height: 50px; border: 4px solid #f3f3f3; border-top: 4px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        h2 { color: #333; margin-bottom: 10px; }
-        p { color: #666; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="spinner"></div>
-        <h2>Conectando con Cecabank</h2>
-        <p>Redirigiendo a la pasarela de pago segura...</p>
-    </div>
-    <form id="cecabankForm" method="POST" action="${CECABANK_CONFIG.urlTpv}">
-        <input type="hidden" name="MerchantID" value="${CECABANK_CONFIG.merchantId}" />
-        <input type="hidden" name="AcquirerBIN" value="${CECABANK_CONFIG.acquirerBin}" />
-        <input type="hidden" name="TerminalID" value="${CECABANK_CONFIG.terminalId}" />
-        <input type="hidden" name="Num_operacion" value="${orderId}" />
-        <input type="hidden" name="Importe" value="${importeCts}" />
-        <input type="hidden" name="TipoMoneda" value="${CECABANK_CONFIG.tipoMoneda}" />
-        <input type="hidden" name="Exponente" value="${CECABANK_CONFIG.exponente}" />
-        <input type="hidden" name="Cifrado" value="${CECABANK_CONFIG.cifrado}" />
-        <input type="hidden" name="URL_OK" value="${CECABANK_CONFIG.urlOk}" />
-        <input type="hidden" name="URL_NOK" value="${CECABANK_CONFIG.urlKo}" />
-        <input type="hidden" name="Firma" value="${firma}" />
-        <input type="hidden" name="Idioma" value="${CECABANK_CONFIG.idioma}" />
-        <input type="hidden" name="Descripcion" value="${description || 'Pago Academia'}" />
-        <input type="hidden" name="Pago_soportado" value="SSL" />
-        ${customerEmail ? `<input type="hidden" name="Correo" value="${customerEmail}" />` : ''}
-    </form>
-    <script>
-        setTimeout(function() {
-            document.getElementById('cecabankForm').submit();
-        }, 500);
-    </script>
-</body>
-</html>`;
-    
-    console.log('✅ Formulario HTML generado');
-    
-    res.json({ html, orderId });
-    
-  } catch (error) {
-    console.error('❌ Error creando formulario Cecabank:', error);
-    res.status(500).json({ error: error.message || 'Error al crear el formulario de pago' });
-  }
-});
-
 // Endpoint para recibir respuesta de pago de Cecabank (maneja tanto OK como KO)
-// Soporta tanto GET como POST porque Cecabank puede usar cualquiera de los dos
+// Si el TPV solo permite configurar URL_OK, este endpoint manejará ambos casos
 app.get('/api/cecabank/ok', async (req, res) => {
-  console.log('📥 Callback GET de Cecabank recibido');
-  console.log('📝 Query params:', JSON.stringify(req.query, null, 2));
-  
-  // Redirigir a la versión POST con los mismos parámetros
-  // O mostrar página de éxito directamente
-  const params = req.query;
-  
-  // Mostrar página de éxito que envía mensaje al WebView
-  res.send(`<!DOCTYPE html>
-<html>
-<head><title>Pago procesado</title></head>
-<body>
-<h2>Procesando resultado del pago...</h2>
-<script>
-  console.log('Callback GET recibido');
-  if (window.ReactNativeWebView) {
-    window.ReactNativeWebView.postMessage(JSON.stringify({
-      type: 'payment-success',
-      orderId: '${params.Num_operacion || ''}',
-      importe: '${params.Importe || ''}'
-    }));
+  try {
+    console.log('📥 Callback GET de Cecabank recibido (/ok)');
+    console.log('📝 Query params:', JSON.stringify(req.query, null, 2));
+ 
+    const Num_operacion = req.query?.Num_operacion || req.query?.num_operacion || '';
+    const Importe = req.query?.Importe || req.query?.importe || '';
+
+    const Ds_Response = req.query?.Ds_Response || req.query?.ds_response || '';
+    const Codigo_respuesta = req.query?.Codigo_respuesta || req.query?.codigo_respuesta || '';
+    const Respuesta = req.query?.Respuesta || req.query?.respuesta || '';
+    const codigoRespuesta = Ds_Response || Codigo_respuesta || Respuesta;
+
+    let pagoExitoso = false;
+    if (codigoRespuesta !== undefined && codigoRespuesta !== null && String(codigoRespuesta).trim() !== '') {
+      const codigo = String(codigoRespuesta).trim();
+      pagoExitoso = codigo === '00' || codigo === '0' || codigo.toLowerCase() === 'ok';
+    }
+
+    const payload = pagoExitoso
+      ? {
+          type: 'payment-success',
+          orderId: String(Num_operacion || ''),
+          importe: String(Importe || ''),
+          codigoRespuesta: String(codigoRespuesta || '')
+        }
+      : {
+          type: 'payment-error',
+          message: 'El pago fue cancelado o rechazado',
+          orderId: String(Num_operacion || ''),
+          codigoRespuesta: String(codigoRespuesta || '')
+        };
+
+    const payloadStr = JSON.stringify(payload);
+ 
+    return res.status(200).send(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <title>Pago procesado</title>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body>
+          <p>Procesando resultado del pago...</p>
+          <script>
+            try {
+              if (window.ReactNativeWebView) {
+                window.ReactNativeWebView.postMessage(${JSON.stringify(payloadStr)});
+              }
+            } catch (e) {}
+          </script>
+        </body>
+      </html>
+    `);
+  } catch (error) {
+    console.error('❌ Error procesando callback GET OK de Cecabank:', error);
+    return res.status(200).send('OK recibido');
   }
-</script>
-</body>
-</html>`);
 });
 
 app.post('/api/cecabank/ok', express.urlencoded({ extended: true }), async (req, res) => {
@@ -2720,6 +2611,48 @@ app.post('/api/cecabank/ok', express.urlencoded({ extended: true }), async (req,
 // Endpoint para recibir respuesta de pago fallido de Cecabank
 // IMPORTANTE: Este endpoint DEBE devolver HTTP 200 para que Cecabank considere que la URL funciona
 // La URL debe ser exactamente: https://academiadeinmigrantes.es/api/cecabank/ko
+app.get('/api/cecabank/ko', async (req, res) => {
+  try {
+    console.log('❌ Callback GET de Cecabank recibido (/ko)');
+    console.log('📝 Query params:', JSON.stringify(req.query, null, 2));
+ 
+    const Num_operacion = req.query?.Num_operacion || req.query?.num_operacion || '';
+    const Ds_Response = req.query?.Ds_Response || req.query?.ds_response || '';
+    const Codigo_respuesta = req.query?.Codigo_respuesta || req.query?.codigo_respuesta || '';
+    const Respuesta = req.query?.Respuesta || req.query?.respuesta || '';
+    const codigoRespuesta = Ds_Response || Codigo_respuesta || Respuesta;
+ 
+    return res.status(200).send(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <title>Pago fallido</title>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body>
+          <p>Pago no realizado. Volviendo a la app...</p>
+          <script>
+            try {
+              if (window.ReactNativeWebView) {
+                window.ReactNativeWebView.postMessage(JSON.stringify({
+                  type: 'payment-error',
+                  message: 'El pago fue cancelado o rechazado',
+                  orderId: '${Num_operacion}',
+                  codigoRespuesta: '${codigoRespuesta}'
+                }));
+              }
+            } catch (e) {}
+          </script>
+        </body>
+      </html>
+    `);
+  } catch (error) {
+    console.error('❌ Error procesando callback GET KO de Cecabank:', error);
+    return res.status(200).send('KO recibido');
+  }
+});
+
 app.post('/api/cecabank/ko', express.urlencoded({ extended: true }), async (req, res) => {
   try {
     console.log('❌ Callback de Cecabank KO recibido');
@@ -2814,7 +2747,8 @@ app.post('/api/cecabank/ko', express.urlencoded({ extended: true }), async (req,
               window.ReactNativeWebView.postMessage(JSON.stringify({
                 type: 'payment-error',
                 message: 'El pago fue cancelado o falló',
-                orderId: '${Num_operacion || ''}'
+                orderId: '${Num_operacion || ''}',
+                codigoRespuesta: '${codigoRespuesta || ''}'
               }));
             }
             
