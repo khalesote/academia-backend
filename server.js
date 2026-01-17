@@ -262,6 +262,14 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       return res.status(400).send('Campos faltantes: URL_NOK');
     }
 
+    const incluirProtocoloEnFirma = process.env.CECABANK_URLS_CON_PROTOCOLO === 'true';
+    const urlOkFirma = incluirProtocoloEnFirma
+      ? String(formData.URL_OK || '').trim()
+      : String(formData.URL_OK || '').trim().replace(/^https?:\/\//, '');
+    const urlNokFirma = incluirProtocoloEnFirma
+      ? String(urlNok || '').trim()
+      : String(urlNok || '').trim().replace(/^https?:\/\//, '');
+
     const fechaOperacion = String(formData.FechaOperacion || '').trim();
     const horaOperacion = String(formData.HoraOperacion || '').trim();
 
@@ -302,8 +310,8 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     const firma = generateCecabankSignature(
       formData.Num_operacion,
       importeFirma,
-      formData.URL_OK,
-      urlNok,
+      urlOkFirma,
+      urlNokFirma,
       merchantIdForm || merchantIdEnv,
       acquirerBinForm || acquirerBinEnv,
       terminalIdForm || terminalIdEnv
