@@ -255,10 +255,13 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       return res.status(400).send(`Campos faltantes: ${missingFields.join(', ')}`);
     }
 
-    const urlNok = formData.URL_NOK || formData.URL_KO;
+    let urlNok = formData.URL_NOK || formData.URL_KO;
     if (!urlNok) {
       console.error('❌ Falta URL_NOK/URL_KO en formulario');
       return res.status(400).send('Campos faltantes: URL_NOK');
+    }
+    if (process.env.CECABANK_ONLY_URL_OK === 'true') {
+      urlNok = formData.URL_OK;
     }
 
     const importeFirma = String(formData.Importe || '').trim();
@@ -327,6 +330,9 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     formData.Firma = firma;
     formData.Referencia = referencia;
     formData.URL_NOK = urlNok;
+    if (process.env.CECABANK_ONLY_URL_OK === 'true') {
+      formData.URL_KO = urlNok;
+    }
 
     const urlCecabank = getCecabankGatewayUrl();
     const ordenCampos = [
