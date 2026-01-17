@@ -434,19 +434,14 @@ app.post('/api/cecabank/redirect-clean', express.urlencoded({ extended: true }),
     const requiredFields = [
       'MerchantID', 'AcquirerBIN', 'TerminalID', 'Num_operacion',
       'Importe', 'TipoMoneda', 'Exponente', 'Cifrado',
-      'URL_OK', 'URL_NOK', 'Pago_soportado'
+      'URL_OK', 'Pago_soportado'
     ];
     const missingFields = requiredFields.filter((f) => !formData[f]);
     if (missingFields.length) {
       return res.status(400).send(`Campos faltantes: ${missingFields.join(', ')}`);
     }
 
-    let urlOk = String(formData.URL_OK || '').trim();
-    let urlNok = String(formData.URL_NOK || formData.URL_KO || '').trim();
-    const onlyUrlOk = process.env.CECABANK_ONLY_URL_OK === 'true';
-    if (!urlNok && !onlyUrlOk) {
-      return res.status(400).send('Campos faltantes: URL_NOK');
-    }
+    const urlOk = String(formData.URL_OK || '').trim();
 
     const merchantId = String(formData.MerchantID || process.env.CECABANK_MERCHANT_ID || '').padStart(9, '0');
     const acquirerBin = String(formData.AcquirerBIN || process.env.CECABANK_ACQUIRER_BIN || '').padStart(10, '0');
@@ -471,12 +466,10 @@ app.post('/api/cecabank/redirect-clean', express.urlencoded({ extended: true }),
       tipoMoneda +
       exponente +
       cifrado +
-      urlOk +
-      (onlyUrlOk ? '' : urlNok);
+      urlOk;
     console.log('🔐 Cecabank CLEAN cadena firma (sin clave):', cadenaBase);
-    let cadenaFirma = clave + cadenaBase;
-    cadenaFirma = cadenaFirma.replace(/&amp;/g, '&').replace(/#038;/g, '');
-    const firma = crypto.createHash('sha256').update(cadenaFirma, 'utf8').digest('hex').toLowerCase();
+    const cadenaFirma = cadenaBase + clave;
+    const firma = crypto.createHash('sha256').update(cadenaFirma, 'utf8').digest('hex');
 
     const formClean = {
       ...formData,
@@ -484,7 +477,6 @@ app.post('/api/cecabank/redirect-clean', express.urlencoded({ extended: true }),
       AcquirerBIN: acquirerBin,
       TerminalID: terminalId,
       URL_OK: urlOk,
-      ...(onlyUrlOk ? {} : { URL_NOK: urlNok, URL_KO: urlNok }),
       Firma: firma,
     };
 
@@ -498,7 +490,6 @@ app.post('/api/cecabank/redirect-clean', express.urlencoded({ extended: true }),
       'Exponente',
       'Cifrado',
       'URL_OK',
-      ...(onlyUrlOk ? [] : ['URL_NOK']),
       'Idioma',
       'Pago_soportado',
       'Descripcion',
