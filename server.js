@@ -172,6 +172,9 @@ app.get('/api/cecabank/verify', (req, res) => {
 // Almacenamiento temporal de formularios HTML (en memoria, se limpia después de 1 hora)
 const tempForms = new Map();
 
+// Almacenamiento de estado de pagos (para diagnóstico)
+const paymentStatus = new Map();
+
 // Endpoint para crear un formulario HTML temporal y obtener su URL
 app.post('/api/cecabank/temp-form', express.json(), (req, res) => {
   try {
@@ -2205,6 +2208,88 @@ function validateCecabankSignature(datos) {
 // ENDPOINTS DE CECABANK
 // ============================================
 
+// ENDPOINT DE PRUEBA: Responde 200 OK sin lógica pesada
+// Úsalo para verificar si Cecabank puede alcanzar tu servidor
+app.get('/api/cecabank/test', (req, res) => {
+  console.log('🧪 TEST: Cecabank alcanzó /api/cecabank/test');
+  console.log('📝 Query params:', JSON.stringify(req.query, null, 2));
+  return res.status(200).send('OK');
+});
+
+app.post('/api/cecabank/test', express.urlencoded({ extended: true }), (req, res) => {
+  console.log('🧪 TEST: Cecabank alcanzó /api/cecabank/test (POST)');
+  console.log('📝 Body:', JSON.stringify(req.body, null, 2));
+  return res.status(200).send('OK');
+});
+
+// ENDPOINT DE DEBUG: Ver el formulario que se envía a Cecabank
+app.post('/api/cecabank/debug-form', express.json(), (req, res) => {
+  const { url, formData } = req.body;
+  
+  console.log('🔍 DEBUG: Formulario que se envía a Cecabank');
+  console.log('📤 URL destino:', url);
+  console.log('📋 Campos del formulario:', Object.keys(formData));
+  console.log('📊 Datos completos:', JSON.stringify(formData, null, 2));
+  
+  // Verificar campos obligatorios
+  const camposObligatorios = ['MerchantID', 'AcquirerBIN', 'TerminalID', 'Num_operacion', 'Importe', 'TipoMoneda', 'Exponente', 'Cifrado', 'URL_OK', 'URL_NOK', 'Firma'];
+  const camposFaltantes = camposObligatorios.filter(campo => !formData[campo]);
+  
+  if (camposFaltantes.length > 0) {
+    console.error('❌ CAMPOS FALTANTES:', camposFaltantes);
+  } else {
+    console.log('✅ Todos los campos obligatorios están presentes');
+  }
+  
+  // Verificar formato de campos críticos
+  console.log('🔐 Validación de campos:');
+  console.log('  - MerchantID:', formData.MerchantID, formData.MerchantID ? '✅' : '❌');
+  console.log('  - TerminalID:', formData.TerminalID, formData.TerminalID ? '✅' : '❌');
+  console.log('  - Num_operacion:', formData.Num_operacion, `(${String(formData.Num_operacion).length} dígitos)`, formData.Num_operacion && String(formData.Num_operacion).length === 12 ? '✅' : '⚠️');
+  console.log('  - Importe:', formData.Importe, '(céntimos)', formData.Importe ? '✅' : '❌');
+  console.log('  - Firma:', formData.Firma ? `${formData.Firma.substring(0, 20)}... (${formData.Firma.length} chars)` : '❌');
+  console.log('  - URL_OK:', formData.URL_OK);
+  console.log('  - URL_NOK:', formData.URL_NOK);
+  
+  return res.status(200).json({
+    success: true,
+    message: 'Formulario loguado en servidor',
+    camposFaltantes: camposFaltantes.length > 0 ? camposFaltantes : null,
+    totalCampos: Object.keys(formData).length
+  });
+});
+
+// ENDPOINT DE DIAGNÓSTICO: Consultar estado de pagos
+app.get('/api/cecabank/payment/:orderId', (req, res) => {
+  const { orderId } = req.params;
+  const payment = paymentStatus.get(orderId);
+  
+  if (!payment) {
+    return res.status(404).json({
+      success: false,
+      message: 'Pago no encontrado',
+      orderId
+    });
+  }
+  
+  return res.status(200).json({
+    success: payment.status === 'completed',
+    ...payment
+  });
+});
+
+// ENDPOINT DE DIAGNÓSTICO: Listar todos los pagos (últimos 50)
+app.get('/api/cecabank/payments', (req, res) => {
+  const payments = Array.from(paymentStatus.entries())
+    .slice(-50)
+    .map(([orderId, data]) => ({ orderId, ...data }));
+  
+  return res.status(200).json({
+    total: payments.length,
+    payments
+  });
+});
+
 // Endpoint para recibir respuesta de pago de Cecabank (maneja tanto OK como KO)
 // Si el TPV solo permite configurar URL_OK, este endpoint manejará ambos casos
 app.get('/api/cecabank/ok', async (req, res) => {
@@ -2225,6 +2310,20 @@ app.get('/api/cecabank/ok', async (req, res) => {
       const codigo = String(codigoRespuesta).trim();
       pagoExitoso = codigo === '00' || codigo === '0' || codigo.toLowerCase() === 'ok';
     }
+
+    // ✅ PERSISTIR ESTADO INMEDIATAMENTE (antes de cualquier otra lógica)
+    const paymentRecord = {
+      status: pagoExitoso ? 'completed' : 'failed',
+      endpoint: '/api/cecabank/ok',
+      method: 'GET',
+      timestamp: new Date().toISOString(),
+      numOperacion: Num_operacion,
+      importe: Importe,
+      codigoRespuesta: codigoRespuesta,
+      allParams: req.query
+    };
+    paymentStatus.set(Num_operacion || `unknown_${Date.now()}`, paymentRecord);
+    console.log('💾 Estado de pago persistido:', paymentRecord);
 
     const payload = pagoExitoso
       ? {
@@ -2354,6 +2453,21 @@ app.post('/api/cecabank/ok', express.urlencoded({ extended: true }), async (req,
     }
 
     console.log('✅ Procesando callback de Cecabank (firma:', isValidSignature ? 'válida' : 'no verificada', ')');
+    
+    // ✅ PERSISTIR ESTADO INMEDIATAMENTE (antes de cualquier otra lógica)
+    const paymentRecord = {
+      status: pagoExitoso ? 'completed' : 'failed',
+      endpoint: '/api/cecabank/ok',
+      method: 'POST',
+      timestamp: new Date().toISOString(),
+      numOperacion: Num_operacion,
+      importe: Importe,
+      codigoRespuesta: codigoRespuesta,
+      descripcion: Descripcion,
+      allParams: req.body
+    };
+    paymentStatus.set(Num_operacion || `unknown_${Date.now()}`, paymentRecord);
+    console.log('💾 Estado de pago persistido:', paymentRecord);
     
     // Si el pago NO fue exitoso, manejar como error
     if (!pagoExitoso) {
@@ -2489,7 +2603,7 @@ app.post('/api/cecabank/ok', express.urlencoded({ extended: true }), async (req,
     });
 
     // Guardar información del pago (en producción, esto debería ir a una base de datos)
-    const paymentRecord = {
+    const paymentDetails = {
       orderId: Num_operacion,
       codigoCliente: Codigo_cliente,
       importe: importeEuros,
@@ -2504,7 +2618,7 @@ app.post('/api/cecabank/ok', express.urlencoded({ extended: true }), async (req,
       timestamp: new Date().toISOString()
     };
     
-    console.log('💾 Registro de pago:', paymentRecord);
+    console.log('💾 Registro de pago:', paymentDetails);
 
     // Enviar email de confirmación si está configurado
     if (transporter && Codigo_cliente) {
@@ -2622,6 +2736,19 @@ app.get('/api/cecabank/ko', async (req, res) => {
     const Respuesta = req.query?.Respuesta || req.query?.respuesta || '';
     const codigoRespuesta = Ds_Response || Codigo_respuesta || Respuesta;
  
+    // ✅ PERSISTIR ESTADO INMEDIATAMENTE (antes de cualquier otra lógica)
+    const paymentRecordKo = {
+      status: 'failed',
+      endpoint: '/api/cecabank/ko',
+      method: 'GET',
+      timestamp: new Date().toISOString(),
+      numOperacion: Num_operacion,
+      codigoRespuesta: codigoRespuesta,
+      allParams: req.query
+    };
+    paymentStatus.set(Num_operacion || `unknown_${Date.now()}`, paymentRecordKo);
+    console.log('💾 Estado de pago persistido:', paymentRecordKo);
+ 
     return res.status(200).send(`
       <!DOCTYPE html>
       <html>
@@ -2700,6 +2827,21 @@ app.post('/api/cecabank/ko', express.urlencoded({ extended: true }), async (req,
       hora: Hora,
       codigoRespuesta: codigoRespuesta
     });
+
+    // ✅ PERSISTIR ESTADO INMEDIATAMENTE (antes de cualquier otra lógica)
+    const paymentRecordKoPost = {
+      status: 'failed',
+      endpoint: '/api/cecabank/ko',
+      method: 'POST',
+      timestamp: new Date().toISOString(),
+      numOperacion: Num_operacion,
+      importe: Importe,
+      codigoRespuesta: codigoRespuesta,
+      descripcion: Descripcion,
+      allParams: req.body
+    };
+    paymentStatus.set(Num_operacion || `unknown_${Date.now()}`, paymentRecordKoPost);
+    console.log('💾 Estado de pago persistido:', paymentRecordKoPost);
 
     // IMPORTANTE: Siempre devolver HTTP 200 para que Cecabank considere que la URL funciona
     // Redirigir a la app con error
