@@ -307,6 +307,19 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       console.warn('⚠️ TerminalID difiere entre frontend y backend');
     }
 
+    console.log('🧾 Cecabank firma inputs:', {
+      merchantId: merchantIdForm || merchantIdEnv,
+      acquirerBin: acquirerBinForm || acquirerBinEnv,
+      terminalId: terminalIdForm || terminalIdEnv,
+      numOperacion: formData.Num_operacion,
+      importe: importeFirma,
+      tipoMoneda: formData.TipoMoneda,
+      exponente: formData.Exponente,
+      cifrado: formData.Cifrado,
+      urlOk: formData.URL_OK,
+      urlNok: urlNok,
+    });
+
     const firma = generateCecabankSignature(
       formData.Num_operacion,
       importeFirma,
