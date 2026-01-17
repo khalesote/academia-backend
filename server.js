@@ -401,7 +401,7 @@ function getCecabankGatewayUrl() {
   if (entorno === 'test' || entorno === 'testing' || entorno === 'sandbox') {
     return 'https://tpv.ceca.es/tpvweb/tpv/compra.action';
   }
-  return 'https://pgw.ceca.es/tpvweb/tpv/compra.action';
+  return 'https://pgw.ceca.es/tpvweb/tpv/htm/entrada.htm';
 }
 
 function generateCecabankSignature(numOperacion, importe, urlOk, urlKo, merchantIdValue, acquirerBinValue, terminalIdValue) {
