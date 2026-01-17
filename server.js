@@ -473,6 +473,7 @@ app.post('/api/cecabank/redirect-clean', express.urlencoded({ extended: true }),
       cifrado +
       urlOk +
       (onlyUrlOk ? '' : urlNok);
+    console.log('🔐 Cecabank CLEAN cadena firma (sin clave):', cadenaBase);
     let cadenaFirma = clave + cadenaBase;
     cadenaFirma = cadenaFirma.replace(/&amp;/g, '&').replace(/#038;/g, '');
     const firma = crypto.createHash('sha256').update(cadenaFirma, 'utf8').digest('hex').toLowerCase();
