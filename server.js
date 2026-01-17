@@ -247,13 +247,19 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     const requiredFields = [
       'MerchantID', 'AcquirerBIN', 'TerminalID', 'Num_operacion',
       'Importe', 'TipoMoneda', 'Exponente', 'Cifrado',
-      'URL_OK', 'URL_KO', 'Idioma', 'FechaOperacion',
+      'URL_OK', 'Idioma', 'FechaOperacion',
       'HoraOperacion', 'Firma'
     ];
     const missingFields = requiredFields.filter((f) => !formData[f]);
     if (missingFields.length) {
       console.error('❌ Campos faltantes en formulario:', missingFields);
       return res.status(400).send(`Campos faltantes: ${missingFields.join(', ')}`);
+    }
+
+    const urlNok = formData.URL_NOK || formData.URL_KO;
+    if (!urlNok) {
+      console.error('❌ Falta URL_NOK/URL_KO en formulario');
+      return res.status(400).send('Campos faltantes: URL_NOK');
     }
 
     const fechaOperacion = String(formData.FechaOperacion || '').trim();
@@ -297,7 +303,7 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       formData.Num_operacion,
       importeFirma,
       formData.URL_OK,
-      formData.URL_KO,
+      urlNok,
       merchantIdForm || merchantIdEnv,
       acquirerBinForm || acquirerBinEnv,
       terminalIdForm || terminalIdEnv
@@ -307,6 +313,7 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     formData.FechaOperacion = fechaOperacion;
     formData.HoraOperacion = horaOperacion;
     formData.Referencia = referencia;
+    formData.URL_NOK = urlNok;
 
     const urlCecabank = getCecabankGatewayUrl();
     const ordenCampos = [
@@ -321,7 +328,7 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
       'Cifrado',
       'Firma',
       'URL_OK',
-      'URL_KO',
+      'URL_NOK',
       'Idioma',
       'FechaOperacion',
       'HoraOperacion',
@@ -331,9 +338,9 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     ];
 
     const formFields = ordenCampos
-      .filter((campo) => (campo === 'URL_KO' ? formData.URL_KO !== undefined : formData[campo] !== undefined))
+      .filter((campo) => formData[campo] !== undefined)
       .map((campo) => {
-        const fieldName = campo === 'URL_KO' ? 'URL_NOK' : campo;
+        const fieldName = campo;
         const value = String(formData[campo] || '');
         const escapedKey = String(fieldName)
           .replace(/&/g, '&amp;')
@@ -429,6 +436,29 @@ function generateCecabankSignature(numOperacion, importe, urlOk, urlKo, merchant
     cifradoStr +
     urlOkFirma +
     urlKoFirma;
+
+  const cadenaSinClave =
+    merchantId +
+    acquirerBin +
+    terminalId +
+    numOpStr +
+    importeStr +
+    tipoMoneda +
+    exponente +
+    cifradoStr +
+    urlOkFirma +
+    urlKoFirma;
+  console.log('🔐 Cecabank cadena firma (sin clave):', cadenaSinClave);
+  console.log('🔐 Cecabank longitudes:', {
+    merchantId: merchantId.length,
+    acquirerBin: acquirerBin.length,
+    terminalId: terminalId.length,
+    numOp: numOpStr.length,
+    importe: importeStr.length,
+    urlOk: urlOkFirma.length,
+    urlKo: urlKoFirma.length,
+    totalSinClave: cadenaSinClave.length,
+  });
 
   const firma = crypto.createHash('sha256').update(cadenaFirma, 'utf8').digest('hex').toLowerCase();
   console.log('🔐 Cecabank firma generada (sha256 hex):', firma.substring(0, 12) + '...');
