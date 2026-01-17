@@ -410,7 +410,6 @@ function generateCecabankSignature(numOperacion, importe, urlOk, urlKo, merchant
   const tipoMoneda = '978';
   const exponente = '2';
   const cifradoStr = 'SHA2';
-  const idiomaStr = String(idioma || '1').trim();
 
   const numOpStr = String(numOperacion || '').trim();
   const importeStr = String(importe || '').trim();
