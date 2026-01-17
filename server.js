@@ -247,7 +247,7 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     const requiredFields = [
       'MerchantID', 'AcquirerBIN', 'TerminalID', 'Num_operacion',
       'Importe', 'TipoMoneda', 'Exponente', 'Cifrado',
-      'URL_OK', 'URL_NOK', 'Pago_soportado'
+      'URL_OK', 'Pago_soportado'
     ];
     const missingFields = requiredFields.filter((f) => !formData[f]);
     if (missingFields.length) {
@@ -410,6 +410,147 @@ ${formFields}
     res.send(html);
   } catch (error) {
     console.error('❌ Error en Cecabank redirect:', error);
+    res.status(500).send(`Error calcular firma: ${error.message || 'desconocido'}`);
+  }
+});
+
+// Endpoint limpio Cecabank (firma según módulo Prestashop)
+app.post('/api/cecabank/redirect-clean', express.urlencoded({ extended: true }), (req, res) => {
+  try {
+    const formData = req.body || {};
+    console.log('🧼 Cecabank CLEAN body recibido:', Object.keys(formData));
+
+    const requiredVars = [
+      'CECABANK_MERCHANT_ID',
+      'CECABANK_ACQUIRER_BIN',
+      'CECABANK_TERMINAL_ID',
+      'CECABANK_CLAVE',
+    ];
+    const missingVars = requiredVars.filter((v) => !process.env[v]);
+    if (missingVars.length) {
+      return res.status(500).send(`Faltan variables Cecabank: ${missingVars.join(', ')}`);
+    }
+
+    const requiredFields = [
+      'MerchantID', 'AcquirerBIN', 'TerminalID', 'Num_operacion',
+      'Importe', 'TipoMoneda', 'Exponente', 'Cifrado',
+      'URL_OK', 'URL_NOK', 'Pago_soportado'
+    ];
+    const missingFields = requiredFields.filter((f) => !formData[f]);
+    if (missingFields.length) {
+      return res.status(400).send(`Campos faltantes: ${missingFields.join(', ')}`);
+    }
+
+    let urlOk = String(formData.URL_OK || '').trim();
+    let urlNok = String(formData.URL_NOK || formData.URL_KO || '').trim();
+    const onlyUrlOk = process.env.CECABANK_ONLY_URL_OK === 'true';
+    if (!urlNok && !onlyUrlOk) {
+      return res.status(400).send('Campos faltantes: URL_NOK');
+    }
+
+    const merchantId = String(formData.MerchantID || process.env.CECABANK_MERCHANT_ID || '').padStart(9, '0');
+    const acquirerBin = String(formData.AcquirerBIN || process.env.CECABANK_ACQUIRER_BIN || '').padStart(10, '0');
+    const terminalId = String(formData.TerminalID || process.env.CECABANK_TERMINAL_ID || '').padStart(8, '0');
+    const numOperacion = String(formData.Num_operacion || '').trim();
+    const importe = String(formData.Importe || '').trim();
+    const tipoMoneda = String(formData.TipoMoneda || '978').trim();
+    const exponente = String(formData.Exponente || '2').trim();
+    const cifrado = String(formData.Cifrado || 'SHA2').trim();
+
+    if (cifrado !== 'SHA2') {
+      return res.status(400).send('Cifrado inválido. Debe ser SHA2.');
+    }
+
+    const clave = String(process.env.CECABANK_CLAVE || '').trim();
+    const cadenaBase =
+      merchantId +
+      acquirerBin +
+      terminalId +
+      numOperacion +
+      importe +
+      tipoMoneda +
+      exponente +
+      cifrado +
+      urlOk +
+      (onlyUrlOk ? '' : urlNok);
+    let cadenaFirma = clave + cadenaBase;
+    cadenaFirma = cadenaFirma.replace(/&amp;/g, '&').replace(/#038;/g, '');
+    const firma = crypto.createHash('sha256').update(cadenaFirma, 'utf8').digest('hex').toLowerCase();
+
+    const formClean = {
+      ...formData,
+      MerchantID: merchantId,
+      AcquirerBIN: acquirerBin,
+      TerminalID: terminalId,
+      URL_OK: urlOk,
+      ...(onlyUrlOk ? {} : { URL_NOK: urlNok, URL_KO: urlNok }),
+      Firma: firma,
+    };
+
+    const ordenCampos = [
+      'MerchantID',
+      'AcquirerBIN',
+      'TerminalID',
+      'Num_operacion',
+      'Importe',
+      'TipoMoneda',
+      'Exponente',
+      'Cifrado',
+      'URL_OK',
+      ...(onlyUrlOk ? [] : ['URL_NOK']),
+      'Idioma',
+      'Pago_soportado',
+      'Descripcion',
+      'Email',
+      'Nombre',
+      'Firma',
+    ];
+
+    const formFields = ordenCampos
+      .filter((campo) => formClean[campo] !== undefined)
+      .map((campo) => {
+        const fieldName = campo;
+        const value = String(formClean[campo] || '');
+        const escapedKey = String(fieldName)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+        const escapedValue = value
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+        return `            <input type="hidden" name="${escapedKey}" value="${escapedValue}" />`;
+      })
+      .join('\n');
+
+    const urlCecabank = getCecabankGatewayUrl();
+    const html = `<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Redirigiendo a Cecabank...</title>
+  </head>
+  <body>
+    <form id="cecabankForm" method="POST" action="${urlCecabank}" enctype="application/x-www-form-urlencoded" style="display:none;">
+${formFields}
+    </form>
+    <script>
+      (function(){
+        function submitForm(){ try { const f = document.getElementById('cecabankForm'); if (f) { f.submit(); } } catch(e) {} }
+        if (document.readyState === 'complete' || document.readyState === 'interactive') submitForm();
+        else document.addEventListener('DOMContentLoaded', submitForm);
+        setTimeout(submitForm, 100);
+      })();
+    </script>
+  </body>
+</html>`;
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(html);
+  } catch (error) {
+    console.error('❌ Error en Cecabank redirect-clean:', error);
     res.status(500).send(`Error calcular firma: ${error.message || 'desconocido'}`);
   }
 });
