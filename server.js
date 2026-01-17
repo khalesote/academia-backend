@@ -262,8 +262,8 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     const importeFirma = String(formData.Importe || '').trim();
     const referencia = String(formData.Num_operacion || '').trim();
 
-    if (formData.Cifrado === 'SHA256' || formData.Cifrado === 'HMAC') {
-      formData.Cifrado = 'HMAC_SHA256';
+    if (!formData.Cifrado || formData.Cifrado === 'HMAC_SHA256' || formData.Cifrado === 'SHA256' || formData.Cifrado === 'HMAC') {
+      formData.Cifrado = 'SHA2';
     }
 
     console.log('🧾 Cecabank datos firma:', {
@@ -296,12 +296,8 @@ app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async
     const firma = generateCecabankSignature(
       formData.Num_operacion,
       importeFirma,
-      fechaOperacion,
-      horaOperacion,
       formData.URL_OK,
       formData.URL_KO,
-      formData.Cifrado,
-      formData.Idioma,
       merchantIdForm || merchantIdEnv,
       acquirerBinForm || acquirerBinEnv,
       terminalIdForm || terminalIdEnv
@@ -401,7 +397,7 @@ function getCecabankGatewayUrl() {
   return 'https://pgw.ceca.es/tpvweb/tpv/compra.action';
 }
 
-function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, urlKo, cifrado, idioma, merchantIdValue, acquirerBinValue, terminalIdValue) {
+function generateCecabankSignature(numOperacion, importe, urlOk, urlKo, merchantIdValue, acquirerBinValue, terminalIdValue) {
   const merchantId = String(merchantIdValue || process.env.CECABANK_MERCHANT_ID || '').trim();
   const acquirerBin = String(acquirerBinValue || process.env.CECABANK_ACQUIRER_BIN || '').trim();
   const terminalId = String(terminalIdValue || process.env.CECABANK_TERMINAL_ID || '').trim();
@@ -413,22 +409,17 @@ function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, ur
 
   const tipoMoneda = '978';
   const exponente = '2';
-  const cifradoOverride = String(process.env.CECABANK_FIRMA_CIFRADO || '').trim();
-  const cifradoStr = String(cifradoOverride || cifrado || 'SHA256').trim();
+  const cifradoStr = 'SHA2';
   const idiomaStr = String(idioma || '1').trim();
 
   const numOpStr = String(numOperacion || '').trim();
   const importeStr = String(importe || '').trim();
 
-  const incluirProtocoloEnFirma = process.env.CECABANK_URLS_CON_PROTOCOLO === 'true';
-  let urlOkFirma = String(urlOk || '').trim();
-  let urlKoFirma = String(urlKo || '').trim();
-  if (!incluirProtocoloEnFirma) {
-    urlOkFirma = urlOkFirma.replace(/^https?:\/\//, '');
-    urlKoFirma = urlKoFirma.replace(/^https?:\/\//, '');
-  }
+  const urlOkFirma = String(urlOk || '').trim();
+  const urlKoFirma = String(urlKo || '').trim();
 
   const cadenaFirma =
+    clave +
     merchantId +
     acquirerBin +
     terminalId +
@@ -438,32 +429,10 @@ function generateCecabankSignature(numOperacion, importe, fecha, hora, urlOk, ur
     exponente +
     cifradoStr +
     urlOkFirma +
-    urlKoFirma +
-    idiomaStr +
-    String(fecha || '').trim() +
-    String(hora || '').trim() +
-    clave;
+    urlKoFirma;
 
-  const claveTrim = clave.trim();
-  const claveHexEnv = (process.env.CECABANK_CLAVE_HEX || '').toLowerCase();
-  const claveBase64Env = (process.env.CECABANK_CLAVE_BASE64 || '').toLowerCase();
-  const clavePareceHex = /^[0-9a-fA-F]+$/.test(claveTrim) && claveTrim.length % 2 === 0;
-  const usarClaveHex = claveHexEnv === 'true' || (claveHexEnv !== 'false' && clavePareceHex);
-  const usarClaveBase64 = claveBase64Env === 'true' && !usarClaveHex;
-  const claveHmac = usarClaveHex
-    ? Buffer.from(claveTrim, 'hex')
-    : usarClaveBase64
-      ? Buffer.from(claveTrim, 'base64')
-      : claveTrim;
-  console.log('🔐 Cecabank clave formato:', {
-    usarClaveHex,
-    usarClaveBase64,
-    claveLength: claveTrim.length,
-  });
-  const hmac = crypto.createHmac('sha256', claveHmac);
-  hmac.update(cadenaFirma, 'utf8');
-  const firma = hmac.digest('base64');
-  console.log('🔐 Cecabank firma generada (base64):', firma.substring(0, 12) + '...');
+  const firma = crypto.createHash('sha256').update(cadenaFirma, 'utf8').digest('hex').toLowerCase();
+  console.log('🔐 Cecabank firma generada (sha256 hex):', firma.substring(0, 12) + '...');
   return firma;
 }
 
