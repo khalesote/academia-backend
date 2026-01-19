@@ -87,6 +87,13 @@ const initGoogleClients = () => {
   storageBucket = bucketName ? admin.storage().bucket(bucketName) : null;
 };
 
+const ensureFirestore = () => {
+  if (!firestore) {
+    initGoogleClients();
+  }
+  return firestore;
+};
+
 const normalizeText = (text = '') => text
   .toLowerCase()
   .normalize('NFD')
@@ -204,6 +211,37 @@ app.post('/api/cecabank/ko', express.urlencoded({ extended: true }), (req, res) 
   } catch (error) {
     console.error('❌ Error en Cecabank KO:', error);
     res.status(500).send('Error procesando pago');
+  }
+});
+
+// ============================================
+// Endpoint para registrar push tokens de usuarios
+// ============================================
+
+app.post('/api/user/push-token', async (req, res) => {
+  try {
+    const { userId, pushToken } = req.body || {};
+
+    if (!userId || typeof userId !== 'string') {
+      return res.status(400).json({ error: 'userId es requerido' });
+    }
+
+    if (!pushToken || typeof pushToken !== 'string') {
+      return res.status(400).json({ error: 'pushToken es requerido' });
+    }
+
+    const db = ensureFirestore();
+    if (!db) {
+      return res.status(500).json({ error: 'Firestore no está inicializado' });
+    }
+
+    const userRef = db.collection('users').doc(userId);
+    await userRef.set({ pushToken, pushTokenUpdatedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('❌ Error guardando push token:', error);
+    res.status(500).json({ error: 'No se pudo guardar el push token' });
   }
 });
 
