@@ -283,6 +283,68 @@ app.post('/api/voice/token', async (req, res) => {
   }
 });
 
+// Endpoint para solicitar matrícula presencial
+app.post('/api/solicitar-matricula-presencial', async (req, res) => {
+  try {
+    console.log('📧 Iniciando solicitud de matrícula presencial...');
+    const { nombre, email, telefono, nivel, mensaje, direccion } = req.body;
+    console.log('📝 Datos recibidos:', { nombre, email, telefono, nivel, mensaje, direccion });
+
+    if (!nombre || !email || !telefono || !nivel) {
+      console.log('❌ Validación fallida: faltan campos obligatorios');
+      return res.status(400).json({
+        error: 'Faltan campos obligatorios',
+        required: ['nombre', 'email', 'telefono', 'nivel']
+      });
+    }
+
+    if (!process.env.SMTP2GO_USERNAME || !process.env.SMTP2GO_PASSWORD || !transporter) {
+      console.error('❌ Credenciales de SMTP2GO no configuradas');
+      return res.status(500).json({ error: 'Servicio de correo no disponible' });
+    }
+
+    const mailOptions = {
+      from: 'admin@academiadeinmigrantes.es',
+      to: 'admin@academiadeinmigrantes.es',
+      replyTo: email,
+      subject: `Solicitud de matrícula presencial - Nivel ${nivel} - ${nombre}`,
+      html: `
+        <h2>Solicitud de Matrícula Presencial</h2>
+        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <h3>Datos del Estudiante:</h3>
+          <p><strong>Nombre:</strong> ${nombre}</p>
+          <p><strong>Email:</strong> ${email}</p>
+          <p><strong>Teléfono:</strong> ${telefono}</p>
+          <p><strong>Nivel:</strong> ${nivel}</p>
+          ${direccion ? `<p><strong>Dirección del centro:</strong> ${direccion}</p>` : ''}
+          <p><strong>Fecha de solicitud:</strong> ${new Date().toLocaleString('es-ES')}</p>
+        </div>
+        <div style="background-color: #e8f5e9; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #4caf50;">
+          <h3 style="color: #2e7d32; margin-top: 0;">Mensaje del Estudiante:</h3>
+          <p style="font-size: 16px; font-weight: bold; color: #1b5e20;">${mensaje || 'Solicitud de matrícula presencial'}</p>
+        </div>
+        <p style="color: #666;">Este email fue enviado desde la app Academia de Inmigrantes.</p>
+      `,
+    };
+
+    console.log('📤 Enviando email a:', mailOptions.to);
+    console.log('📤 Desde:', mailOptions.from);
+    console.log('📤 Asunto:', mailOptions.subject);
+
+    const result = await transporter.sendMail(mailOptions);
+    console.log('✅ Email matrícula presencial enviado:', result.messageId);
+
+    res.json({
+      success: true,
+      message: 'Solicitud de matrícula presencial enviada correctamente',
+      messageId: result.messageId,
+    });
+  } catch (error) {
+    console.error('❌ Error enviando solicitud de matrícula presencial:', error);
+    res.status(500).json({ error: error.message || 'Error interno al enviar la solicitud' });
+  }
+});
+
 const normalizeText = (text = '') => text
   .toLowerCase()
   .normalize('NFD')
@@ -320,7 +382,7 @@ app.use((req, res, next) => {
 });
 
 // ============================================
-// ENDPOINTS CECABANK (TPV VIRTUAL)
+// ESTADO DE PAGOS (STRIPE)
 // ============================================
 
 const recentPayments = new Map();
@@ -372,622 +434,11 @@ app.post('/api/user/push-token', async (req, res) => {
   }
 });
 
-app.get('/api/cecabank/ok', (req, res) => {
-  try {
-    console.log('✅ Cecabank OK recibido (GET)');
-    const Num_operacion = req.query.Num_operacion || req.query.num_operacion || '';
-    const Importe = req.query.Importe || req.query.importe || '';
-    const Descripcion = req.query.Descripcion || req.query.descripcion || '';
-    
-    // Detectar el nivel desde la descripción
-    let levelUnlocked = null;
-    const descripcionLower = (Descripcion || '').toLowerCase();
-    if (descripcionLower.includes('a1') || descripcionLower.includes('nivel a1')) {
-      levelUnlocked = 'A1';
-    } else if (descripcionLower.includes('a2') || descripcionLower.includes('nivel a2')) {
-      levelUnlocked = 'A2';
-    } else if (descripcionLower.includes('b1') || descripcionLower.includes('nivel b1')) {
-      levelUnlocked = 'B1';
-    } else if (descripcionLower.includes('b2') || descripcionLower.includes('nivel b2')) {
-      levelUnlocked = 'B2';
-    }
-    
-    storeRecentPayment(String(Num_operacion || ''), {
-      status: 'ok',
-      orderId: String(Num_operacion || ''),
-      levelUnlocked,
-      importe: String(Importe || ''),
-    });
-    res.send(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Pago Confirmado</title>
-      </head>
-      <body style="font-family: Arial, sans-serif; text-align:center; padding: 40px;">
-        <div style="font-size:48px;">✅</div>
-        <h1>Pago Confirmado</h1>
-        <p>Tu pago ha sido procesado correctamente. Puedes cerrar esta ventana y volver a la aplicación.</p>
-        <script>
-          try {
-            if (window.ReactNativeWebView) {
-              window.ReactNativeWebView.postMessage(JSON.stringify({
-                type: 'PAYMENT_SUCCESS',
-                orderId: '${Num_operacion}',
-                levelUnlocked: '${levelUnlocked || ''}',
-                importe: '${Importe}'
-              }));
-            }
-          } catch (e) {
-            console.error('Error enviando mensaje:', e);
-          }
-        </script>
-      </body>
-      </html>
-    `);
-  } catch (error) {
-    console.error('❌ Error en Cecabank OK (GET):', error);
-    res.status(500).send('Error procesando pago');
-  }
-});
-
-app.post('/api/cecabank/ok', express.urlencoded({ extended: true }), (req, res) => {
-  try {
-    console.log('✅ Cecabank OK recibido');
-    const Num_operacion = req.body.Num_operacion || req.body.num_operacion || '';
-    const Importe = req.body.Importe || req.body.importe || '';
-    const Descripcion = req.body.Descripcion || req.body.descripcion || '';
-    
-    // Detectar el nivel desde la descripción
-    let levelUnlocked = null;
-    const descripcionLower = (Descripcion || '').toLowerCase();
-    if (descripcionLower.includes('a1') || descripcionLower.includes('nivel a1')) {
-      levelUnlocked = 'A1';
-    } else if (descripcionLower.includes('a2') || descripcionLower.includes('nivel a2')) {
-      levelUnlocked = 'A2';
-    } else if (descripcionLower.includes('b1') || descripcionLower.includes('nivel b1')) {
-      levelUnlocked = 'B1';
-    } else if (descripcionLower.includes('b2') || descripcionLower.includes('nivel b2')) {
-      levelUnlocked = 'B2';
-    }
-    
-    storeRecentPayment(String(Num_operacion || ''), {
-      status: 'ok',
-      orderId: String(Num_operacion || ''),
-      levelUnlocked,
-      importe: String(Importe || ''),
-    });
-    res.send(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Pago Exitoso</title>
-      </head>
-      <body style="font-family: Arial, sans-serif; text-align:center; padding: 40px;">
-        <div style="font-size:48px;">✅</div>
-        <h1>Pago Procesado Correctamente</h1>
-        <p>Puedes cerrar esta ventana y volver a la aplicación.</p>
-        <script>
-          try {
-            if (window.ReactNativeWebView) {
-              window.ReactNativeWebView.postMessage(JSON.stringify({
-                type: 'PAYMENT_SUCCESS',
-                orderId: '${Num_operacion}',
-                levelUnlocked: '${levelUnlocked || ''}',
-                importe: '${Importe}'
-              }));
-            }
-          } catch (e) {
-            console.error('Error enviando mensaje:', e);
-          }
-        </script>
-      </body>
-      </html>
-    `);
-  } catch (error) {
-    console.error('❌ Error en Cecabank OK:', error);
-    res.status(500).send('Error procesando pago');
-  }
-});
-
-app.get('/api/cecabank/ko', (req, res) => {
-  try {
-    console.log('❌ Cecabank KO recibido (GET)');
-    const orderId = String(req.query.Num_operacion || req.query.num_operacion || '');
-    storeRecentPayment(orderId, {
-      status: 'ko',
-      orderId,
-      levelUnlocked: null,
-      importe: String(req.query.Importe || req.query.importe || ''),
-    });
-    res.send(`
-      <!DOCTYPE html>
-      <html>
-      <head><meta charset="UTF-8"><title>Pago Fallido</title></head>
-      <body style="font-family: Arial, sans-serif; text-align:center; padding: 40px;">
-        <div style="font-size:48px;">❌</div>
-        <h1>Pago No Procesado</h1>
-        <p>Puedes cerrar esta ventana y volver a la aplicación.</p>
-      </body>
-      </html>
-    `);
-  } catch (error) {
-    console.error('❌ Error en Cecabank KO (GET):', error);
-    res.status(500).send('Error procesando pago');
-  }
-});
-
-app.post('/api/cecabank/ko', express.urlencoded({ extended: true }), (req, res) => {
-  try {
-    console.log('❌ Cecabank KO recibido');
-    const orderId = String(req.body.Num_operacion || req.body.num_operacion || '');
-    storeRecentPayment(orderId, {
-      status: 'ko',
-      orderId,
-      levelUnlocked: null,
-      importe: String(req.body.Importe || req.body.importe || ''),
-    });
-    res.send(`
-      <!DOCTYPE html>
-      <html>
-      <head><meta charset="UTF-8"><title>Pago Fallido</title></head>
-      <body style="font-family: Arial, sans-serif; text-align:center; padding: 40px;">
-        <div style="font-size:48px;">❌</div>
-        <h1>Pago No Procesado</h1>
-        <p>Puedes cerrar esta ventana y volver a la aplicación.</p>
-      </body>
-      </html>
-    `);
-  } catch (error) {
-    console.error('❌ Error en Cecabank KO:', error);
-    res.status(500).send('Error procesando pago');
-  }
-});
-
-app.get('/api/cecabank/payment-status', (req, res) => {
-  try {
-    const orderId = String(req.query.orderId || '').trim();
-    if (!orderId) {
-      return res.status(400).json({ ok: false, error: 'orderId requerido' });
-    }
-    const data = recentPayments.get(orderId);
-    if (!data) {
-      return res.json({ ok: true, status: 'pending' });
-    }
-    return res.json({ ok: true, ...data });
-  } catch (error) {
-    console.error('❌ Error en payment-status:', error);
-    return res.status(500).json({ ok: false, error: 'Error interno' });
-  }
-});
-
-app.get('/api/cecabank/status', (req, res) => {
-  const merchantId = process.env.CECABANK_MERCHANT_ID || '';
-  const acquirerBin = process.env.CECABANK_ACQUIRER_BIN || '';
-  const terminalId = process.env.CECABANK_TERMINAL_ID || '';
-  const clave = process.env.CECABANK_CLAVE || '';
-  const entorno = process.env.CECABANK_ENTORNO || '';
-  res.json({
-    ok: true,
-    vars: {
-      merchantId: !!merchantId,
-      acquirerBin: !!acquirerBin,
-      terminalId: !!terminalId,
-      clave: !!clave,
-      entorno: entorno || 'produccion',
-      claveLength: clave.length,
-      claveInicio: clave ? `${clave.substring(0, 4)}...` : '',
-    },
-  });
-});
-
-app.post('/api/cecabank/redirect', express.urlencoded({ extended: true }), async (req, res) => {
-  try {
-    const formData = req.body || {};
-    console.log('📥 Cecabank redirect body recibido:', Object.keys(formData));
-
-    const requiredVars = [
-      'CECABANK_MERCHANT_ID',
-      'CECABANK_ACQUIRER_BIN',
-      'CECABANK_TERMINAL_ID',
-      'CECABANK_CLAVE',
-    ];
-    const missingVars = requiredVars.filter((v) => !process.env[v]);
-    if (missingVars.length) {
-      console.error('❌ Cecabank vars faltantes:', missingVars);
-      return res.status(500).send(`Faltan variables Cecabank: ${missingVars.join(', ')}`);
-    }
-
-    const requiredFields = [
-      'MerchantID', 'AcquirerBIN', 'TerminalID', 'Num_operacion',
-      'Importe', 'TipoMoneda', 'Exponente', 'Cifrado',
-      'URL_OK', 'Pago_soportado'
-    ];
-    const missingFields = requiredFields.filter((f) => !formData[f]);
-    if (missingFields.length) {
-      console.error('❌ Campos faltantes en formulario:', missingFields);
-      return res.status(400).send(`Campos faltantes: ${missingFields.join(', ')}`);
-    }
-
-    let urlNok = formData.URL_NOK || formData.URL_KO;
-    if (!urlNok) {
-      console.error('❌ Falta URL_NOK/URL_KO en formulario');
-      return res.status(400).send('Campos faltantes: URL_NOK');
-    }
-    if (process.env.CECABANK_ONLY_URL_OK === 'true') {
-      urlNok = formData.URL_OK;
-    }
-
-    const importeFirma = String(formData.Importe || '').trim();
-    const referencia = String(formData.Num_operacion || '').trim();
-
-    if (!formData.Cifrado || formData.Cifrado === 'HMAC_SHA256' || formData.Cifrado === 'SHA256' || formData.Cifrado === 'HMAC') {
-      formData.Cifrado = 'SHA2';
-    }
-
-    console.log('🧾 Cecabank datos firma:', {
-      numOperacion: String(formData.Num_operacion || '').trim(),
-      importe: importeFirma,
-      urlOkLength: String(formData.URL_OK || '').length,
-      urlKoLength: String(formData.URL_KO || '').length,
-      referencia,
-    });
-
-    const merchantIdForm = String(formData.MerchantID || '').trim();
-    const acquirerBinForm = String(formData.AcquirerBIN || '').trim();
-    const terminalIdForm = String(formData.TerminalID || '').trim();
-    const merchantIdEnv = String(process.env.CECABANK_MERCHANT_ID || '').trim();
-    const acquirerBinEnv = String(process.env.CECABANK_ACQUIRER_BIN || '').trim();
-    const terminalIdEnv = String(process.env.CECABANK_TERMINAL_ID || '').trim();
-
-    if (merchantIdEnv && merchantIdForm && merchantIdEnv !== merchantIdForm) {
-      console.warn('⚠️ MerchantID difiere entre frontend y backend');
-    }
-    if (acquirerBinEnv && acquirerBinForm && acquirerBinEnv !== acquirerBinForm) {
-      console.warn('⚠️ AcquirerBIN difiere entre frontend y backend');
-    }
-    if (terminalIdEnv && terminalIdForm && terminalIdEnv !== terminalIdForm) {
-      console.warn('⚠️ TerminalID difiere entre frontend y backend');
-    }
-
-    const merchantId = String(merchantIdForm || merchantIdEnv).padStart(9, '0');
-    const acquirerBin = String(acquirerBinForm || acquirerBinEnv).padStart(10, '0');
-    const terminalId = String(terminalIdForm || terminalIdEnv).padStart(8, '0');
-
-    console.log('🧾 Cecabank firma inputs:', {
-      merchantId,
-      acquirerBin,
-      terminalId,
-      numOperacion: formData.Num_operacion,
-      importe: importeFirma,
-      tipoMoneda: formData.TipoMoneda,
-      exponente: formData.Exponente,
-      cifrado: formData.Cifrado,
-      urlOk: formData.URL_OK,
-      urlNok: urlNok,
-    });
-
-    const firma = generateCecabankSignature(
-      formData.Num_operacion,
-      importeFirma,
-      formData.URL_OK,
-      urlNok,
-      merchantId,
-      acquirerBin,
-      terminalId,
-      formData.Cifrado
-    );
-
-    formData.MerchantID = merchantId;
-    formData.AcquirerBIN = acquirerBin;
-    formData.TerminalID = terminalId;
-    formData.Firma = firma;
-    formData.Referencia = referencia;
-    formData.URL_NOK = urlNok;
-    if (process.env.CECABANK_ONLY_URL_OK === 'true') {
-      formData.URL_KO = urlNok;
-    }
-
-    const urlCecabank = getCecabankGatewayUrl();
-    const ordenCampos = [
-      'MerchantID',
-      'AcquirerBIN',
-      'TerminalID',
-      'Num_operacion',
-      'Importe',
-      'TipoMoneda',
-      'Exponente',
-      'Referencia',
-      'Cifrado',
-      'Firma',
-      'URL_OK',
-      'URL_NOK',
-      'Idioma',
-      'Descripcion',
-      'Email',
-      'Nombre',
-      'Pago_soportado',
-    ];
-
-    const formFields = ordenCampos
-      .filter((campo) => formData[campo] !== undefined)
-      .map((campo) => {
-        const fieldName = campo;
-        const value = String(formData[campo] || '');
-        const escapedKey = String(fieldName)
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;');
-        const escapedValue = value
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;');
-        return `            <input type="hidden" name="${escapedKey}" value="${escapedValue}" />`;
-      })
-      .join('\n');
-
-    const html = `<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <title>Redirigiendo a Cecabank...</title>
-    <style>
-      body { font-family: Arial, sans-serif; display:flex; justify-content:center; align-items:center; height:100vh; margin:0; background:#f5f5f5; }
-      .container { text-align:center; padding:20px; }
-      .spinner { border:4px solid #f3f3f3; border-top:4px solid #4CAF50; border-radius:50%; width:40px; height:40px; animation: spin 1s linear infinite; margin:20px auto; }
-      @keyframes spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <h2>Redirigiendo al TPV de Cecabank...</h2>
-      <div class="spinner"></div>
-      <p>Por favor, espera mientras se procesa tu pago.</p>
-    </div>
-    <form id="cecabankForm" method="POST" action="${urlCecabank}" enctype="application/x-www-form-urlencoded" style="display:none;">
-${formFields}
-    </form>
-    <script>
-      (function(){
-        function submitForm(){ try { const f = document.getElementById('cecabankForm'); if (f) { f.submit(); } } catch(e) {} }
-        if (document.readyState === 'complete' || document.readyState === 'interactive') submitForm();
-        else document.addEventListener('DOMContentLoaded', submitForm);
-        setTimeout(submitForm, 100);
-      })();
-    </script>
-  </body>
-</html>`;
-
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.send(html);
-  } catch (error) {
-    console.error('❌ Error en Cecabank redirect:', error);
-    res.status(500).send(`Error calcular firma: ${error.message || 'desconocido'}`);
-  }
-});
-
-// Endpoint limpio Cecabank (firma según módulo Prestashop)
-app.post('/api/cecabank/redirect-clean', express.urlencoded({ extended: true }), (req, res) => {
-  try {
-    const formData = req.body || {};
-    console.log('🧼 Cecabank CLEAN body recibido:', Object.keys(formData));
-
-    const requiredVars = [
-      'CECABANK_MERCHANT_ID',
-      'CECABANK_ACQUIRER_BIN',
-      'CECABANK_TERMINAL_ID',
-      'CECABANK_CLAVE',
-    ];
-    const missingVars = requiredVars.filter((v) => !process.env[v]);
-    if (missingVars.length) {
-      return res.status(500).send(`Faltan variables Cecabank: ${missingVars.join(', ')}`);
-    }
-
-    const requiredFields = [
-      'MerchantID', 'AcquirerBIN', 'TerminalID', 'Num_operacion',
-      'Importe', 'TipoMoneda', 'Exponente', 'Cifrado',
-      'URL_OK', 'Pago_soportado'
-    ];
-    const missingFields = requiredFields.filter((f) => !formData[f]);
-    if (missingFields.length) {
-      return res.status(400).send(`Campos faltantes: ${missingFields.join(', ')}`);
-    }
-
-    const urlOk = String(formData.URL_OK || '').trim();
-    let urlNok = String(formData.URL_NOK || formData.URL_KO || '').trim();
-    if (!urlNok) {
-      urlNok = urlOk;
-      console.log('ℹ️ URL_NOK no enviada; usando URL_OK para firma.');
-    }
-
-    const merchantId = String(formData.MerchantID || process.env.CECABANK_MERCHANT_ID || '').padStart(9, '0');
-    const acquirerBin = String(formData.AcquirerBIN || process.env.CECABANK_ACQUIRER_BIN || '').padStart(10, '0');
-    const terminalId = String(formData.TerminalID || process.env.CECABANK_TERMINAL_ID || '').padStart(8, '0');
-    const numOperacion = String(formData.Num_operacion || '').trim();
-    const importe = String(formData.Importe || '').trim();
-    const tipoMoneda = String(formData.TipoMoneda || '978').trim();
-    const exponente = String(formData.Exponente || '2').trim();
-    const cifrado = String(formData.Cifrado || 'SHA2').trim();
-
-    if (cifrado !== 'SHA2') {
-      return res.status(400).send('Cifrado inválido. Debe ser SHA2.');
-    }
-
-    const clave = String(process.env.CECABANK_CLAVE || '').trim();
-    const cadenaBase =
-      merchantId +
-      acquirerBin +
-      terminalId +
-      numOperacion +
-      importe +
-      tipoMoneda +
-      exponente +
-      cifrado +
-      urlOk +
-      urlNok;
-    console.log('🔐 Cecabank CLEAN cadena firma (sin clave):', cadenaBase);
-    const cadenaFirma = clave + cadenaBase;
-    const firma = crypto.createHash('sha256').update(cadenaFirma, 'utf8').digest('hex').toLowerCase();
-
-    const formClean = {
-      ...formData,
-      MerchantID: merchantId,
-      AcquirerBIN: acquirerBin,
-      TerminalID: terminalId,
-      URL_OK: urlOk,
-      URL_NOK: urlNok,
-      URL_KO: urlNok,
-      Firma: firma,
-    };
-
-    const ordenCampos = [
-      'MerchantID',
-      'AcquirerBIN',
-      'TerminalID',
-      'Num_operacion',
-      'Importe',
-      'TipoMoneda',
-      'Exponente',
-      'Cifrado',
-      'URL_OK',
-      'URL_NOK',
-      'Idioma',
-      'Pago_soportado',
-      'Descripcion',
-      'Email',
-      'Nombre',
-      'Firma',
-    ];
-
-    const formFields = ordenCampos
-      .filter((campo) => formClean[campo] !== undefined)
-      .map((campo) => {
-        const fieldName = campo;
-        const value = String(formClean[campo] || '');
-        const escapedKey = String(fieldName)
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;');
-        const escapedValue = value
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;');
-        return `            <input type="hidden" name="${escapedKey}" value="${escapedValue}" />`;
-      })
-      .join('\n');
-
-    const urlCecabank = getCecabankGatewayUrl();
-    const html = `<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <title>Redirigiendo a Cecabank...</title>
-    <style>
-      body { font-family: Arial, sans-serif; text-align: center; padding: 32px; }
-      button { padding: 12px 20px; font-size: 16px; cursor: pointer; }
-    </style>
-  </head>
-  <body>
-    <h2>Redirigiendo al TPV de Cecabank...</h2>
-    <p>Si no se abre automáticamente, pulsa el botón.</p>
-    <form id="cecabankForm" method="POST" action="${urlCecabank}" enctype="application/x-www-form-urlencoded" style="display:none;">
-${formFields}
-    </form>
-    <button onclick="document.getElementById('cecabankForm').submit()">Continuar</button>
-    <script>
-      (function(){
-        function submitForm(){ try { const f = document.getElementById('cecabankForm'); if (f) { f.submit(); } } catch(e) {} }
-        if (document.readyState === 'complete' || document.readyState === 'interactive') submitForm();
-        else document.addEventListener('DOMContentLoaded', submitForm);
-        setTimeout(submitForm, 100);
-      })();
-    </script>
-  </body>
-</html>`;
-
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.send(html);
-  } catch (error) {
-    console.error('❌ Error en Cecabank redirect-clean:', error);
-    res.status(500).send(`Error calcular firma: ${error.message || 'desconocido'}`);
-  }
-});
-
-function getCecabankGatewayUrl() {
-  const entorno = (process.env.CECABANK_ENTORNO || 'produccion').toLowerCase();
-  if (entorno === 'test' || entorno === 'testing' || entorno === 'sandbox') {
-    return 'https://tpv.ceca.es/tpvweb/tpv/compra.action';
-  }
-  return 'https://pgw.ceca.es/tpvweb/tpv/compra.action';
-}
-
-function generateCecabankSignature(numOperacion, importe, urlOk, urlKo, merchantIdValue, acquirerBinValue, terminalIdValue, cifradoValue) {
-  const merchantId = String(merchantIdValue || process.env.CECABANK_MERCHANT_ID || '').trim();
-  const acquirerBin = String(acquirerBinValue || process.env.CECABANK_ACQUIRER_BIN || '').trim();
-  const terminalId = String(terminalIdValue || process.env.CECABANK_TERMINAL_ID || '').trim();
-  const clave = String(process.env.CECABANK_CLAVE || '').trim();
-
-  if (!merchantId || !acquirerBin || !terminalId || !clave) {
-    throw new Error('CECABANK_* no configurado en backend');
-  }
-
-  const tipoMoneda = '978';
-  const exponente = '2';
-  const cifradoStr = String(cifradoValue || 'SHA2').trim() || 'SHA2';
-
-  const numOpStr = String(numOperacion || '').trim();
-  const importeStr = String(importe || '').trim();
-
-  const urlOkFirma = String(urlOk || '').trim();
-  const urlKoFirma = String(urlKo || '').trim();
-
-  const cadenaBase =
-    merchantId +
-    acquirerBin +
-    terminalId +
-    numOpStr +
-    importeStr +
-    tipoMoneda +
-    exponente +
-    cifradoStr +
-    urlOkFirma +
-    urlKoFirma;
-
-  let cadenaFirma = clave + cadenaBase;
-  if (cifradoStr === 'SHA2') {
-    cadenaFirma = cadenaFirma.replace(/&amp;/g, '&').replace(/#038;/g, '');
-  }
-
-  console.log('🔐 Cecabank cadena firma (sin clave):', cadenaBase);
-  console.log('🔐 Cecabank longitudes:', {
-    merchantId: merchantId.length,
-    acquirerBin: acquirerBin.length,
-    terminalId: terminalId.length,
-    numOp: numOpStr.length,
-    importe: importeStr.length,
-    urlOk: urlOkFirma.length,
-    urlKo: urlKoFirma.length,
-    totalSinClave: cadenaBase.length,
-    cifrado: cifradoStr,
-  });
-
-  const firma = crypto.createHash('sha256').update(cadenaFirma, 'utf8').digest('hex').toLowerCase();
-  console.log('🔐 Cecabank firma generada (sha256 hex):', firma.substring(0, 12) + '...');
-  return firma;
-}
-
-// Configurar Stripe
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_123456789', {
-  apiVersion: '2023-10-16',
-});
+// Configurar Stripe. La clave secreta debe existir solo en el backend/Render.
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY || '';
+const stripe = stripeSecretKey
+  ? new Stripe(stripeSecretKey, { apiVersion: '2023-10-16' })
+  : null;
 
 // ============================================
 // ENDPOINTS PRINCIPALES (STRIPE, EMAIL, ETC)
@@ -1003,6 +454,7 @@ app.get('/', (req, res) => {
     endpoints: {
       health: '/api/health',
       createPaymentIntent: '/api/create-payment-intent',
+      stripeCheckout: '/api/stripe/create-checkout-session',
       accountDeletion: '/account-deletion'
     }
   });
@@ -1117,7 +569,7 @@ app.get('/api/health', (req, res) => {
     environment: NODE_ENV,
     port: PORT,
     services: {
-      stripe: !!process.env.STRIPE_SECRET_KEY,
+      stripe: !!stripe,
       smtp2go: !!transporter
     }
   });
@@ -1132,6 +584,10 @@ app.post('/api/create-payment-intent', async (req, res) => {
       return res.status(400).json({ error: 'Amount and description are required' });
     }
     
+    if (!stripe) {
+      return res.status(500).json({ error: 'STRIPE_SECRET_KEY no configurada en el backend' });
+    }
+
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(amount * 100),
       currency: 'eur',
@@ -1147,6 +603,183 @@ app.post('/api/create-payment-intent', async (req, res) => {
   } catch (error) {
     console.error('❌ Error creating payment intent:', error);
     res.status(500).json({ error: error.message });
+  }
+});
+
+const BACKEND_PUBLIC_URL =
+  process.env.BACKEND_PUBLIC_URL ||
+  process.env.RENDER_EXTERNAL_URL ||
+  'https://academia-backend-s9np.onrender.com';
+
+const parseLevelFromOperation = (operationType) => {
+  if (!operationType) return null;
+  const match = String(operationType).toLowerCase().match(/matricula-(a1|a2|b1|b2)/);
+  return match ? match[1].toUpperCase() : null;
+};
+
+const renderStripeResultPage = ({ type, orderId, levelUnlocked, importe }) => {
+  const payload = JSON.stringify({
+    type,
+    orderId: orderId || '',
+    levelUnlocked: levelUnlocked || '',
+    importe: importe || '',
+  }).replace(/</g, '\\u003c');
+
+  const title = type === 'PAYMENT_SUCCESS' ? 'Pago confirmado' : 'Pago cancelado';
+  const message =
+    type === 'PAYMENT_SUCCESS'
+      ? 'Tu pago con Stripe se ha procesado correctamente. Puedes volver a la aplicación.'
+      : 'El pago fue cancelado. Puedes cerrar esta ventana y volver a la aplicación.';
+
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title}</title>
+</head>
+<body style="font-family: Arial, sans-serif; text-align:center; padding: 40px;">
+  <h1>${title}</h1>
+  <p>${message}</p>
+  <script>
+    try {
+      if (window.ReactNativeWebView) {
+        window.ReactNativeWebView.postMessage(${payload});
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  </script>
+</body>
+</html>`;
+};
+
+app.post('/api/stripe/create-checkout-session', async (req, res) => {
+  try {
+    if (!stripe) {
+      return res.status(500).json({ error: 'STRIPE_SECRET_KEY no configurada en el backend' });
+    }
+
+    const {
+      amount,
+      description,
+      operationType,
+      orderId,
+      customerEmail,
+      customerName,
+    } = req.body || {};
+
+    if (!amount || !orderId) {
+      return res.status(400).json({ error: 'amount y orderId son obligatorios' });
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: 'eur',
+            product_data: {
+              name: description || 'Pago Academia de Inmigrantes',
+            },
+            unit_amount: Math.round(Number(amount) * 100),
+          },
+          quantity: 1,
+        },
+      ],
+      customer_email: customerEmail || undefined,
+      client_reference_id: String(orderId),
+      metadata: {
+        operationType: String(operationType || ''),
+        orderId: String(orderId),
+        customerName: String(customerName || ''),
+      },
+      success_url: `${BACKEND_PUBLIC_URL}/api/stripe/success?session_id={CHECKOUT_SESSION_ID}&orderId=${encodeURIComponent(String(orderId))}`,
+      cancel_url: `${BACKEND_PUBLIC_URL}/api/stripe/cancel?orderId=${encodeURIComponent(String(orderId))}`,
+    });
+
+    console.log('✅ Stripe Checkout creado:', { orderId, sessionId: session.id });
+    res.json({ url: session.url, sessionId: session.id, orderId });
+  } catch (error) {
+    console.error('❌ Error creando Stripe Checkout:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/stripe/success', async (req, res) => {
+  try {
+    const orderId = String(req.query.orderId || '');
+    const sessionId = String(req.query.session_id || '');
+    let levelUnlocked = null;
+    let importe = '';
+
+    if (sessionId && stripe) {
+      const session = await stripe.checkout.sessions.retrieve(sessionId);
+      const operationType = session.metadata?.operationType || '';
+      levelUnlocked = parseLevelFromOperation(operationType);
+      importe = session.amount_total ? (session.amount_total / 100).toFixed(2) : '';
+    }
+
+    storeRecentPayment(orderId, {
+      status: 'ok',
+      orderId,
+      levelUnlocked,
+      importe,
+      provider: 'stripe',
+    });
+
+    res.send(
+      renderStripeResultPage({
+        type: 'PAYMENT_SUCCESS',
+        orderId,
+        levelUnlocked,
+        importe,
+      })
+    );
+  } catch (error) {
+    console.error('❌ Error en Stripe success:', error);
+    res.status(500).send('Error procesando pago Stripe');
+  }
+});
+
+app.get('/api/stripe/cancel', (req, res) => {
+  try {
+    const orderId = String(req.query.orderId || '');
+    storeRecentPayment(orderId, {
+      status: 'ko',
+      orderId,
+      levelUnlocked: null,
+      provider: 'stripe',
+    });
+    res.send(
+      renderStripeResultPage({
+        type: 'PAYMENT_CANCEL',
+        orderId,
+        levelUnlocked: null,
+        importe: '',
+      })
+    );
+  } catch (error) {
+    console.error('❌ Error en Stripe cancel:', error);
+    res.status(500).send('Error procesando cancelación Stripe');
+  }
+});
+
+app.get('/api/stripe/payment-status', (req, res) => {
+  try {
+    const orderId = String(req.query.orderId || '').trim();
+    if (!orderId) {
+      return res.status(400).json({ ok: false, error: 'orderId requerido' });
+    }
+    const data = recentPayments.get(orderId);
+    if (!data) {
+      return res.json({ ok: true, status: 'pending' });
+    }
+    return res.json({ ok: true, ...data });
+  } catch (error) {
+    console.error('❌ Error en Stripe payment-status:', error);
+    return res.status(500).json({ ok: false, error: 'Error interno' });
   }
 });
 
@@ -1500,7 +1133,7 @@ app.listen(PORT, () => {
   console.log('🚀 Servidor iniciado en puerto', PORT);
   console.log('🌍 Entorno:', NODE_ENV);
   console.log('🔗 URL: http://localhost:' + PORT);
-  console.log('💳 Stripe configurado:', !!process.env.STRIPE_SECRET_KEY);
+  console.log('💳 Stripe configurado:', !!stripe);
   console.log('📧 Email configurado:', !!transporter);
   
   // Inicializar Firebase y listener de notificaciones
