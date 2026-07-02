@@ -35,6 +35,15 @@ if (process.env.SMTP2GO_USERNAME && process.env.SMTP2GO_PASSWORD) {
   console.log('⚠️ Credenciales de SMTP2GO no configuradas');
 }
 
+// SMTP2GO: el remitente (From) debe estar verificado en Sending > Verified Senders
+const getMailFrom = () =>
+  process.env.SMTP2GO_FROM ||
+  process.env.SMTP2GO_VERIFIED_SENDER ||
+  'admin@academiadeinmigrantes.es';
+
+const getMailTo = () =>
+  process.env.SMTP2GO_TO || process.env.ADMIN_EMAIL || 'admin@academiadeinmigrantes.es';
+
 // Middlewares
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
@@ -304,8 +313,8 @@ app.post('/api/solicitar-matricula-presencial', async (req, res) => {
     }
 
     const mailOptions = {
-      from: 'admin@academiadeinmigrantes.es',
-      to: 'admin@academiadeinmigrantes.es',
+      from: getMailFrom(),
+      to: getMailTo(),
       replyTo: email,
       subject: `Solicitud de matrícula presencial - Nivel ${nivel} - ${nombre}`,
       html: `
@@ -570,7 +579,8 @@ app.get('/api/health', (req, res) => {
     port: PORT,
     services: {
       stripe: !!stripe,
-      smtp2go: !!transporter
+      smtp2go: !!transporter,
+      mailFrom: getMailFrom(),
     }
   });
 });
@@ -832,8 +842,8 @@ app.post('/api/arraigos/enviar', async (req, res) => {
       : '';
 
     const mailOptions = {
-      from: 'admin@academiadeinmigrantes.es',
-      to: 'admin@academiadeinmigrantes.es',
+      from: getMailFrom(),
+      to: getMailTo(),
       replyTo: email,
       subject: `Arraigo ${arraigoTypeTitle} - Documentación de ${name}`,
       html: `
@@ -888,8 +898,8 @@ app.post('/api/solicitar-examen-presencial', async (req, res) => {
 
     // Configurar el email
     const mailOptions = {
-      from: 'admin@academiadeinmigrantes.es',
-      to: 'admin@academiadeinmigrantes.es',
+      from: getMailFrom(),
+      to: getMailTo(),
       replyTo: email,
       subject: `Solicitud de examen presencial - Nivel ${nivel} - ${nombre}`,
       html: `
@@ -1085,8 +1095,8 @@ app.post('/api/enviar-solicitud-asesoria', async (req, res) => {
     }
 
     const mailOptions = {
-      from: 'admin@academiadeinmigrantes.es',
-      to: 'admin@academiadeinmigrantes.es',
+      from: getMailFrom(),
+      to: getMailTo(),
       replyTo: email,
       subject: `Nueva solicitud de asesoría - ${nombreFinal}`,
       html: `
@@ -1271,8 +1281,8 @@ app.post('/api/concurso-a1/inscripcion', async (req, res) => {
               ? 'Quiere matricularse'
               : 'Interesado, sin matrícula aún';
         const mailOptions = {
-          from: 'admin@academiadeinmigrantes.es',
-          to: 'admin@academiadeinmigrantes.es',
+          from: getMailFrom(),
+          to: getMailTo(),
           replyTo: email,
           subject: `Concurso A1 · Apuntado · ${nombre}`,
           html: `
@@ -1366,8 +1376,8 @@ app.post('/api/concurso-a1/expresion-escrita', async (req, res) => {
     if (transporter) {
       try {
         await transporter.sendMail({
-          from: 'admin@academiadeinmigrantes.es',
-          to: 'admin@academiadeinmigrantes.es',
+          from: getMailFrom(),
+          to: getMailTo(),
           replyTo: inscripcion.email || email,
           subject: `Concurso A1 · Expresión escrita · ${inscripcion.nombre || email}`,
           html: `
