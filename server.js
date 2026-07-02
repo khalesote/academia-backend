@@ -36,13 +36,21 @@ if (process.env.SMTP2GO_USERNAME && process.env.SMTP2GO_PASSWORD) {
 }
 
 // SMTP2GO: el remitente (From) debe estar verificado en Sending > Verified Senders
-const getMailFrom = () =>
-  process.env.SMTP2GO_FROM ||
-  process.env.SMTP2GO_VERIFIED_SENDER ||
-  'admin@academiadeinmigrantes.es';
+const getMailFrom = () => {
+  if (process.env.SMTP2GO_FROM) return process.env.SMTP2GO_FROM;
+  if (process.env.SMTP2GO_VERIFIED_SENDER) return process.env.SMTP2GO_VERIFIED_SENDER;
+  const user = String(process.env.SMTP2GO_USERNAME || '').trim();
+  if (user.includes('@')) return user;
+  return 'admin@academiadeinmigrantes.es';
+};
 
 const getMailTo = () =>
   process.env.SMTP2GO_TO || process.env.ADMIN_EMAIL || 'admin@academiadeinmigrantes.es';
+
+const formatMailFrom = () => {
+  const addr = getMailFrom();
+  return `"Academia de Inmigrantes" <${addr}>`;
+};
 
 // Middlewares
 app.use(cors());
@@ -313,7 +321,7 @@ app.post('/api/solicitar-matricula-presencial', async (req, res) => {
     }
 
     const mailOptions = {
-      from: getMailFrom(),
+      from: formatMailFrom(),
       to: getMailTo(),
       replyTo: email,
       subject: `Solicitud de matrícula presencial - Nivel ${nivel} - ${nombre}`,
@@ -581,6 +589,7 @@ app.get('/api/health', (req, res) => {
       stripe: !!stripe,
       smtp2go: !!transporter,
       mailFrom: getMailFrom(),
+      mailFromFormatted: formatMailFrom(),
     }
   });
 });
@@ -842,7 +851,7 @@ app.post('/api/arraigos/enviar', async (req, res) => {
       : '';
 
     const mailOptions = {
-      from: getMailFrom(),
+      from: formatMailFrom(),
       to: getMailTo(),
       replyTo: email,
       subject: `Arraigo ${arraigoTypeTitle} - Documentación de ${name}`,
@@ -898,7 +907,7 @@ app.post('/api/solicitar-examen-presencial', async (req, res) => {
 
     // Configurar el email
     const mailOptions = {
-      from: getMailFrom(),
+      from: formatMailFrom(),
       to: getMailTo(),
       replyTo: email,
       subject: `Solicitud de examen presencial - Nivel ${nivel} - ${nombre}`,
@@ -1095,7 +1104,7 @@ app.post('/api/enviar-solicitud-asesoria', async (req, res) => {
     }
 
     const mailOptions = {
-      from: getMailFrom(),
+      from: formatMailFrom(),
       to: getMailTo(),
       replyTo: email,
       subject: `Nueva solicitud de asesoría - ${nombreFinal}`,
@@ -1281,7 +1290,7 @@ app.post('/api/concurso-a1/inscripcion', async (req, res) => {
               ? 'Quiere matricularse'
               : 'Interesado, sin matrícula aún';
         const mailOptions = {
-          from: getMailFrom(),
+          from: formatMailFrom(),
           to: getMailTo(),
           replyTo: email,
           subject: `Concurso A1 · Apuntado · ${nombre}`,
@@ -1292,17 +1301,10 @@ app.post('/api/concurso-a1/inscripcion', async (req, res) => {
             <p><strong>Teléfono:</strong> ${telefono}</p>
             <p><strong>Nacionalidad:</strong> ${nacionalidad || '—'}</p>
             <p><strong>Estado A1:</strong> ${matriculaLabel}</p>
-            <p><strong>Captura Storage:</strong> ${capturaStoragePath || 'No guardada en bucket'}</p>
+            <p><strong>Captura (Firebase Storage):</strong> ${capturaStoragePath || 'No guardada en bucket'}</p>
+            <p style="color:#666;">Ver captura en Firebase Console → Storage.</p>
           `,
         };
-        if (capturaBuffer.length <= 2 * 1024 * 1024) {
-          mailOptions.attachments = [
-            {
-              filename: payload.capturaMatriculaNombre || 'matricula-a1.jpg',
-              content: capturaBuffer,
-            },
-          ];
-        }
         await transporter.sendMail(mailOptions);
       } catch (mailErr) {
         console.warn('⚠️ Email inscripción concurso A1 no enviado:', mailErr.message);
@@ -1376,7 +1378,7 @@ app.post('/api/concurso-a1/expresion-escrita', async (req, res) => {
     if (transporter) {
       try {
         await transporter.sendMail({
-          from: getMailFrom(),
+          from: formatMailFrom(),
           to: getMailTo(),
           replyTo: inscripcion.email || email,
           subject: `Concurso A1 · Expresión escrita · ${inscripcion.nombre || email}`,
