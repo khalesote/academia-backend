@@ -35,22 +35,60 @@ if (process.env.SMTP2GO_USERNAME && process.env.SMTP2GO_PASSWORD) {
   console.log('⚠️ Credenciales de SMTP2GO no configuradas');
 }
 
-// SMTP2GO: el remitente (From) debe estar verificado en Sending > Verified Senders
+// SMTP2GO (desde ~2025): remitente obligatorio en Sending > Verified Senders
+// https://support.smtp2go.com/hc/en-gb/articles/13990494697369
+const DEFAULT_MAIL_TO = 'khalesito@yahoo.fr';
+const DEFAULT_MAIL_FROM = 'khalesito@yahoo.fr';
+
 const getMailFrom = () => {
-  if (process.env.SMTP2GO_FROM) return process.env.SMTP2GO_FROM;
-  if (process.env.SMTP2GO_VERIFIED_SENDER) return process.env.SMTP2GO_VERIFIED_SENDER;
+  if (process.env.SMTP2GO_FROM) return process.env.SMTP2GO_FROM.trim();
+  if (process.env.SMTP2GO_VERIFIED_SENDER) return process.env.SMTP2GO_VERIFIED_SENDER.trim();
   const user = String(process.env.SMTP2GO_USERNAME || '').trim();
   if (user.includes('@')) return user;
-  return 'admin@academiadeinmigrantes.es';
+  return DEFAULT_MAIL_FROM;
 };
 
 const getMailTo = () =>
-  process.env.SMTP2GO_TO || process.env.ADMIN_EMAIL || 'admin@academiadeinmigrantes.es';
+  (process.env.SMTP2GO_TO || process.env.ADMIN_EMAIL || DEFAULT_MAIL_TO).trim();
 
 const formatMailFrom = () => {
   const addr = getMailFrom();
   return `"Academia de Inmigrantes" <${addr}>`;
 };
+
+const getMailConfigWarning = () => {
+  if (process.env.SMTP2GO_FROM || process.env.SMTP2GO_VERIFIED_SENDER) return null;
+  const from = getMailFrom();
+  if (from.endsWith('@academiadeinmigrantes.es')) {
+    return 'SMTP2GO_FROM no configurado: verifica academiadeinmigrantes.es en SMTP2GO o usa un Single sender verificado.';
+  }
+  if (from === DEFAULT_MAIL_FROM) {
+    return `Usando remitente por defecto ${DEFAULT_MAIL_FROM}. Debe estar verificado en SMTP2GO (Single sender emails).`;
+  }
+  return null;
+};
+
+async function sendAcademiaEmail(mailOptions) {
+  if (!transporter) {
+    throw new Error('SMTP2GO no configurado (SMTP2GO_USERNAME / SMTP2GO_PASSWORD)');
+  }
+  const options = {
+    ...mailOptions,
+    from: mailOptions.from || formatMailFrom(),
+    to: mailOptions.to || getMailTo(),
+  };
+  try {
+    return await transporter.sendMail(options);
+  } catch (error) {
+    const hint =
+      String(error.message || '').includes('not verified') ||
+      String(error.message || '').includes('550')
+        ? ` Remitente actual: ${options.from}. Verifica ese email en SMTP2GO → Sending → Verified Senders, o pon SMTP2GO_FROM en Render.`
+        : '';
+    error.message = `${error.message || 'Error SMTP2GO'}${hint}`;
+    throw error;
+  }
+}
 
 // Middlewares
 app.use(cors());
@@ -320,9 +358,7 @@ app.post('/api/solicitar-matricula-presencial', async (req, res) => {
       return res.status(500).json({ error: 'Servicio de correo no disponible' });
     }
 
-    const mailOptions = {
-      from: formatMailFrom(),
-      to: getMailTo(),
+    const result = await sendAcademiaEmail({
       replyTo: email,
       subject: `Solicitud de matrícula presencial - Nivel ${nivel} - ${nombre}`,
       html: `
@@ -342,13 +378,7 @@ app.post('/api/solicitar-matricula-presencial', async (req, res) => {
         </div>
         <p style="color: #666;">Este email fue enviado desde la app Academia de Inmigrantes.</p>
       `,
-    };
-
-    console.log('📤 Enviando email a:', mailOptions.to);
-    console.log('📤 Desde:', mailOptions.from);
-    console.log('📤 Asunto:', mailOptions.subject);
-
-    const result = await transporter.sendMail(mailOptions);
+    });
     console.log('✅ Email matrícula presencial enviado:', result.messageId);
 
     res.json({
@@ -589,7 +619,9 @@ app.get('/api/health', (req, res) => {
       stripe: !!stripe,
       smtp2go: !!transporter,
       mailFrom: getMailFrom(),
+      mailTo: getMailTo(),
       mailFromFormatted: formatMailFrom(),
+      mailConfigWarning: getMailConfigWarning(),
     }
   });
 });
@@ -868,7 +900,7 @@ app.post('/api/arraigos/enviar', async (req, res) => {
       attachments: normalizedAttachments,
     };
 
-    const result = await transporter.sendMail(mailOptions);
+    const result = await sendAcademiaEmail(mailOptions);
     console.log('✅ Arraigo enviado, messageId:', result.messageId);
 
     res.json({ success: true, message: 'Documentos enviados correctamente', messageId: result.messageId });
@@ -936,7 +968,7 @@ app.post('/api/solicitar-examen-presencial', async (req, res) => {
     console.log('📤 Asunto:', mailOptions.subject);
 
     // Enviar el email usando SMTP2GO
-    const result = await transporter.sendMail(mailOptions);
+    const result = await sendAcademiaEmail(mailOptions);
     console.log('✅ Email enviado exitosamente:', result.messageId);
 
     res.json({
@@ -1129,7 +1161,7 @@ app.post('/api/enviar-solicitud-asesoria', async (req, res) => {
     console.log('📤 Desde:', mailOptions.from);
     console.log('📤 Asunto:', mailOptions.subject);
 
-    const result = await transporter.sendMail(mailOptions);
+    const result = await sendAcademiaEmail(mailOptions);
     console.log('✅ Email enviado exitosamente:', result.messageId);
 
     res.json({
@@ -1305,7 +1337,7 @@ app.post('/api/concurso-a1/inscripcion', async (req, res) => {
             <p style="color:#666;">Ver captura en Firebase Console → Storage.</p>
           `,
         };
-        await transporter.sendMail(mailOptions);
+        await sendAcademiaEmail(mailOptions);
       } catch (mailErr) {
         console.warn('⚠️ Email inscripción concurso A1 no enviado:', mailErr.message);
       }
@@ -1377,9 +1409,7 @@ app.post('/api/concurso-a1/expresion-escrita', async (req, res) => {
 
     if (transporter) {
       try {
-        await transporter.sendMail({
-          from: formatMailFrom(),
-          to: getMailTo(),
+        await sendAcademiaEmail({
           replyTo: inscripcion.email || email,
           subject: `Concurso A1 · Expresión escrita · ${inscripcion.nombre || email}`,
           html: `
@@ -1413,6 +1443,11 @@ app.listen(PORT, () => {
   console.log('🔗 URL: http://localhost:' + PORT);
   console.log('💳 Stripe configurado:', !!stripe);
   console.log('📧 Email configurado:', !!transporter);
+  if (transporter) {
+    console.log('📧 Email FROM:', getMailFrom(), '→ TO:', getMailTo());
+    const mailWarn = getMailConfigWarning();
+    if (mailWarn) console.warn('⚠️ SMTP2GO:', mailWarn);
+  }
   
   // Inicializar Firebase y listener de notificaciones
   try {
