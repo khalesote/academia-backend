@@ -468,7 +468,7 @@ app.get('/account-deletion', (req, res) => {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Eliminación de cuenta - AFAI Academia de Inmigrantes</title>
+  <title>Eliminación de cuenta - Academia de Inmigrantes</title>
   <style>
     body {
       margin: 0;
@@ -521,16 +521,16 @@ app.get('/account-deletion', (req, res) => {
   <main class="wrap">
     <h1>Solicitud de eliminación de cuenta</h1>
     <p>
-      Si eres usuario de <strong>AFAI Academia de Inmigrantes</strong>, puedes solicitar la eliminación de tu cuenta y de los datos asociados.
+      Si eres usuario de <strong>Academia de Inmigrantes</strong>, puedes solicitar la eliminación de tu cuenta y de los datos asociados.
     </p>
 
     <h2>Cómo solicitar la eliminación</h2>
     <ol>
-      <li>Envía un correo a <strong>somos@afaiacademiadeinmigrantes.com</strong>.</li>
+      <li>Envía un correo a <strong>admin@academiadeinmigrantes.es</strong> o <strong>khalesito@yahoo.fr</strong>.</li>
       <li>Asunto recomendado: <strong>Eliminar mi cuenta</strong>.</li>
       <li>Incluye el email con el que te registraste en la app.</li>
     </ol>
-    <a class="cta" href="mailto:somos@afaiacademiadeinmigrantes.com?subject=Eliminar%20mi%20cuenta">
+    <a class="cta" href="mailto:admin@academiadeinmigrantes.es?subject=Eliminar%20mi%20cuenta">
       Solicitar eliminación por email
     </a>
 
@@ -1124,6 +1124,272 @@ app.post('/api/enviar-solicitud-asesoria', async (req, res) => {
   }
 });
 
+
+// ============================================
+// CONCURSO A1 (web) — solo inscripción (fase 1)
+// ============================================
+
+function normalizeEmail(email) {
+  return String(email || '').trim().toLowerCase();
+}
+
+function normalizeDocumento(documento) {
+  return String(documento || '').trim().toUpperCase().replace(/\s+/g, '');
+}
+
+function countWords(text) {
+  return String(text || '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean).length;
+}
+
+async function findConcursoInscripcion(emailNorm, docNorm) {
+  if (!firestore) return null;
+
+  const byEmail = await firestore
+    .collection('concurso_a1_inscripciones')
+    .where('emailNorm', '==', emailNorm)
+    .limit(1)
+    .get();
+
+  if (!byEmail.empty) return byEmail.docs[0];
+
+  if (!docNorm) return null;
+
+  const byDoc = await firestore
+    .collection('concurso_a1_inscripciones')
+    .where('documentoNorm', '==', docNorm)
+    .limit(1)
+    .get();
+
+  return byDoc.empty ? null : byDoc.docs[0];
+}
+
+async function saveConcursoMatriculaCaptura(buffer, emailNorm) {
+  if (!storageBucket || !buffer?.length) {
+    return null;
+  }
+  const storagePath = `concurso_a1/matriculas/${emailNorm.replace(/[^a-z0-9@._-]/g, '_')}/${Date.now()}.jpg`;
+  const file = storageBucket.file(storagePath);
+  await file.save(buffer, {
+    contentType: 'image/jpeg',
+    resumable: false,
+  });
+  return storagePath;
+}
+
+app.post('/api/concurso-a1/inscripcion', async (req, res) => {
+  try {
+    const {
+      nombre,
+      email,
+      telefono,
+      documento,
+      nacionalidad,
+      estadoA1,
+      matriculaA1,
+      aceptaBases,
+      fase,
+      capturaMatriculaBase64,
+      capturaMatriculaNombre,
+    } = req.body || {};
+
+    if (!nombre || !email || !telefono) {
+      return res.status(400).json({ error: 'Nombre, email y teléfono son obligatorios' });
+    }
+    if (!aceptaBases) {
+      return res.status(400).json({ error: 'Debes aceptar el uso de tus datos' });
+    }
+    if (!capturaMatriculaBase64) {
+      return res.status(400).json({ error: 'Debes adjuntar la captura de matrícula A1' });
+    }
+
+    const cleanedBase64 = String(capturaMatriculaBase64).replace(/^data:image\/\w+;base64,/, '');
+    const capturaBuffer = Buffer.from(cleanedBase64, 'base64');
+    const maxBytes = 4 * 1024 * 1024;
+    if (!capturaBuffer.length || capturaBuffer.length > maxBytes) {
+      return res.status(400).json({ error: 'Captura inválida o demasiado grande (máx. 4 MB)' });
+    }
+    if (!isSupportedImageBuffer(capturaBuffer)) {
+      return res.status(400).json({ error: 'La captura debe ser JPG o PNG' });
+    }
+
+    const emailNorm = normalizeEmail(email);
+    const docNorm = documento ? normalizeDocumento(documento) : '';
+
+    if (!firestore) {
+      return res.status(503).json({ error: 'Servicio temporalmente no disponible. Inténtalo más tarde.' });
+    }
+
+    const existing = await findConcursoInscripcion(emailNorm, docNorm);
+    if (existing) {
+      return res.json({
+        success: true,
+        message: 'Ya consta tu inscripción.',
+        inscripcionId: existing.id,
+      });
+    }
+
+    let capturaStoragePath = null;
+    try {
+      capturaStoragePath = await saveConcursoMatriculaCaptura(capturaBuffer, emailNorm);
+    } catch (storageErr) {
+      console.warn('⚠️ No se pudo guardar captura en Storage:', storageErr.message);
+    }
+
+    const payload = {
+      nombre: String(nombre).trim(),
+      email: String(email).trim(),
+      emailNorm,
+      telefono: String(telefono).trim(),
+      nacionalidad: String(nacionalidad || '').trim(),
+      estadoA1: String(estadoA1 || '').trim(),
+      matriculaA1: Boolean(matriculaA1),
+      aceptaBases: true,
+      fase: fase || 'solo_inscripcion',
+      estado: 'apuntado',
+      capturaMatriculaPath: capturaStoragePath,
+      capturaMatriculaNombre: String(capturaMatriculaNombre || 'matricula-a1.jpg').trim(),
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    if (documento) {
+      payload.documento = String(documento).trim();
+      payload.documentoNorm = docNorm;
+    }
+
+    const ref = await firestore.collection('concurso_a1_inscripciones').add(payload);
+
+    if (transporter) {
+      try {
+        const matriculaLabel =
+          estadoA1 === 'si'
+            ? 'Ya matriculado A1'
+            : estadoA1 === 'no'
+              ? 'Quiere matricularse'
+              : 'Interesado, sin matrícula aún';
+        const mailOptions = {
+          from: 'admin@academiadeinmigrantes.es',
+          to: 'admin@academiadeinmigrantes.es',
+          replyTo: email,
+          subject: `Concurso A1 · Apuntado · ${nombre}`,
+          html: `
+            <h2>Nuevo apunte Concurso A1</h2>
+            <p><strong>Nombre:</strong> ${nombre}</p>
+            <p><strong>Email:</strong> ${email}</p>
+            <p><strong>Teléfono:</strong> ${telefono}</p>
+            <p><strong>Nacionalidad:</strong> ${nacionalidad || '—'}</p>
+            <p><strong>Estado A1:</strong> ${matriculaLabel}</p>
+            <p><strong>Captura Storage:</strong> ${capturaStoragePath || 'No guardada en bucket'}</p>
+          `,
+        };
+        if (capturaBuffer.length <= 2 * 1024 * 1024) {
+          mailOptions.attachments = [
+            {
+              filename: payload.capturaMatriculaNombre || 'matricula-a1.jpg',
+              content: capturaBuffer,
+            },
+          ];
+        }
+        await transporter.sendMail(mailOptions);
+      } catch (mailErr) {
+        console.warn('⚠️ Email inscripción concurso A1 no enviado:', mailErr.message);
+      }
+    }
+
+    res.json({ success: true, inscripcionId: ref.id, capturaMatriculaPath: capturaStoragePath });
+  } catch (error) {
+    console.error('❌ Error inscripción concurso A1:', error);
+    res.status(500).json({ error: 'No se pudo registrar la inscripción' });
+  }
+});
+
+app.post('/api/concurso-a1/expresion-escrita', async (req, res) => {
+  try {
+    const { email, documento, texto, palabras } = req.body || {};
+
+    if (!email || !documento || !texto) {
+      return res.status(400).json({ error: 'Email, documento y texto son obligatorios' });
+    }
+
+    const wordCount = countWords(texto);
+    if (wordCount < 80) {
+      return res.status(400).json({ error: 'El texto debe tener al menos 80 palabras' });
+    }
+    if (wordCount > 180) {
+      return res.status(400).json({ error: 'El texto supera el máximo permitido (150 palabras aprox.)' });
+    }
+
+    const emailNorm = normalizeEmail(email);
+    const docNorm = normalizeDocumento(documento);
+
+    if (!firestore) {
+      return res.status(503).json({ error: 'Servicio temporalmente no disponible' });
+    }
+
+    const inscripcionDoc = await findConcursoInscripcion(emailNorm, docNorm);
+    if (!inscripcionDoc) {
+      return res.status(404).json({
+        error: 'No encontramos tu inscripción. Inscríbete primero en el concurso.',
+      });
+    }
+
+    const inscripcion = inscripcionDoc.data();
+    const textoLimpio = String(texto).trim().slice(0, 4000);
+
+    await inscripcionDoc.ref.set(
+      {
+        pruebaEscrita: 'recibida',
+        expresionEscrita: {
+          texto: textoLimpio,
+          palabras: wordCount,
+          enviadoAt: admin.firestore.FieldValue.serverTimestamp(),
+        },
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+
+    await firestore.collection('concurso_a1_expresiones').add({
+      inscripcionId: inscripcionDoc.id,
+      nombre: inscripcion.nombre || '',
+      email: inscripcion.email || email,
+      emailNorm,
+      documentoNorm: docNorm,
+      texto: textoLimpio,
+      palabras: wordCount,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    if (transporter) {
+      try {
+        await transporter.sendMail({
+          from: 'admin@academiadeinmigrantes.es',
+          to: 'admin@academiadeinmigrantes.es',
+          replyTo: inscripcion.email || email,
+          subject: `Concurso A1 · Expresión escrita · ${inscripcion.nombre || email}`,
+          html: `
+            <h2>Expresión escrita recibida</h2>
+            <p><strong>Participante:</strong> ${inscripcion.nombre || '—'}</p>
+            <p><strong>Email:</strong> ${inscripcion.email || email}</p>
+            <p><strong>Palabras:</strong> ${wordCount}</p>
+            <hr />
+            <pre style="white-space:pre-wrap;font-family:sans-serif;">${textoLimpio.replace(/</g, '&lt;')}</pre>
+          `,
+        });
+      } catch (mailErr) {
+        console.warn('⚠️ Email expresión escrita no enviado:', mailErr.message);
+      }
+    }
+
+    res.json({ success: true, palabras: wordCount });
+  } catch (error) {
+    console.error('❌ Error expresión escrita concurso A1:', error);
+    res.status(500).json({ error: 'No se pudo enviar la expresión escrita' });
+  }
+});
 
 // ============================================
 // INICIAR SERVIDOR
